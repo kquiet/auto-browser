@@ -21,3 +21,16 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+
+# maven
+target/
+
+# ide related
+nbproject/
+nbactions.xml
+nb-configuration.xml
+.classpath
+.project
+.settings/
+.vscode/
