@@ -17,6 +17,7 @@ package org.kquiet.browser;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
@@ -145,8 +146,8 @@ public class ActionRunner implements Closeable,AutoCloseable {
      * @return
      */
     public static String getDefaultUserDataDir(BrowserType browserType){
-        boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().startsWith("windows");
-        String path = null;
+        boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase(Locale.ENGLISH).startsWith("windows");
+        String path;
         switch(browserType){
             case CHROME:
                 if (isWindows){

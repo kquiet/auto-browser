@@ -70,7 +70,7 @@ public class ActionUtility {
         if ((optionValue==null||optionValue.length==0)&&elementToSelect.isMultiple()){
             elementToSelect.deselectAll();
         }
-        else{
+        else if (optionValue!=null){
             switch(selectBy){
                 case Index:
                     for (Object obj: optionValue){

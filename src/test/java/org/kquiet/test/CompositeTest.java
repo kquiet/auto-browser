@@ -99,8 +99,8 @@ public class CompositeTest {
                 }, priority);
             }
         }, 100);
-        ready.await(3000, TimeUnit.MILLISECONDS);
-        assertTrue("actual:"+sb.toString(), sb.toString().matches("Q100Q1Q2Q3Q4Q5"));
+        boolean waitResult = ready.await(3000, TimeUnit.MILLISECONDS);
+        assertTrue("actual:"+sb.toString(), waitResult && sb.toString().matches("Q100Q1Q2Q3Q4Q5"));
     }
     
     /**

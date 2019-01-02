@@ -15,13 +15,14 @@
  */
 package org.kquiet.concurrent;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  *
  * @author Kimberly
  */
-public class PriorityRunnableFutureComparator implements Comparator<Runnable> {
+public class PriorityRunnableFutureComparator implements Comparator<Runnable>, Serializable {
 
     @Override
     public int compare(Runnable o1, Runnable o2) {

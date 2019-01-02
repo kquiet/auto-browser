@@ -349,7 +349,7 @@ public class ActionTest {
                             WebElement inputE = driver.findElements(By.id("txtSendKey")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
-                        }catch(Exception ex){LOGGER.trace(ex.toString());throw ex;}
+                        }catch(Exception ex){LOGGER.trace("sendKey error", ex);throw ex;}
                     })
                     .done()
                 .justWait(100)
@@ -361,7 +361,7 @@ public class ActionTest {
                             WebElement inputE = driver.findElements(By.id("txtSendKey")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
-                        }catch(Exception ex){LOGGER.trace(ex.toString());throw ex;}
+                        }catch(Exception ex){LOGGER.trace("sendKey error", ex);throw ex;}
                     })
                     .done()
             .returnToComposerBuilder()
@@ -388,7 +388,7 @@ public class ActionTest {
                             WebElement inputE = driver.findElements(By.id("slcSelect")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
-                        }catch(Exception ex){LOGGER.trace(ex.toString());throw ex;}
+                        }catch(Exception ex){LOGGER.trace("select error", ex);throw ex;}
                     })
                     .done()
             .returnToComposerBuilder()
@@ -404,7 +404,6 @@ public class ActionTest {
      */
     @Test
     public void openAndCloseWindow() throws Exception {
-        StringBuilder sb = new StringBuilder();
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .prepareOpenWindow()
