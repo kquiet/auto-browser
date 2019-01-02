@@ -63,7 +63,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
      * @param maxConcurrentComposer
      */
     public ActionRunner(String name, int maxConcurrentComposer){
-        this(PageLoadStrategy.NONE, BrowserType.Chrome, name, maxConcurrentComposer);
+        this(PageLoadStrategy.NONE, BrowserType.CHROME, name, maxConcurrentComposer);
     }
     
     /**
@@ -104,7 +104,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     public static WebDriver createBrowserDriver(BrowserType browserType, PageLoadStrategy pageLoadStrategy){
         Capabilities extraCapabilities = new ImmutableCapabilities(CapabilityType.PAGE_LOAD_STRATEGY, pageLoadStrategy.toString().toLowerCase());
         switch(browserType){
-            case Chrome:
+            case CHROME:
                 ChromeOptions chromeOption = new ChromeOptions();
                 if ("no".equalsIgnoreCase(System.getenv("chrome_sandbox"))){
                     chromeOption.addArguments("--no-sandbox");
@@ -121,7 +121,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
                     }
                 }
                 return new ChromeDriver(chromeOption.merge(extraCapabilities));
-            case Firefox:
+            case FIREFOX:
             default:
                 FirefoxOptions firefoxOption = new FirefoxOptions();
                 if ("yes".equalsIgnoreCase(System.getenv("webdriver_headless"))){
@@ -148,7 +148,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
         boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().startsWith("windows");
         String path = null;
         switch(browserType){
-            case Chrome:
+            case CHROME:
                 if (isWindows){
                     path = System.getenv("LOCALAPPDATA")+"\\Google\\Chrome\\User Data";
                     if (!new File(path).isDirectory()) path = System.getenv("LOCALAPPDATA")+"\\Chromium\\User Data";
@@ -159,7 +159,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
                 }
                 if (!new File(path).isDirectory()) path = null;
                 break;
-            case Firefox:
+            case FIREFOX:
             default:
                 if (isWindows){
                     path = System.getenv("APPDATA")+"\\Mozilla\\Firefox\\Profiles";

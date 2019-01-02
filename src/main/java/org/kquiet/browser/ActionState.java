@@ -24,29 +24,29 @@ public enum ActionState {
     /**
      * Indicate the browser action is created.
      */
-    Created
+    CREATED
     ,
 
     /**
      * Indicate the browser action is running.
      */
-    Running
+    RUNNING
     ,
 
     /**
      * Indicate the browser action has finished an execution phase with no error and is waiting for the execution of next phase.
      */
-    CompleteWithNextPhase
+    COMPLETE_WITH_NEXT_PHASE
     ,
 
     /**
      * Indicate the browser action has finished with error(s).
      */
-    CompleteWithError
+    COMPLETE_WITH_ERROR
     ,
 
     /**
      * Indicate the browser action has finished with no error.
      */
-    Complete
+    COMPLETE
 }

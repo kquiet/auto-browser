@@ -48,7 +48,7 @@ public class MultiPhaseAction implements Runnable{
     /**
      *
      */
-    protected volatile ActionState actionState = ActionState.Created;
+    protected volatile ActionState actionState = ActionState.CREATED;
 
     /**
      *
@@ -102,7 +102,7 @@ public class MultiPhaseAction implements Runnable{
         while(hasNextPhase()){
             try{
                 stopWatch.start();
-                actionState = ActionState.Running;
+                actionState = ActionState.RUNNING;
 
                 //only browserable action is gonna run at browser to avoid blocking browser unnecessarily
                 if (this instanceof Aggregatable || this instanceof Nonbrowserable){
@@ -114,10 +114,10 @@ public class MultiPhaseAction implements Runnable{
                     if (actionException!=null) throw actionException;
                 }
 
-                if (hasNextPhase()) actionState = ActionState.CompleteWithNextPhase;
-                else actionState = ActionState.Complete;
+                if (hasNextPhase()) actionState = ActionState.COMPLETE_WITH_NEXT_PHASE;
+                else actionState = ActionState.COMPLETE;
             }catch(Exception e){
-                actionState = ActionState.CompleteWithError;
+                actionState = ActionState.COMPLETE_WITH_ERROR;
                 errorList.add(e);
                 LOGGER.warn("{} fail", getClass().getSimpleName(), e);
             }finally{
@@ -131,7 +131,7 @@ public class MultiPhaseAction implements Runnable{
      * @return
      */
     public boolean isDone(){
-        return Arrays.asList(ActionState.CompleteWithError, ActionState.Complete, ActionState.CompleteWithNextPhase).contains(actionState);
+        return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE, ActionState.COMPLETE_WITH_NEXT_PHASE).contains(actionState);
     }
     
     /**
@@ -139,7 +139,7 @@ public class MultiPhaseAction implements Runnable{
      * @return
      */
     public boolean isFail(){
-        return actionState==ActionState.CompleteWithError;
+        return actionState==ActionState.COMPLETE_WITH_ERROR;
     }
 
     /**

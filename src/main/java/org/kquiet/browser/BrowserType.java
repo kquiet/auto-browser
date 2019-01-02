@@ -24,12 +24,12 @@ public enum BrowserType {
     /**
      *
      */
-    Chrome,
+    CHROME,
 
     /**
      *
      */
-    Firefox;
+    FIREFOX;
     
     /**
      *
@@ -39,7 +39,7 @@ public enum BrowserType {
     public static BrowserType fromString(String text) {
         for (BrowserType browserType : BrowserType.values()) {
             if ("chromium".equalsIgnoreCase(text)){
-                return BrowserType.Chrome;
+                return BrowserType.CHROME;
             }
             else if (browserType.toString().equalsIgnoreCase(text)) {
                 return browserType;

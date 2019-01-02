@@ -59,6 +59,6 @@ public class OneTimeAction extends MultiPhaseAction{
      */
     @Override
     public boolean isDone(){
-        return Arrays.asList(ActionState.CompleteWithError, ActionState.Complete).contains(actionState);
+        return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE).contains(actionState);
     }
 }

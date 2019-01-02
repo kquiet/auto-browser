@@ -32,6 +32,6 @@ public class TestHelper {
      * @return
      */
     public static ActionRunner createRunner(int maxConcurrentComposer){
-        return new ActionRunner(PageLoadStrategy.NONE, BrowserType.Chrome, "TestBrowser", maxConcurrentComposer);
+        return new ActionRunner(PageLoadStrategy.NONE, BrowserType.CHROME, "TestBrowser", maxConcurrentComposer);
     }
 }
