@@ -19,7 +19,7 @@ package org.kquiet.concurrent;
  *
  * @author Kimberly
  */
-public interface Prioritied {
+public interface Prioritized {
 
     /**
      *

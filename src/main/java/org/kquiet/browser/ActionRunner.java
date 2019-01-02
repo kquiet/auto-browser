@@ -42,7 +42,16 @@ import org.kquiet.concurrent.PriorityCallable;
 import org.kquiet.concurrent.PausablePriorityThreadPoolExecutor;
 
 /**
- *
+ * {@link ActionRunner} is designed to maintain a browser through <a href="https://github.com/SeleniumHQ/selenium" target="_blank">Selenium</a> and run actions against it.
+ * With its methods of {@link #executeComposer(org.kquiet.browser.ActionComposer) executeComposer} and {@link #executeAction(java.lang.Runnable, int) executeAction},
+ * users can run {@link ActionComposer}, {@link org.kquiet.browser.action built-in actions}, or {@link java.lang.Runnable customized actions}.
+ * 
+ * <p>{@link ActionRunner} maintains two prioritized thread pool internally to execute {@link ActionComposer} and browser actions separatedly.
+ * The thread pool for {@link ActionComposer} allows multiple ones to be run concurrently(depends on parameter values of constructors).
+ * The thread pool for browser actions is single-threaded,
+ * so only one browser action is executed at a time(due to <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank"> thelimit of webDriver</a>).
+ * </p>
+ * 
  * @author Kimberly
  */
 public class ActionRunner implements Closeable,AutoCloseable {
@@ -59,20 +68,24 @@ public class ActionRunner implements Closeable,AutoCloseable {
     private final PausablePriorityThreadPoolExecutor composerExecutor;
     
     /**
-     *
-     * @param name
-     * @param maxConcurrentComposer
+     * Create {@link ActionRunner} with org.openqa.selenium.PageLoadStrategy.NONE and {@link BrowserType#CHROME BrowserType.CHROME}
+     * 
+     * @param name name of {@link ActionRunner}
+     * @param maxConcurrentComposer the max number of {@link ActionComposer} that could be executed by this ActionRunner concurrently.
      */
     public ActionRunner(String name, int maxConcurrentComposer){
         this(PageLoadStrategy.NONE, BrowserType.CHROME, name, maxConcurrentComposer);
     }
     
     /**
-     *
-     * @param pageLoadStrategy
-     * @param browserType
-     * @param name
-     * @param maxConcurrentComposer
+     * Create {@link ActionRunner} with specified page load strategy, browser type, name, and max number of concurrent composer.     *
+     * 
+     * @param pageLoadStrategy page load strategy used by this {@link ActionRunner}
+     * @param browserType the type of browser this {@link ActionRunner} will use.
+     * @param name name
+     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed by this {@link ActionRunner} concurrently.
+     * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
+     * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
      */
     public ActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType, String name, int maxConcurrentComposer){
         this.name = name;
@@ -87,22 +100,8 @@ public class ActionRunner implements Closeable,AutoCloseable {
         this.brsDriver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
         this.rootWindowIdentity = this.brsDriver.getWindowHandle();
     }
-    
-    /**
-     *
-     * @return
-     */
-    public String getRootWindowIdentity() {
-        return rootWindowIdentity;
-    }
-    
-    /**
-     *
-     * @param browserType
-     * @param pageLoadStrategy
-     * @return
-     */
-    public static WebDriver createBrowserDriver(BrowserType browserType, PageLoadStrategy pageLoadStrategy){
+
+    private static WebDriver createBrowserDriver(BrowserType browserType, PageLoadStrategy pageLoadStrategy){
         Capabilities extraCapabilities = new ImmutableCapabilities(CapabilityType.PAGE_LOAD_STRATEGY, pageLoadStrategy.toString().toLowerCase());
         switch(browserType){
             case CHROME:
@@ -140,12 +139,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
         }
     }
     
-    /**
-     *
-     * @param browserType
-     * @return
-     */
-    public static String getDefaultUserDataDir(BrowserType browserType){
+    private static String getDefaultUserDataDir(BrowserType browserType){
         boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase(Locale.ENGLISH).startsWith("windows");
         String path;
         switch(browserType){
@@ -181,15 +175,23 @@ public class ActionRunner implements Closeable,AutoCloseable {
     }
     
     /**
-     *
-     * @param runnable
-     * @param priority
-     * @return
+     * 
+     * @return the identity of root/initial window(as the browser started)
      */
-    public Future<Exception> executeAction(Runnable runnable, int priority){
+    public String getRootWindowIdentity() {
+        return rootWindowIdentity;
+    }
+    
+    /**
+     *
+     * @param browserAction browser action to execute
+     * @param priority priority of action
+     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given browser action
+     */
+    public Future<Exception> executeAction(Runnable browserAction, int priority){
         PriorityCallable<Exception> callable = new PriorityCallable<>(()->{
             try{
-                runnable.run();
+                browserAction.run();
                 return null;
             }catch(Exception ex){
                 return ex;
@@ -200,8 +202,8 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @param actionComposer
-     * @return
+     * @param actionComposer {@link ActionComposer} to execute
+     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link ActionComposer}
      */
     public Future<?> executeComposer(ActionComposer actionComposer){
         actionComposer.setActionRunner(this);
@@ -210,25 +212,26 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @return
+     * @return org.openqa.selenium.WebDriver this {@link ActionRunner} is using
      */
     public WebDriver getWebDriver(){
         return brsDriver;
     }
     
     /**
-     *
-     * @return
+     * This method checks the existence of root window and use the result as the aliveness of browser.
+     * 
+     * @return aliveness of browser
      */
-    public boolean isAlive(){
+    public boolean isBrowserAlive(){
         if (brsDriver==null) return false;
 
         Set<String> windowSet = brsDriver.getWindowHandles();
-        return (windowSet!=null && windowSet.size()>0 && windowSet.contains(getRootWindowIdentity()));
+        return (windowSet!=null && !windowSet.isEmpty() && windowSet.contains(getRootWindowIdentity()));
     }
     
     /**
-     *
+     * Stop executing any queued {@link ActionComposer} or browser action.
      */
     public synchronized void pause() {
         try{
@@ -240,7 +243,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     }
     
     /**
-     *
+     * Resume to execute queued {@link ActionComposer} or browser action (if any).
      */
     public synchronized void resume() {
         try{
@@ -255,7 +258,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @return
+     * @return true if paused; false otherwise
      */
     public boolean isPaused(){
         return isPaused;

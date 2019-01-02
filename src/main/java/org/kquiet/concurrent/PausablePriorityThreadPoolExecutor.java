@@ -95,12 +95,12 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
         RunnableFuture<T> newTaskFor = super.newTaskFor(callable);
-        return new PriorityRunnableFuture<>(newTaskFor, ((Prioritied) callable).getPriority());
+        return new PriorityRunnableFuture<>(newTaskFor, ((Prioritized) callable).getPriority());
     }
     
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
         RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
-        return new PriorityRunnableFuture<>(newTaskFor, ((Prioritied) runnable).getPriority());
+        return new PriorityRunnableFuture<>(newTaskFor, ((Prioritized) runnable).getPriority());
     }
 }

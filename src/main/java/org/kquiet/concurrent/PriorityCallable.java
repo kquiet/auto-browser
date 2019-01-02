@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
  * @author Kimberly
  * @param <T>
  */
-public class PriorityCallable<T> implements Prioritied, Callable<T>{
+public class PriorityCallable<T> implements Prioritized, Callable<T>{
     private final Callable<T> callable;
     private final int priority;
     

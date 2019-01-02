@@ -22,17 +22,18 @@ package org.kquiet.browser;
 public enum BrowserType {
 
     /**
-     *
+     * Browser chrome / chromium
      */
     CHROME,
 
     /**
-     *
+     * Browser firefox
      */
     FIREFOX;
     
     /**
-     *
+     * Get BrowserType represented by its text(case insensitive).
+     * 'Chromium' is considered as BrowserType.CHROME.
      * @param text
      * @return
      */

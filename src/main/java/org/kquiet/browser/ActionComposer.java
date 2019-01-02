@@ -36,14 +36,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kquiet.utility.StopWatch;
-import org.kquiet.concurrent.Prioritied;
 import org.kquiet.browser.action.MultiPhaseAction;
+import org.kquiet.concurrent.Prioritized;
 
 /**
  *
  * @author Kimberly
  */
-public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritied {
+public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritized {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionComposer.class);
     
     private ActionRunner actionRunner = null;

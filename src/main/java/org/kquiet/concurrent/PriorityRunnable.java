@@ -19,7 +19,7 @@ package org.kquiet.concurrent;
  *
  * @author Kimberly
  */
-public class PriorityRunnable implements Prioritied, Runnable{
+public class PriorityRunnable implements Prioritized, Runnable{
     private final Runnable runnable;
     private final int priority;
     
