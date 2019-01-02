@@ -24,7 +24,7 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link Click} is a subclass of {@link MultiPhaseAction} which clicks an element
  * @author Kimberly
  */
 public class Click extends OneTimeAction {
@@ -33,8 +33,8 @@ public class Click extends OneTimeAction {
 
     /**
      *
-     * @param by
-     * @param frameBy
+     * @param by the element locating mechanism to use for the clicking element
+     * @param frameBy the frame locating mechanism to use if the clicking element resides in a frame
      */
     public Click(By by, By frameBy){
         super(null);
