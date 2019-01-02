@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser;
+package org.kquiet.browser.action;
 
 import java.util.Arrays;
+
+import org.kquiet.browser.ActionState;
 
 /**
  *

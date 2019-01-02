@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-import org.kquiet.browser.OneTimeAction;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
 

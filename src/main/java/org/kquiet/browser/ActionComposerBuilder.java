@@ -30,6 +30,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 
+import org.kquiet.browser.action.MultiPhaseAction;
 import org.kquiet.browser.action.Click;
 import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.Custom;

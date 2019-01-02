@@ -26,7 +26,6 @@ import org.openqa.selenium.support.ui.FluentWait;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
-import org.kquiet.browser.MultiPhaseAction;
 import org.kquiet.utility.StopWatch;
 
 /**

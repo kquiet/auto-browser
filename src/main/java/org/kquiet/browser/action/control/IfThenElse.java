@@ -22,8 +22,8 @@ import java.util.function.Predicate;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
 
-import org.kquiet.browser.MultiPhaseAction;
-import org.kquiet.browser.OneTimeAction;
+import org.kquiet.browser.action.MultiPhaseAction;
+import org.kquiet.browser.action.OneTimeAction;
 
 /**
  *

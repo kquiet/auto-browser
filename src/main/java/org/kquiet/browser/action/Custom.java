@@ -17,7 +17,6 @@ package org.kquiet.browser.action;
 
 import java.util.function.Consumer;
 
-import org.kquiet.browser.OneTimeAction;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
 

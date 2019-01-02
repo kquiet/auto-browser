@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import org.openqa.selenium.JavascriptExecutor;
 
-import org.kquiet.browser.OneTimeAction;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser;
+package org.kquiet.browser.action;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import org.kquiet.utility.StopWatch;
+import org.kquiet.browser.ActionComposer;
+import org.kquiet.browser.ActionState;
 import org.kquiet.browser.action.control.Nonbrowserable;
 import org.kquiet.browser.action.control.Aggregatable;
 

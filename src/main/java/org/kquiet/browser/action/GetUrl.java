@@ -15,7 +15,6 @@
  */
 package org.kquiet.browser.action;
 
-import org.kquiet.browser.OneTimeAction;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.BrowserActionException;
 
