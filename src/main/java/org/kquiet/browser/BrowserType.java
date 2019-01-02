@@ -38,8 +38,8 @@ public enum BrowserType {
      */
     public static BrowserType fromString(String text) {
         for (BrowserType browserType : BrowserType.values()) {
-            if ("gecko".equalsIgnoreCase(text)){
-                return BrowserType.Firefox;
+            if ("chromium".equalsIgnoreCase(text)){
+                return BrowserType.Chrome;
             }
             else if (browserType.toString().equalsIgnoreCase(text)) {
                 return browserType;
