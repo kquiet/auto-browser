@@ -63,24 +63,24 @@ public class ActionRunner implements Closeable,AutoCloseable {
      * @param maxConcurrentComposer
      */
     public ActionRunner(String name, int maxConcurrentComposer){
-        this(PageLoadStrategy.NONE, WebDriverType.Chrome, name, maxConcurrentComposer);
+        this(PageLoadStrategy.NONE, BrowserType.Chrome, name, maxConcurrentComposer);
     }
     
     /**
      *
      * @param pageLoadStrategy
-     * @param webDriverType
+     * @param browserType
      * @param name
      * @param maxConcurrentComposer
      */
-    public ActionRunner(PageLoadStrategy pageLoadStrategy, WebDriverType webDriverType, String name, int maxConcurrentComposer){
+    public ActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType, String name, int maxConcurrentComposer){
         this.name = name;
         
         browserActionExecutor = new PausablePriorityThreadPoolExecutor("BrowserActionExecutorPool", 1, 1);
         composerExecutor = new PausablePriorityThreadPoolExecutor("ActionComposerExecutorPool", maxConcurrentComposer, maxConcurrentComposer);
 
         //create browser
-        this.brsDriver = createBrowserDriver(webDriverType, pageLoadStrategy);
+        this.brsDriver = createBrowserDriver(browserType, pageLoadStrategy);
         
         //this.brsDriver.manage().window().maximize();
         this.brsDriver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
@@ -97,13 +97,13 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @param webDriverType
+     * @param browserType
      * @param pageLoadStrategy
      * @return
      */
-    public static WebDriver createBrowserDriver(WebDriverType webDriverType, PageLoadStrategy pageLoadStrategy){
+    public static WebDriver createBrowserDriver(BrowserType browserType, PageLoadStrategy pageLoadStrategy){
         Capabilities extraCapabilities = new ImmutableCapabilities(CapabilityType.PAGE_LOAD_STRATEGY, pageLoadStrategy.toString().toLowerCase());
-        switch(webDriverType){
+        switch(browserType){
             case Chrome:
                 ChromeOptions chromeOption = new ChromeOptions();
                 if ("no".equalsIgnoreCase(System.getenv("chrome_sandbox"))){
@@ -114,7 +114,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
                     LOGGER.info("headless chrome used");
                 }
                 if ("yes".equalsIgnoreCase(System.getenv("webdriver_use_default_user_data_dir"))){
-                    String defaultUserDataDir = getDefaultUserDataDir(webDriverType);
+                    String defaultUserDataDir = getDefaultUserDataDir(browserType);
                     if (defaultUserDataDir!=null){
                         chromeOption.addArguments("user-data-dir="+defaultUserDataDir);
                         LOGGER.info("default user data dir used:{}", defaultUserDataDir);
@@ -129,7 +129,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
                     LOGGER.info("headless firefox used");
                 }
                 if ("yes".equalsIgnoreCase(System.getenv("webdriver_use_default_user_data_dir"))){
-                    String defaultUserDataDir2 = getDefaultUserDataDir(webDriverType);
+                    String defaultUserDataDir2 = getDefaultUserDataDir(browserType);
                     if (defaultUserDataDir2!=null){
                         firefoxOption.setProfile(new FirefoxProfile(new File(defaultUserDataDir2)));
                         LOGGER.info("default user profile dir used:{}", defaultUserDataDir2);
@@ -141,13 +141,13 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @param webDriverType
+     * @param browserType
      * @return
      */
-    public static String getDefaultUserDataDir(WebDriverType webDriverType){
+    public static String getDefaultUserDataDir(BrowserType browserType){
         boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase().startsWith("windows");
         String path = null;
-        switch(webDriverType){
+        switch(browserType){
             case Chrome:
                 if (isWindows){
                     path = System.getenv("LOCALAPPDATA")+"\\Google\\Chrome\\User Data";

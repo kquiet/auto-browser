@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -60,7 +60,7 @@ public class CloseWindow extends OneTimeAction {
             ActionComposer actionComposer = getComposer();
             if (!Optional.ofNullable(registeredName).orElse("").isEmpty()){
                 String windowIdentity = actionComposer.getRegisteredWindow(registeredName);
-                if (windowIdentity.isEmpty()) throw new BrowserActionException(String.format("%s(%s) close registered window fail, not found:%s", ActionComposer.class.getSimpleName(), actionComposer.getName(), registeredName));
+                if (windowIdentity.isEmpty()) throw new ExecutionException(String.format("%s(%s) close registered window fail, not found:%s", ActionComposer.class.getSimpleName(), actionComposer.getName(), registeredName));
                 else actionComposer.getBrsDriver().close();
             }
             else if (this.closeAllRegistered){
@@ -73,7 +73,7 @@ public class CloseWindow extends OneTimeAction {
             }
             else{
                 if (actionComposer.switchToFocusWindow()) actionComposer.getBrsDriver().close();
-                else  throw new BrowserActionException(String.format("%s(%s) close focus window fail", ActionComposer.class.getSimpleName(), actionComposer.getName()));
+                else  throw new ExecutionException(String.format("%s(%s) close focus window fail", ActionComposer.class.getSimpleName(), actionComposer.getName()));
             }
         });
     }

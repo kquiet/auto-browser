@@ -13,12 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser.action.control;
+package org.kquiet.browser.action.exception;
 
 /**
  *
  * @author Kimberly
  */
-public interface Aggregatable {
-    
+public class ExecutionException extends RuntimeException {
+    static final long serialVersionUID = 1L;
+
+    /**
+     *
+     * @param message
+     */
+    public ExecutionException(String message){
+        super(message);
+    }
+
+    /**
+     *
+     * @param cause
+     */
+    public ExecutionException(Throwable cause){
+        super(cause);
+    }
+
+    /**
+     *
+     * @param message
+     * @param cause
+     */
+    public ExecutionException(String message, Throwable cause){
+        super(message, cause);
+    }
 }

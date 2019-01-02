@@ -16,7 +16,7 @@
 package org.kquiet.browser.action;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -39,7 +39,7 @@ public class GetUrl extends OneTimeAction {
                 actionComposer.getBrsDriver().get(url);
             }
             catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }

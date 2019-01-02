@@ -16,7 +16,7 @@
 package org.kquiet.browser.action;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 import org.kquiet.utility.StopWatch;
 
 /**
@@ -55,7 +55,7 @@ public class JustWait extends MultiPhaseAction {
                 Thread.sleep(phaseTimeout);
             }
             catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
             
             //add sub-action to wait until element is found or timeout

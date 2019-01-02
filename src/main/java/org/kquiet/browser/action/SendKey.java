@@ -21,7 +21,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -56,7 +56,7 @@ public class SendKey extends OneTimeAction {
                 
                 ActionUtility.clickToSendKeys(actionComposer.getBrsDriver(), element, clearBeforeSend, keysToSend);
             }catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }

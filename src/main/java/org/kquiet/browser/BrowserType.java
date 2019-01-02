@@ -19,7 +19,7 @@ package org.kquiet.browser;
  *
  * @author Kimberly
  */
-public enum WebDriverType {
+public enum BrowserType {
 
     /**
      *
@@ -36,13 +36,13 @@ public enum WebDriverType {
      * @param text
      * @return
      */
-    public static WebDriverType fromString(String text) {
-        for (WebDriverType driverType : WebDriverType.values()) {
+    public static BrowserType fromString(String text) {
+        for (BrowserType browserType : BrowserType.values()) {
             if ("gecko".equalsIgnoreCase(text)){
-                return WebDriverType.Firefox;
+                return BrowserType.Firefox;
             }
-            else if (driverType.toString().equalsIgnoreCase(text)) {
-                return driverType;
+            else if (browserType.toString().equalsIgnoreCase(text)) {
+                return browserType;
             }
         }
         return null;

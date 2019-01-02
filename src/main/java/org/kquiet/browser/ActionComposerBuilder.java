@@ -43,7 +43,7 @@ import org.kquiet.browser.action.SendKey;
 import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.ActionUtility;
-import org.kquiet.browser.action.control.IfThenElse;
+import org.kquiet.browser.action.IfThenElse;
 
 /**
  *

@@ -18,7 +18,7 @@ package org.kquiet.browser.action;
 import java.util.function.Consumer;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -38,7 +38,7 @@ public class Custom extends OneTimeAction {
                 actionComposer.switchToFocusWindow();
                 customFunc.accept(actionComposer);
             }catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }

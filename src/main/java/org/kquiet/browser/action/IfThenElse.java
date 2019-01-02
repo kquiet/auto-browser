@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser.action.control;
+package org.kquiet.browser.action;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
-
-import org.kquiet.browser.action.MultiPhaseAction;
-import org.kquiet.browser.action.OneTimeAction;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -60,7 +57,7 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
                     });
                 }
             }catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }

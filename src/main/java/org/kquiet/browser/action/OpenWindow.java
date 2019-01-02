@@ -24,7 +24,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -73,14 +73,14 @@ public class OpenWindow extends OneTimeAction {
                         actionComposer.setFocusWindow(actualHandle);
                     }
                     if (!actionComposer.registerWindow(this.registerName, actualHandle)){
-                        throw new BrowserActionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
+                        throw new ExecutionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
                     }
                     break;
                 }
             }
 
             if (actualHandle==null){
-                throw new BrowserActionException(String.format("%s(%s) can't find new window! %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString()));
+                throw new ExecutionException(String.format("%s(%s) can't find new window! %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString()));
             }
         });
     }

@@ -18,7 +18,7 @@ package org.kquiet.test;
 import org.openqa.selenium.PageLoadStrategy;
 
 import org.kquiet.browser.ActionRunner;
-import org.kquiet.browser.WebDriverType;
+import org.kquiet.browser.BrowserType;
 
 /**
  *
@@ -32,6 +32,6 @@ public class TestHelper {
      * @return
      */
     public static ActionRunner createRunner(int maxConcurrentComposer){
-        return new ActionRunner(PageLoadStrategy.NONE, WebDriverType.Chrome, "TestBrowser", maxConcurrentComposer);
+        return new ActionRunner(PageLoadStrategy.NONE, BrowserType.Chrome, "TestBrowser", maxConcurrentComposer);
     }
 }

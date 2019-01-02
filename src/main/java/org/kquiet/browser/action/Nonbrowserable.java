@@ -13,37 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser;
+package org.kquiet.browser.action;
 
 /**
  *
  * @author Kimberly
  */
-public class BrowserActionException extends RuntimeException {
-    static final long serialVersionUID = 1L;
-
-    /**
-     *
-     * @param message
-     */
-    public BrowserActionException(String message){
-        super(message);
-    }
-
-    /**
-     *
-     * @param cause
-     */
-    public BrowserActionException(Throwable cause){
-        super(cause);
-    }
-
-    /**
-     *
-     * @param message
-     * @param cause
-     */
-    public BrowserActionException(String message, Throwable cause){
-        super(message, cause);
-    }
+public interface Nonbrowserable {
+    
 }

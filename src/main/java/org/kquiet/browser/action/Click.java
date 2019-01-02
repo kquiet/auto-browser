@@ -21,7 +21,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
  *
@@ -51,7 +51,7 @@ public class Click extends OneTimeAction {
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
                 ActionUtility.click(actionComposer.getBrsDriver(), element);
             }catch(Exception e){
-                throw new BrowserActionException("Error: "+toString(), e);
+                throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }

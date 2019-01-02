@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kquiet.browser.action.control;
+package org.kquiet.browser.action;
 
 /**
  *
  * @author Kimberly
  */
-public interface Nonbrowserable {
+public interface Aggregatable {
     
 }

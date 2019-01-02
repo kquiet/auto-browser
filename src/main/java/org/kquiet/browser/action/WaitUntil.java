@@ -25,7 +25,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.BrowserActionException;
+import org.kquiet.browser.action.exception.ExecutionException;
 import org.kquiet.utility.StopWatch;
 
 /**
@@ -91,7 +91,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
                 }
             }
             catch(Exception e){
-                throw new BrowserActionException(toString(), e);
+                throw new ExecutionException(toString(), e);
             }
             
             //condition not met
@@ -115,7 +115,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
             timeoutCallback.accept(actionComposer);
         }
         else{
-            throw new BrowserActionException("Timeout! "+toString());
+            throw new ExecutionException("Timeout! "+toString());
         }
     }
     
