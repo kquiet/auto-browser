@@ -20,7 +20,7 @@ import org.kquiet.browser.action.exception.ExecutionException;
 import org.kquiet.utility.StopWatch;
 
 /**
- *
+ * {@link JustWait} is a subclass of {@link MultiPhaseAction} which just waits by phases to avoid blocking the execution of other browser actions.
  * @author Kimberly
  */
 public class JustWait extends MultiPhaseAction {
@@ -31,8 +31,8 @@ public class JustWait extends MultiPhaseAction {
     
     /**
      *
-     * @param totalTimeout
-     * @param phaseTimeout
+     * @param totalTimeout the maximum amount of time to wait
+     * @param phaseTimeout the maximum amount of time to wait for each execution phase
      */
     public JustWait(int totalTimeout, int phaseTimeout){
         super(null);
@@ -46,12 +46,12 @@ public class JustWait extends MultiPhaseAction {
             costWatch.start();
             
             if (isTimeout()){
-                this.unregisterNextPhase();
+                unregisterNextPhase();
                 return ;
             }
 
             try{
-                this.getComposer().switchToFocusWindow();
+                getComposer().switchToFocusWindow();
                 Thread.sleep(phaseTimeout);
             }
             catch(Exception e){
@@ -60,7 +60,7 @@ public class JustWait extends MultiPhaseAction {
             
             //add sub-action to wait until element is found or timeout
             if (isTimeout()){
-                this.unregisterNextPhase();
+                unregisterNextPhase();
             }
         };
     }
