@@ -31,14 +31,13 @@ import org.kquiet.utility.StopWatch;
 /**
  * {@link WaitUntil} is a subclass of {@link MultiPhaseAction} which waits the evaluation result of condition function by phases to avoid blocking the execution of other browser actions.
  * 
- * <p>{@link WaitUntil} waits until one of the following occurs:
+ * <p>{@link WaitUntil} waits until one of the following occurs:</p>
  * <ol>
  * <li>the condition function returns neither null nor false</li>
  * <li>the condition function throws an unignored exception</li>
  * <li>the timeout expires</li>
  * <li>the execution thread of this {@link WaitUntil} is interrupted</li>
  * </ol>
- * </p>
  * 
  * <p>When timeout expires, it will throw an {@link org.kquiet.browser.action.exception.ExecutionException ExecutionException} if no timeout callback function is supplied;
  * if a timeout callback function is supplied, it will execute the callback function instead of throwing {@link org.kquiet.browser.action.exception.ExecutionException ExecutionException}.</p>
@@ -102,9 +101,6 @@ public class WaitUntil<V> extends MultiPhaseAction {
                     timeoutToDo();
                     return;
                 }
-            }
-            catch(Exception e){
-                throw new ExecutionException(toString(), e);
             }
             
             //condition not met

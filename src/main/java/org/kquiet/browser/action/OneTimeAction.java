@@ -31,7 +31,7 @@ public class OneTimeAction extends MultiPhaseAction{
      */
     public OneTimeAction(Runnable action){
         super(null);
-        super.setInternalAction(makeOnetimeRunnable(action));
+        this.setInternalAction(makeOnetimeRunnable(action));
     }
     
     private Runnable makeOnetimeRunnable(Runnable action){
@@ -47,10 +47,12 @@ public class OneTimeAction extends MultiPhaseAction{
     /**
      *
      * @param action
+     * @return 
      */
     @Override
-    public void setInternalAction(Runnable action) {
-        this.internalAction = makeOnetimeRunnable(action);
+    public OneTimeAction setInternalAction(Runnable action) {
+        super.setInternalAction(makeOnetimeRunnable(action));
+        return this;
     }
     
     /**

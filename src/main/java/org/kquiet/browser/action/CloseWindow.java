@@ -15,8 +15,11 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
@@ -26,60 +29,47 @@ import org.kquiet.browser.action.exception.ExecutionException;
  * @author Kimberly
  */
 public class CloseWindow extends OneTimeAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CloseWindow.class);
+    
     private final boolean closeAllRegistered;
-    private final String registeredName;    
                 
     /**
      *
+     * @param closeAllRegistered
      */
-    public CloseWindow(){
-        this(false, null);
-    }
-    
-    /**
-     *
-     * @param closeAll
-     */
-    public CloseWindow(boolean closeAll){
-        this(closeAll, null);
-    }
-    
-    /**
-     *
-     * @param registeredName
-     */
-    public CloseWindow(String registeredName){
-        this(false, registeredName);
-    }
-    
-    private CloseWindow(boolean closeAllRegistered, String registeredName){
+    public CloseWindow(boolean closeAllRegistered){
         super(null);
         this.closeAllRegistered = closeAllRegistered;
-        this.registeredName = registeredName;
         this.setInternalAction(()->{
             ActionComposer actionComposer = getComposer();
-            if (!Optional.ofNullable(registeredName).orElse("").isEmpty()){
-                String windowIdentity = actionComposer.getRegisteredWindow(registeredName);
-                if (windowIdentity.isEmpty()) throw new ExecutionException(String.format("%s(%s) close registered window fail, not found:%s", ActionComposer.class.getSimpleName(), actionComposer.getName(), registeredName));
-                else actionComposer.getBrsDriver().close();
-            }
-            else if (this.closeAllRegistered){
+            //root window should never be closed
+            String rootWindow = actionComposer.getRootWindow();
+            if (this.closeAllRegistered){
                 List<String> windowList = actionComposer.getRegisteredWindows();
+                List<String> failList = new ArrayList<>();
                 for (String window: windowList){
-                    if (actionComposer.switchToWindow(window)){
-                        actionComposer.getBrsDriver().close();
+                    if (!window.equals(rootWindow)){
+                        if (actionComposer.switchToWindow(window)){
+                            actionComposer.getBrsDriver().close();
+                        }
+                        else failList.add(window);
+                    }
+                    else{
+                        LOGGER.info("{}({}): root window({}) can't be closed", ActionComposer.class.getSimpleName(), actionComposer.getName(), window);
                     }
                 }
+                if (!failList.isEmpty()) throw new ExecutionException(String.format("%s(%s) close registered windows(%s) fail; it may have been closed or equal to the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), String.join(",", failList)));
             }
             else{
-                if (actionComposer.switchToFocusWindow()) actionComposer.getBrsDriver().close();
-                else  throw new ExecutionException(String.format("%s(%s) close focus window fail", ActionComposer.class.getSimpleName(), actionComposer.getName()));
+                String focusWindow = actionComposer.getFocusWindow();
+                if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getBrsDriver().close();
+                else throw new ExecutionException(String.format("%s(%s) close focus window(%s) fail; it may have been closed or is the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), focusWindow));
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), CloseWindow.class.getSimpleName(), String.valueOf(closeAllRegistered), registeredName);
+        return String.format("%s(%s) %s:%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), CloseWindow.class.getSimpleName(), String.valueOf(closeAllRegistered));
     }
 }

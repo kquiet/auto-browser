@@ -103,7 +103,7 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     }
     
     @Override
-    public void setContainingComposer(ActionComposer containingComposer) {
+    public IfThenElse setContainingComposer(ActionComposer containingComposer) {
         super.setContainingComposer(containingComposer);
         thenActionList.forEach(action->{
             action.setContainingComposer(containingComposer);
@@ -111,5 +111,6 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
         elseActionList.forEach(action->{
             action.setContainingComposer(containingComposer);
         });
+        return this;
     }
 }

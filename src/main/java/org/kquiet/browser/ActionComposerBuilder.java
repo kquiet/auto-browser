@@ -22,7 +22,6 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.openqa.selenium.WebDriver;
@@ -177,12 +176,6 @@ public class ActionComposerBuilder{
         currentActionComposer.setOpenWindow(openWindowFlag);
         currentActionComposer.setCloseWindow(closeWindowFlag);
         
-        MultiPhaseAction initAction = new IfThenElse(ac->currentActionComposer.needOpenWindow(), Arrays.asList(new OpenWindow(true, UUID.randomUUID().toString())), null);
-        currentActionComposer.setInitAction(initAction);
-        
-        MultiPhaseAction finalAction = new IfThenElse(ac->currentActionComposer.needCloseWindow(), Arrays.asList(new CloseWindow()), null);
-        currentActionComposer.setFinalAction(finalAction);
-        
         //clear for next build
         clearActionComposer();
         return currentActionComposer;
@@ -284,52 +277,36 @@ public class ActionComposerBuilder{
         
         /**
          *
+         * @param closeAllRegistered
          * @return
          */
-        public ActionSequenceBuilder closeWindow(){
-            return new CloseWindowBuilder(this).done();
+        public ActionSequenceBuilder closeWindow(boolean closeAllRegistered){
+            return new CloseWindowBuilder(this, closeAllRegistered).done();
         }
 
         /**
          *
+         * @param closeAllRegistered
          * @return
          */
-        public CloseWindowBuilder prepareCloseWindow(){
-            return new CloseWindowBuilder(this);
+        public CloseWindowBuilder prepareCloseWindow(boolean closeAllRegistered){
+            return new CloseWindowBuilder(this, closeAllRegistered);
         }
 
         /**
          *
          */
         public class CloseWindowBuilder extends InnerBuilderBase{
-            private String registeredName = null;
-            private boolean closeAllRegistered = false;
+            private final boolean closeAllRegistered;
 
             /**
              *
              * @param parentActionSequenceBuilder
+             * @param closeAllRegistered
              */
-            public CloseWindowBuilder(ActionSequenceBuilder parentActionSequenceBuilder){
+            public CloseWindowBuilder(ActionSequenceBuilder parentActionSequenceBuilder, boolean closeAllRegistered){
                 super(parentActionSequenceBuilder);
-            }
-
-            /**
-             *
-             * @return
-             */
-            public CloseWindowBuilder forAllRegistered(){
-                this.closeAllRegistered = true;
-                return this;
-            }
-
-            /**
-             *
-             * @param registeredName
-             * @return
-             */
-            public CloseWindowBuilder forRegisteredName(String registeredName){
-                this.registeredName = registeredName;
-                return this;
+                this.closeAllRegistered = closeAllRegistered;
             }
 
             /**
@@ -337,10 +314,7 @@ public class ActionComposerBuilder{
              * @return
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action;
-                if (closeAllRegistered) action = new CloseWindow(true);
-                else if (!Optional.ofNullable(registeredName).orElse("").isEmpty()) action = new CloseWindow(registeredName);
-                else action = new CloseWindow();
+                MultiPhaseAction action = new CloseWindow(closeAllRegistered);
                 return parentActionSequenceBuilder.accept(action);
             }
         }

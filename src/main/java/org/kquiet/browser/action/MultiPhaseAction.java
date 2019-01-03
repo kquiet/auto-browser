@@ -117,6 +117,7 @@ public class MultiPhaseAction implements Runnable{
                 if (hasNextPhase()) actionState = ActionState.COMPLETE_WITH_NEXT_PHASE;
                 else actionState = ActionState.COMPLETE;
             }catch(Exception e){
+                unregisterNextPhase();
                 actionState = ActionState.COMPLETE_WITH_ERROR;
                 errorList.add(e);
                 LOGGER.warn("{} fail", getClass().getSimpleName(), e);
@@ -153,9 +154,11 @@ public class MultiPhaseAction implements Runnable{
     /**
      *
      * @param runnable
+     * @return 
      */
-    public void setInternalAction(Runnable runnable) {
+    public MultiPhaseAction setInternalAction(Runnable runnable) {
         this.internalAction = runnable;
+        return this;
     }
     
     /**
@@ -188,8 +191,10 @@ public class MultiPhaseAction implements Runnable{
 
     /**
      * @param containingComposer the containingComposer to set
+     * @return 
      */
-    public void setContainingComposer(ActionComposer containingComposer) {
+    public MultiPhaseAction setContainingComposer(ActionComposer containingComposer) {
         this.containingComposer = containingComposer;
+        return this;
     }
 }

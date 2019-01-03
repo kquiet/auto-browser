@@ -17,11 +17,13 @@ package org.kquiet.browser;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.RunnableFuture;
@@ -37,9 +39,22 @@ import org.slf4j.LoggerFactory;
 
 import org.kquiet.utility.StopWatch;
 import org.kquiet.browser.action.MultiPhaseAction;
+import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.concurrent.Prioritized;
+import org.kquiet.browser.action.CloseWindow;
+import org.kquiet.browser.action.IfThenElse;
 
 /**
+ * {@link ActionComposer} is responsible to maintain a list of actions, arrange them to be executed through associated {@link ActionRunner} and track their execution result.
+ * If any executed action fails, {@link ActionComposer} marks itself failed as well.
+ * 
+ * <p>In addition to the actions added by add*() methods, {@link ActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:</p>
+ * <ol>
+ * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i>.
+ * All actions should be executed against this focus window to be isolated from other {@link ActionComposer}, however it could be changed by actions if necessary.
+ * If no focus window is specified, it will use the root window of {@link ActionRunner} as its focus window.</li>
+ * <li>The action executed at the end is called as <i>Final Action</i>, which closes all registered windows. </li>
+ * </ol>
  *
  * @author Kimberly
  */
@@ -48,8 +63,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     private ActionRunner actionRunner = null;
 
-    private MultiPhaseAction initAction = null;
-    private MultiPhaseAction finalAction = null;
+    private final MultiPhaseAction initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, UUID.randomUUID().toString())), null).setContainingComposer(this);
+    private final MultiPhaseAction finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null).setContainingComposer(this);
     private final Deque<MultiPhaseAction> mainActionList = new LinkedList<>();
     
     private Consumer<ActionComposer> onFailFunc = (bac)->{};
@@ -59,7 +74,6 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private final CountDownLatch checkDoneLatch = new CountDownLatch(1);
 
     private String name = null;
-    private String message = null;
     private int priority = Integer.MIN_VALUE;
     private final StopWatch totalCostWatch = new StopWatch();
     
@@ -70,7 +84,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private volatile boolean skipResultFunction = false;
     private volatile boolean cacheFailInfo = true;
     private String failUrl = null;
-    private String failPageContent = null;
+    private String failPage = null;
     
     private volatile String focusWindowIdentity = null;
     private final Map<String, String> registeredWindows = new LinkedHashMap<>();
@@ -81,7 +95,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private ActionComposer child = null;
     
     /**
-     *
+     * Create an {@link ActionComposer}
      */
     public ActionComposer(){
     }
@@ -217,17 +231,20 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return window identity of the root window
+     * @see ActionRunner#getRootWindowIdentity()
      */
     public String getRootWindow(){
         return actionRunner.getRootWindowIdentity();
     }
     
     /**
-     *
-     * @param name
-     * @param windowIdentity
-     * @return
+     * Register a window. The window identity of registered window can be obtained throught {@link #getRegisteredWindow(java.lang.String) getRegisteredWindow()}.
+     * Registered windows will to be closed in <i>Final Action</i>.
+     * 
+     * @param name register name
+     * @param windowIdentity window identity
+     * @return {@code true} if register name and window identity are not empty and the register name isn't registered; {@code false} otherwise
      */
     public boolean registerWindow(String name, String windowIdentity){
         if (name==null || name.isEmpty() || windowIdentity==null || windowIdentity.isEmpty() || registeredWindows.containsKey(name)) return false;
@@ -239,8 +256,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @param registerName
-     * @return
+     * @param registerName register name of window
+     * @return window identity
      */
     public String getRegisteredWindow(String registerName){
         return registeredWindows.getOrDefault(registerName, "");
@@ -248,25 +265,33 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return all window identities of registered windows
      */
     public List<String> getRegisteredWindows(){
         return registeredWindows.values().stream().collect(Collectors.toList());
     }
     
     /**
-     *
-     * @param runnable
-     * @return
+     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with this {@link ActionComposer}'s priority
+     * 
+     * @param runnable the object whose run method will be invoked
+     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link java.lang.Runnable runnable}.
+     * {@link java.util.concurrent.Future#get() Future's get methods} returns {@code null} if no exception occurred.
      */
     public Future<Exception> callBrowser(Runnable runnable){
         return actionRunner.executeAction(runnable, getPriority());
     }
     
     /**
-     *
-     * @param childActionComposer
-     * @return
+     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after this {@link ActionComposer} is done.
+     * Every {@link ActionComposer} has at most one parent/child {@link ActionComposer}.
+     * If this {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
+     * 
+     * <p>For example, before calling this method: ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
+     * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
+     * 
+     * @param childActionComposer the {@link ActionComposer} to be executed
+     * @return child {@link ActionComposer}
      */
     public ActionComposer continueWith(ActionComposer childActionComposer){
         if (childActionComposer==null) return this;
@@ -286,12 +311,12 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             }
             temp.setChild(oldChild);
         }
-        return this;
+        return childActionComposer;
     }
     
     /**
      *
-     * @return
+     * @return {@code true} if this {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasChild(){
         return child!=null;
@@ -299,19 +324,19 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return child {@link ActionComposer} if exists; {@code null} otherwise
      */
     public ActionComposer getChild(){
         return child;
     }
     
-    private ActionComposer setChild(ActionComposer child){
-        return this.child = child;
+    private void setChild(ActionComposer child){
+        this.child = child;
     }
     
     /**
      *
-     * @return
+     * @return {@code true} if this {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasParent(){
         return parent!=null;
@@ -319,7 +344,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return parent {@link ActionComposer} if exists; {@code null} otherwise
      */
     public ActionComposer getParent(){
         return parent;
@@ -330,56 +355,19 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     *
-     * @return
-     */
-    protected MultiPhaseAction getInitAction() {
-        return initAction;
-    }
-    
-    /**
-     *
-     * @param action
-     */
-    protected void setInitAction(MultiPhaseAction action) {
-        initAction = action;
-        action.setContainingComposer(this);
-    }
-
-    /**
-     *
-     * @return
-     */
-    protected MultiPhaseAction getFinalAction() {
-        return finalAction;
-    }
-
-    /**
-     *
-     * @param action
-     */
-    protected void setFinalAction(MultiPhaseAction action) {
-        finalAction = action;
-        action.setContainingComposer(this);
-    }
-    
-    /**
-     *
-     * @return
+     * Switch browser's focus window to this {@link ActionComposer}'s focus window.
+     * 
+     * @return {@code true} if switch success; {@code false} otherwise
      */
     public boolean switchToFocusWindow(){
-        //set focus window to root window if not set
-        if (getFocusWindow()==null){
-            setFocusWindow(actionRunner.getRootWindowIdentity());
-        }
-            
         return switchToWindow(getFocusWindow());
     }
     
     /**
-     *
-     * @param windowIdentity
-     * @return
+     * Switch browser's focus window to specified window.
+     * 
+     * @param windowIdentity the window identity to switch to
+     * @return {@code true} if switch success; {@code false} otherwise
      */
     public boolean switchToWindow(String windowIdentity){
         try{
@@ -392,81 +380,75 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     *
-     * @param onFailFunc
+     * Set the callback function to be executed when this {@link ActionComposer} is marked as failed.
+     * 
+     * @param onFailFunc the callback function to be executed
+     * @return this {@link ActionComposer}
      */
-    public void setOnFailFunction(Consumer<ActionComposer> onFailFunc) {
+    public ActionComposer setOnFailFunction(Consumer<ActionComposer> onFailFunc) {
         if (onFailFunc != null) this.onFailFunc = onFailFunc;
+        return this;
     }
     
     /**
-     *
-     * @param onSuccessFunc
+     * Set the callback function to be executed when this {@link ActionComposer} is finished without being marked as failed.
+     * 
+     * @param onSuccessFunc the callback function to be executed
+     * @return this {@link ActionComposer}
      */
-    public void setOnSuccessFunction(Consumer<ActionComposer> onSuccessFunc) {
+    public ActionComposer setOnSuccessFunction(Consumer<ActionComposer> onSuccessFunc) {
         if (onSuccessFunc != null) this.onSuccessFunc = onSuccessFunc;
+        return this;
     }
     
     /**
-     *
-     * @param onDoneFunc
+     * Set the callback function to be executed when this {@link ActionComposer} is done.
+     * This callback function is executed after <i>fail function</i> and <i>success function</i>.
+     * 
+     * @param onDoneFunc the callback function to be executed
+     * @return this {@link ActionComposer}
      */
-    public void setOnDoneFunction(Consumer<ActionComposer> onDoneFunc) {
+    public ActionComposer setOnDoneFunction(Consumer<ActionComposer> onDoneFunc) {
         if (onDoneFunc != null) this.onDoneFunc = onDoneFunc;
+        return this;
     }
     
     /**
      *
-     * @return
+     * @return the name of this {@link ActionComposer}
      */
     public String getName() {
         return name;
     }
 
     /**
-     *
-     * @param name
+     * Set the name of this {@link ActionComposer}.
+     * @param name name
+     * @return this {@link ActionComposer}
      */
-    public void setName(String name) {
+    public ActionComposer setName(String name) {
         this.name = name;
+        return this;
     }
     
-    /**
-     *
-     * @return
-     */
-    public String getMessage() {
-        return message;
-    }
-
-    /**
-     *
-     * @param message
-     */
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    
-    /**
-     *
-     * @return
-     */
     @Override
     public int getPriority() {
         return priority;
     }
 
     /**
-     *
-     * @param priority
+     * Set the priority of this {@link ActionComposer}
+     * @param priority priority
+     * @return this {@link ActionComposer}
      */
-    public void setPriority(int priority) {
+    public ActionComposer setPriority(int priority) {
         this.priority = priority;
+        return this;
     }    
     
     /**
      *
-     * @return
+     * @return total execution time of this {@link ActionComposer}
      */
     public Duration getCostTime() {
         return totalCostWatch.getDuration();
@@ -474,7 +456,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return {@code true} if this {@link ActionComposer} has been marked as failed; {@code false} otherwise
      */
     public boolean isFail(){
         return isFail;
@@ -482,7 +464,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return
+     * @return {@code true} if this {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
      */
     public boolean isSuccess(){
         return !isFail;
@@ -495,7 +477,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return
+     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #cacheFailInfo(boolean) cache fail info} is enabled; {@code null} otherwise
      */
     public String getFailUrl() {
         return failUrl;
@@ -503,20 +485,16 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return
+     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #cacheFailInfo(boolean) cache fail info} is enabled; {@code null} otherwise
      */
-    public String getFailPageContent() {
-        return failPageContent;
+    public String getFailPage() {
+        return failPage;
     }
-    
-    /**
-     *
-     * @param failUrl
-     * @param failPageContent
-     */
-    public void setFailInfo(String failUrl, String failPageContent) {
+
+    private ActionComposer setFailInfo(String failUrl, String failPage) {
         this.failUrl = failUrl;
-        this.failPageContent = failPageContent;
+        this.failPage = failPage;
+        return this;
     }
     
     /**
@@ -542,15 +520,21 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @return
      */
     public String getFocusWindow() {
+        //set focus window to root window if not set
+        if (focusWindowIdentity==null){
+            focusWindowIdentity = getRootWindow();
+        }
         return focusWindowIdentity;
     }
 
     /**
      *
      * @param focusWindowIdentity
+     * @return 
      */
-    public void setFocusWindow(String focusWindowIdentity) {
+    public ActionComposer setFocusWindow(String focusWindowIdentity) {
         this.focusWindowIdentity = focusWindowIdentity;
+        return this;
     }
     
     /**
@@ -644,7 +628,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      *
      * @return
      */
-    public List<Exception> getExceptionFromFailAction(){
+    public List<Exception> getErrors(){
         List<MultiPhaseAction> actionList = getAllActionInSequence();
         List<Exception> result = new ArrayList<>();
         for(MultiPhaseAction action:actionList){
@@ -655,35 +639,31 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         return result;
     }
 
-    /**
-     *
-     * @return
-     */
-    public boolean needOpenWindow() {
+    private boolean needOpenWindow() {
         return openWindowFlag;
     }
 
     /**
      *
      * @param openWindowFlag
+     * @return 
      */
-    public void setOpenWindow(boolean openWindowFlag) {
+    public ActionComposer setOpenWindow(boolean openWindowFlag) {
         this.openWindowFlag = openWindowFlag;
+        return this;
     }
 
-    /**
-     *
-     * @return
-     */
-    public boolean needCloseWindow() {
+    private boolean needCloseWindow() {
         return closeWindowFlag;
     }
 
     /**
      *
      * @param closeWindowFlag
+     * @return 
      */
-    public void setCloseWindow(boolean closeWindowFlag) {
+    public ActionComposer setCloseWindow(boolean closeWindowFlag) {
         this.closeWindowFlag = closeWindowFlag;
+        return this;
     }
 }

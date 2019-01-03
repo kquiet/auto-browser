@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>auto-browser</name>
     <groupId>org.kquiet</groupId>
     <artifactId>auto-browser</artifactId>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>A java library wrapping selenium to help focus on browser automation.</description>
+    <url>https://github.com/kquiet/auto-browser</url>
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -297,4 +299,26 @@
             </build>
         </profile>
     </profiles>
+    
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    
+    <developers>
+        <developer>
+            <name>Kimberly</name>
+            <email>mrkid863@gmail.com</email>
+            <organization>none</organization>
+            <organizationUrl>https://github.com/kquiet</organizationUrl>
+        </developer>
+    </developers>
+    
+    <scm>
+        <connection>scm:git:git://github.com/kquiet/auto-browser.git</connection>
+        <developerConnection>scm:git:ssh://github.com:kquiet/auto-browser.git</developerConnection>
+        <url>https://github.com/kquiet/auto-browser/tree/master</url>
+    </scm>
 </project>

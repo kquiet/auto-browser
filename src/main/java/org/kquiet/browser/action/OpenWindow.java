@@ -16,6 +16,7 @@
 package org.kquiet.browser.action;
 
 import java.util.LinkedHashSet;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class OpenWindow extends OneTimeAction {
     public OpenWindow(boolean asComposerFocusWindow, String registerName){
         super(null);
         this.asComposerFocusWindow = asComposerFocusWindow;
-        this.registerName = registerName;
+        this.registerName = Optional.ofNullable(registerName).orElse("");
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             WebDriver brsDriver = actionComposer.getBrsDriver();
@@ -53,9 +54,9 @@ public class OpenWindow extends OneTimeAction {
             for(String winHandle: brsDriver.getWindowHandles()){
                 beforeWindowSet.add(winHandle);
             }
-            final String initWindow = beforeWindowSet.stream().findFirst().orElse(null);
+            final String rootWindow = actionComposer.getRootWindow();
             try{
-                ((JavascriptExecutor)actionComposer.getBrsDriver().switchTo().window(initWindow)).executeScript("window.open('about:blank','_blank');");
+                ((JavascriptExecutor)actionComposer.getBrsDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
             }catch(Exception ex){
                 LOGGER.warn("[{}] open new window script error!", actionComposer.getName(), ex);
             }
@@ -67,12 +68,12 @@ public class OpenWindow extends OneTimeAction {
             }
             for(String winHandle: afterWindowSet){
                 //got new window
-                if (!winHandle.equals(initWindow) && !beforeWindowSet.contains(winHandle)){
+                if (!winHandle.equals(rootWindow) && !beforeWindowSet.contains(winHandle)){
                     actualHandle=winHandle;
                     if (this.asComposerFocusWindow){
                         actionComposer.setFocusWindow(actualHandle);
                     }
-                    if (!actionComposer.registerWindow(this.registerName, actualHandle)){
+                    if (!this.registerName.isEmpty() && !actionComposer.registerWindow(this.registerName, actualHandle)){
                         throw new ExecutionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
                     }
                     break;

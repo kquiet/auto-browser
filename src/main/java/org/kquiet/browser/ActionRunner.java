@@ -42,15 +42,14 @@ import org.kquiet.concurrent.PriorityCallable;
 import org.kquiet.concurrent.PausablePriorityThreadPoolExecutor;
 
 /**
- * {@link ActionRunner} is designed to maintain a browser through <a href="https://github.com/SeleniumHQ/selenium" target="_blank">Selenium</a> and run actions against it.
+ * {@link ActionRunner} is resposible to run a browser through <a href="https://github.com/SeleniumHQ/selenium" target="_blank">Selenium</a> and execute actions against it.
  * With its methods of {@link #executeComposer(org.kquiet.browser.ActionComposer) executeComposer} and {@link #executeAction(java.lang.Runnable, int) executeAction},
  * users can run {@link ActionComposer}, {@link org.kquiet.browser.action built-in actions}, or {@link java.lang.Runnable customized actions}.
  * 
  * <p>{@link ActionRunner} maintains two prioritized thread pool internally to execute {@link ActionComposer} and browser actions separatedly.
  * The thread pool for {@link ActionComposer} allows multiple ones to be run concurrently(depends on parameter values of constructors).
  * The thread pool for browser actions is single-threaded,
- * so only one browser action is executed at a time(due to <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank"> thelimit of webDriver</a>).
- * </p>
+ * so only one browser action is executed at a time(due to <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank"> the constraint of WebDriver</a>).</p>
  * 
  * @author Kimberly
  */
@@ -176,7 +175,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      * 
-     * @return the identity of root/initial window(as the browser started)
+     * @return the identity of root window(the initial window as the browser started)
      */
     public String getRootWindowIdentity() {
         return rootWindowIdentity;
@@ -220,14 +219,20 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      * This method checks the existence of root window and use the result as the aliveness of browser.
+     * When a false result is monitored, users can choose to {@link #close() close} this {@link ActionRunner} and create a new one.
      * 
-     * @return aliveness of browser
+     * @return {@code true} if the root window exists; {@code false} otherwise
      */
     public boolean isBrowserAlive(){
         if (brsDriver==null) return false;
-
-        Set<String> windowSet = brsDriver.getWindowHandles();
-        return (windowSet!=null && !windowSet.isEmpty() && windowSet.contains(getRootWindowIdentity()));
+        
+        try{
+            Set<String> windowSet = brsDriver.getWindowHandles();
+            return (windowSet!=null && !windowSet.isEmpty() && windowSet.contains(getRootWindowIdentity()));
+        }catch(Exception ex){
+            LOGGER.warn("[{}] check browser alive error!", name, ex);
+            return false;
+        }
     }
     
     /**
@@ -258,7 +263,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @return true if paused; false otherwise
+     * @return {@code true} if paused; {@code false} otherwise
      */
     public boolean isPaused(){
         return isPaused;

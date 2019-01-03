@@ -407,15 +407,12 @@ public class ActionTest {
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .prepareOpenWindow()
-                    .withComposerFocus()
                     .registerAs("newwindow")
                 .done()
                 .custom(ac->{
                     if (!ac.switchToWindow(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
-                .prepareCloseWindow()
-                    .forRegisteredName("newwindow")
-                    .done()
+                .closeWindow(true)
                 .custom(ac->{
                     if (ac.switchToWindow(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
