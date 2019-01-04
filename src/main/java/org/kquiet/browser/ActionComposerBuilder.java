@@ -42,9 +42,11 @@ import org.kquiet.browser.action.SendKey;
 import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.IfThenElse;
+import org.kquiet.browser.action.ScrollToView;
+import org.kquiet.browser.action.Upload;
 
 /**
- *
+ * This 
  * @author Kimberly
  */
 public class ActionComposerBuilder{
@@ -54,10 +56,10 @@ public class ActionComposerBuilder{
      *
      */
     public ActionComposerBuilder(){
-        prepareActionComposer();
+        prepareNextActionComposer();
     }
     
-    private void prepareActionComposer(){
+    private void prepareNextActionComposer(){
         if (actionComposer==null){
             actionComposer = new ActionComposer();
         }
@@ -77,7 +79,7 @@ public class ActionComposerBuilder{
      * @return
      */
     public ActionComposerBuilder addToFirst(MultiPhaseAction action){
-        prepareActionComposer();
+        prepareNextActionComposer();
         actionComposer.addActionToFirst(action);
         return this;
     }
@@ -88,7 +90,7 @@ public class ActionComposerBuilder{
      * @return
      */
     public ActionComposerBuilder addToLast(MultiPhaseAction action){
-        prepareActionComposer();
+        prepareNextActionComposer();
         actionComposer.addActionToLast(action);
         return this;
     }
@@ -100,7 +102,7 @@ public class ActionComposerBuilder{
      * @return
      */
     public ActionComposerBuilder addToIndex(MultiPhaseAction action, int index){
-        prepareActionComposer();
+        prepareNextActionComposer();
         actionComposer.addActionToIndex(action, index);
         return this;
     }
@@ -940,6 +942,132 @@ public class ActionComposerBuilder{
                 return parentActionSequenceBuilder.accept(action);
             }
         }
+        
+        /**
+         *
+         * @param by
+         * @param toTop
+         * @return
+         */
+        public ActionSequenceBuilder scrollToView(By by, boolean toTop){
+            return new ScrollToViewBuilder(this, by, toTop).done();
+        }
+
+        /**
+         *
+         * @param by
+         * @param toTop
+         * @return
+         */
+        public ScrollToViewBuilder prepareScrollToView(By by, boolean toTop){
+            return new ScrollToViewBuilder(this, by, toTop);
+        }
+
+        /**
+         *
+         */
+        public class ScrollToViewBuilder extends InnerBuilderBase{
+            private final By by;
+            private final boolean toTop;
+            private volatile By frameBy;
+            
+
+            /**
+             *
+             * @param parentActionSequenceBuilder
+             * @param by
+             * @param toTop
+             */
+            public ScrollToViewBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by, boolean toTop){
+                super(parentActionSequenceBuilder);
+                if (by==null) throw new IllegalArgumentException("No locator specified to build");
+                this.by = by;
+                this.toTop = toTop;
+            }
+
+            /**
+             *
+             * @param frameBy
+             * @return
+             */
+            public ScrollToViewBuilder withInFrame(By frameBy){
+                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBy = frameBy;
+                return this;
+            }
+
+            /**
+             *
+             * @return
+             */
+            public ActionSequenceBuilder done(){
+                MultiPhaseAction action = new ScrollToView(by, frameBy, toTop);
+                return parentActionSequenceBuilder.accept(action);
+            }
+        }
+        
+        /**
+         *
+         * @param by
+         * @param pathOfFile
+         * @return
+         */
+        public ActionSequenceBuilder upload(By by, String pathOfFile){
+            return new UploadBuilder(this, by, pathOfFile).done();
+        }
+
+        /**
+         *
+         * @param by
+         * @param pathOfFile
+         * @return
+         */
+        public UploadBuilder prepareScrollToView(By by, String pathOfFile){
+            return new UploadBuilder(this, by, pathOfFile);
+        }
+
+        /**
+         *
+         */
+        public class UploadBuilder extends InnerBuilderBase{
+            private final By by;
+            private final String pathOfFile;
+            private volatile By frameBy;
+            
+
+            /**
+             *
+             * @param parentActionSequenceBuilder
+             * @param by
+             * @param pathOfFile
+             */
+            public UploadBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by, String pathOfFile){
+                super(parentActionSequenceBuilder);
+                if (by==null) throw new IllegalArgumentException("No locator specified to build");
+                this.by = by;
+                this.pathOfFile = pathOfFile;
+            }
+
+            /**
+             *
+             * @param frameBy
+             * @return
+             */
+            public UploadBuilder withInFrame(By frameBy){
+                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBy = frameBy;
+                return this;
+            }
+
+            /**
+             *
+             * @return
+             */
+            public ActionSequenceBuilder done(){
+                MultiPhaseAction action = new Upload(by, frameBy, pathOfFile);
+                return parentActionSequenceBuilder.accept(action);
+            }
+        }        
         
         /**
          *

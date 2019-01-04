@@ -25,22 +25,25 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link ScrollToVisible} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
+ * {@link ScrollToView} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
  * @author Kimberly
  */
-public class ScrollToVisible extends OneTimeAction {
+public class ScrollToView extends OneTimeAction {
     private final By by;
     private final By frameBy;
+    private final boolean toTop;
 
     /**
      *
      * @param by the element locating mechanism
      * @param frameBy the frame locating mechanism if the element resides in a frame
+     * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
      */
-    public ScrollToVisible(By by, By frameBy){
+    public ScrollToView(By by, By frameBy, boolean toTop){
         super(null);
         this.by = by;
         this.frameBy = frameBy;
+        this.toTop = toTop;
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
@@ -51,7 +54,7 @@ public class ScrollToVisible extends OneTimeAction {
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
                 if (element==null) throw new ExecutionException("can't find the element to scroll");
-                else ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(true);", element);
+                else ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
@@ -60,8 +63,8 @@ public class ScrollToVisible extends OneTimeAction {
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName()
-                , getComposer()==null?"":getComposer().getName(), ScrollToVisible.class.getSimpleName(), by.toString()
-                , (frameBy!=null?frameBy.toString():""));
+        return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName()
+                , getComposer()==null?"":getComposer().getName(), ScrollToView.class.getSimpleName(), by.toString()
+                , (frameBy!=null?frameBy.toString():""), String.valueOf(toTop));
     }
 }

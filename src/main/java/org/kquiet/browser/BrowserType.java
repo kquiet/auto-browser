@@ -16,7 +16,7 @@
 package org.kquiet.browser;
 
 /**
- *
+ * Supported browser type
  * @author Kimberly
  */
 public enum BrowserType {

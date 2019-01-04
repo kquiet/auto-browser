@@ -78,6 +78,12 @@ public class SendKey extends OneTimeAction {
         return sequence;
     }
     
+    /**
+     *
+     * @param element
+     * @param clearBeforeSend
+     * @param keysToSend
+     */
     public static void clickToSendKeys(WebElement element, boolean clearBeforeSend, CharSequence... keysToSend){
         //click before send key
         element.click();

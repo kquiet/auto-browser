@@ -15,13 +15,16 @@
  */
 package org.kquiet.test;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -34,6 +37,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.JavascriptExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +63,10 @@ import org.kquiet.browser.ActionRunner;
  */
 public class ActionTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionTest.class);
+    private static final String HTML_FILE_NAME = "ActionTest.html";
     
     private static ActionRunner browserRunner;
-    private static String htmlFileUrl;
+    private static URL htmlFileUrl;
     
     /**
      *
@@ -75,7 +80,7 @@ public class ActionTest {
     @BeforeClass
     public static void setUpClass() {
         browserRunner = TestHelper.createRunner(5);
-        htmlFileUrl = ActionTest.class.getResource("ActionTest.html").toString();
+        htmlFileUrl = ActionTest.class.getResource(HTML_FILE_NAME);
     }
     
     /**
@@ -103,7 +108,7 @@ public class ActionTest {
     private ActionComposerBuilder getDefinedActionComposerBuilder(){
         return new ActionComposerBuilder()
                 .prepareActionSequence()
-                    .getUrl(htmlFileUrl)
+                    .getUrl(htmlFileUrl.toString())
                 .returnToComposerBuilder();
     }
     
@@ -420,6 +425,57 @@ public class ActionTest {
             .build("openAndCloseWindow", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue(actionComposer.isSuccess());
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
+    public void scrollToView() throws Exception {
+        AtomicLong initial = new AtomicLong(-1);
+        AtomicLong after = new AtomicLong(-1);
+        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id("divScroll")), 1000)
+                .custom(ac->{
+                    WebElement element = ac.getBrsDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    initial.set(top);
+                })
+                .scrollToView(By.id("divScroll"), true)
+                .custom(ac->{
+                    WebElement element = ac.getBrsDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    after.set(top);
+                })
+            .returnToComposerBuilder()
+            .build("scrollToView", true, true);
+        browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
+        assertTrue(String.format("scroll error, initial:%s, after:%s", initial.get(), after.get()), actionComposer.isSuccess() && initial.get()>0 && after.get()==0);
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
+    public void upload() throws Exception {
+        AtomicReference<String> fileName = new AtomicReference<>("");
+        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(ExpectedConditions.presenceOfElementLocated(By.id("flUpload")), 1000)
+                .upload(By.id("flUpload"), new File(htmlFileUrl.getFile()).getAbsolutePath())
+                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("flUpload")), 1000)
+                .custom(ac->{
+                    WebElement element = ac.getBrsDriver().findElements(By.id("flUpload")).stream().findFirst().orElse(null);
+                    String name = (String)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].files[0].name;", element);
+                    fileName.set(name);
+                })
+            .returnToComposerBuilder()
+            .build("upload", true, true);
+        browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
+        assertTrue("upload error", actionComposer.isSuccess() && HTML_FILE_NAME.equalsIgnoreCase(fileName.get()));
     }
     
     /**

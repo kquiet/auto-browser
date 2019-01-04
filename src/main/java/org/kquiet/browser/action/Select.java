@@ -87,6 +87,12 @@ public class Select extends OneTimeAction {
         });
     }
     
+    /**
+     *
+     * @param element
+     * @param selectBy
+     * @param optionValue
+     */
     public static void clickToSelect(WebElement element, SelectBy selectBy, Object... optionValue){
         element.click();
         org.openqa.selenium.support.ui.Select elementToSelect = new org.openqa.selenium.support.ui.Select(element);
