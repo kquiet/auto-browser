@@ -73,7 +73,7 @@ public class OpenWindow extends OneTimeAction {
                     if (this.asComposerFocusWindow){
                         actionComposer.setFocusWindow(actualHandle);
                     }
-                    if (!this.registerName.isEmpty() && !actionComposer.registerWindow(this.registerName, actualHandle)){
+                    if (!actionComposer.registerWindow(this.registerName, actualHandle)){
                         throw new ExecutionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
                     }
                     break;

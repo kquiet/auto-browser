@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 kquiet.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link Click} is a subclass of {@link OneTimeAction} which clicks an element
+ * {@link ScrollToVisible} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
  * @author Kimberly
  */
-public class Click extends OneTimeAction {
+public class ScrollToVisible extends OneTimeAction {
     private final By by;
     private final By frameBy;
 
@@ -36,7 +37,7 @@ public class Click extends OneTimeAction {
      * @param by the element locating mechanism
      * @param frameBy the frame locating mechanism if the element resides in a frame
      */
-    public Click(By by, By frameBy){
+    public ScrollToVisible(By by, By frameBy){
         super(null);
         this.by = by;
         this.frameBy = frameBy;
@@ -49,8 +50,8 @@ public class Click extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to click");
-                else element.click();
+                if (element==null) throw new ExecutionException("can't find the element to scroll");
+                else ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(true);", element);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
@@ -60,7 +61,7 @@ public class Click extends OneTimeAction {
     @Override
     public String toString(){
         return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName()
-                , getComposer()==null?"":getComposer().getName(), Click.class.getSimpleName(), by.toString()
+                , getComposer()==null?"":getComposer().getName(), ScrollToVisible.class.getSimpleName(), by.toString()
                 , (frameBy!=null?frameBy.toString():""));
     }
 }

@@ -23,7 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.RunnableFuture;
@@ -49,12 +49,12 @@ import org.kquiet.browser.action.IfThenElse;
  * If any executed action fails, {@link ActionComposer} marks itself failed as well.
  * 
  * <p>In addition to the actions added by add*() methods, {@link ActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:</p>
- * <ol>
- * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i>.
+ * <ul>
+ * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i> with an empty register name.
  * All actions should be executed against this focus window to be isolated from other {@link ActionComposer}, however it could be changed by actions if necessary.
  * If no focus window is specified, it will use the root window of {@link ActionRunner} as its focus window.</li>
  * <li>The action executed at the end is called as <i>Final Action</i>, which closes all registered windows. </li>
- * </ol>
+ * </ul>
  *
  * @author Kimberly
  */
@@ -63,7 +63,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     private ActionRunner actionRunner = null;
 
-    private final MultiPhaseAction initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, UUID.randomUUID().toString())), null).setContainingComposer(this);
+    private final MultiPhaseAction initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null).setContainingComposer(this);
     private final MultiPhaseAction finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null).setContainingComposer(this);
     private final Deque<MultiPhaseAction> mainActionList = new LinkedList<>();
     
@@ -82,7 +82,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private volatile boolean isCancelled = false;
     private volatile boolean skipAction = false;
     private volatile boolean skipResultFunction = false;
-    private volatile boolean cacheFailInfo = true;
+    private volatile boolean keepFailInfo = true;
     private String failUrl = null;
     private String failPage = null;
     
@@ -178,8 +178,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private void runFail(){
         skipToFail();
             
-        //cache fail info=>this may take about one second to do;uses a flag to avoid when necessary
-        if (cacheFailInfo){
+        //keep fail info=>this may take about one second to do;uses a flag to avoid when necessary
+        if (keepFailInfo){
             try{
                 setFailInfo(getBrsDriver().getCurrentUrl(), getBrsDriver().getPageSource());
             }catch(Exception e){
@@ -247,7 +247,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @return {@code true} if register name and window identity are not empty and the register name isn't registered; {@code false} otherwise
      */
     public boolean registerWindow(String name, String windowIdentity){
-        if (name==null || name.isEmpty() || windowIdentity==null || windowIdentity.isEmpty() || registeredWindows.containsKey(name)) return false;
+        name = Optional.ofNullable(name).orElse("");
+        if (windowIdentity==null || windowIdentity.isEmpty() || registeredWindows.containsKey(name)) return false;
         else{
             registeredWindows.put(name, windowIdentity);
             return true;
@@ -423,6 +424,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      * Set the name of this {@link ActionComposer}.
+     * 
      * @param name name
      * @return this {@link ActionComposer}
      */
@@ -437,7 +439,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     * Set the priority of this {@link ActionComposer}
+     * Set the priority of this {@link ActionComposer}.
+     * 
      * @param priority priority
      * @return this {@link ActionComposer}
      */
@@ -477,7 +480,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #cacheFailInfo(boolean) cache fail info} is enabled; {@code null} otherwise
+     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailUrl() {
         return failUrl;
@@ -485,7 +488,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #cacheFailInfo(boolean) cache fail info} is enabled; {@code null} otherwise
+     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailPage() {
         return failPage;
@@ -498,18 +501,27 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     *
-     * @param flag
-     * @return
+     * Enable/Disable the function of keeping fail information when this {@link ActionComposer} is marked as failed.
+     * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
+     * hence this method can be used to determine keep or not.
+     * 
+     * @param flag {@code true} to enable; {@code false} to disable
+     * @return this {@link ActionComposer}
      */
-    public ActionComposer cacheFailInfo(boolean flag){
-        this.cacheFailInfo = flag;
+    public ActionComposer keepFailInfo(boolean flag){
+        this.keepFailInfo = flag;
         return this;
     }
 
     /**
-     *
-     * @return
+     * Get {@link org.openqa.selenium.WebDriver WebDriver} from associated {@link ActionRunner}.
+     * Use it with caution because the associated {@link ActionRunner} use the same {@link org.openqa.selenium.WebDriver WebDriver} when executing browser actions,
+     * however {@link org.openqa.selenium.WebDriver WebDriver} is <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">not thread-safe</a>.
+     * 
+     * <p>A safer way to use this is to encapsulate the process in a {@link java.lang.Runnable Runnable}, or use built-in {@link org.kquiet.browser.action.Custom custom action},
+     * and then execute it through {@link ActionRunner#executeAction(java.lang.Runnable, int)}.</p>
+     * 
+     * @return the {@link org.openqa.selenium.WebDriver WebDriver} from associated {@link ActionRunner}.
      */
     public WebDriver getBrsDriver() {
         return actionRunner.getWebDriver();
@@ -517,7 +529,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return
+     * @return the window identity of focus window
      */
     public String getFocusWindow() {
         //set focus window to root window if not set
@@ -528,67 +540,62 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     *
-     * @param focusWindowIdentity
-     * @return 
+     * @param windowIdentity the window identity to set as the focus window
+     * @return this {@link ActionComposer}
      */
-    public ActionComposer setFocusWindow(String focusWindowIdentity) {
-        this.focusWindowIdentity = focusWindowIdentity;
+    public ActionComposer setFocusWindow(String windowIdentity) {
+        this.focusWindowIdentity = windowIdentity;
         return this;
     }
     
     /**
-     *
-     * @param action
-     * @return
+     * Add action to the last position of list.
+     * 
+     * @param action action to add
      */
-    public boolean addActionToTail(MultiPhaseAction action){
-        if (action==null) return false;
+    public void addActionToLast(MultiPhaseAction action){
+        if (action==null) return;
         synchronized(this){
             mainActionList.addLast(action);
             action.setContainingComposer(this);
         }
-        return true;
     }
     
     /**
+     * Add action to the first position of list.
      *
-     * @param action
-     * @return
+     * @param action action to add
      */
-    public boolean addActionToHead(MultiPhaseAction action){
-        if (action==null) return false;
+    public void addActionToFirst(MultiPhaseAction action){
+        if (action==null) return;
         synchronized(this){
             mainActionList.addFirst(action);
             action.setContainingComposer(this);
         }
-        return true;
     }
     
     /**
-     *
-     * @param action
-     * @param index
-     * @return
+     * Add action to the specified position of list.
+     * 
+     * @param action action to add
+     * @param position the position(zero-based) to add action
      */
-    public boolean addActionToIndex(MultiPhaseAction action, int index){
-        if (action==null || index<0 || index>mainActionList.size()) return false;
-        
+    public void addActionToIndex(MultiPhaseAction action, int position){
+        if (action==null || position<0 || position>mainActionList.size()) return;
         synchronized(this){
             final Deque<MultiPhaseAction> temp = new LinkedList<>(mainActionList);
             final Deque<MultiPhaseAction> stack = new LinkedList<>();
-            for (int i=0;i<index;i++){
+            for (int i=0;i<position;i++){
                 stack.addFirst(temp.removeFirst());
             }
             temp.addFirst(action);
-            for (int i=0;i<index;i++){
+            for (int i=0;i<position;i++){
                 temp.addFirst(stack.removeFirst());
             }
             mainActionList.clear();
             mainActionList.addAll(temp);
             action.setContainingComposer(this);
         }
-        return true;
     }
     
     private List<MultiPhaseAction> getAllActionInSequence(){
@@ -602,7 +609,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     *
+     * Skip the execution of remaining actions and mark this {@link ActionComposer} as failed.
      */
     public void skipToFail(){
         isFail = true;
@@ -610,14 +617,14 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     *
+     * Skip the execution of remaining actions.
      */
     public void skipToSuccess(){
         skipAction = true;
     }
     
     /**
-     *
+     * Skip the execution of remaining actions as well as the callback functions for fail/success.
      */
     public void skipAll(){
         skipAction = true;
@@ -625,8 +632,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     *
-     * @return
+     * 
+     * @return exception list from executed actions
      */
     public List<Exception> getErrors(){
         List<MultiPhaseAction> actionList = getAllActionInSequence();
@@ -644,9 +651,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     *
-     * @param openWindowFlag
-     * @return 
+     * Determine whether open a window as focus window at the begining
+     * @param openWindowFlag {@code true}: open; {@code false}: not open
+     * @return this {@link ActionComposer}
      */
     public ActionComposer setOpenWindow(boolean openWindowFlag) {
         this.openWindowFlag = openWindowFlag;
@@ -658,9 +665,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     *
-     * @param closeWindowFlag
-     * @return 
+     * Determine whether close all registered windows at the end
+     * @param closeWindowFlag {@code true}: close; {@code false}: not close
+     * @return this {@link ActionComposer}
      */
     public ActionComposer setCloseWindow(boolean closeWindowFlag) {
         this.closeWindowFlag = closeWindowFlag;

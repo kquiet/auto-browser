@@ -41,7 +41,6 @@ import org.kquiet.browser.action.Select;
 import org.kquiet.browser.action.SendKey;
 import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
-import org.kquiet.browser.action.ActionUtility;
 import org.kquiet.browser.action.IfThenElse;
 
 /**
@@ -77,9 +76,9 @@ public class ActionComposerBuilder{
      * @param action
      * @return
      */
-    public ActionComposerBuilder addToHead(MultiPhaseAction action){
+    public ActionComposerBuilder addToFirst(MultiPhaseAction action){
         prepareActionComposer();
-        actionComposer.addActionToHead(action);
+        actionComposer.addActionToFirst(action);
         return this;
     }
     
@@ -88,9 +87,9 @@ public class ActionComposerBuilder{
      * @param action
      * @return
      */
-    public ActionComposerBuilder addToTail(MultiPhaseAction action){
+    public ActionComposerBuilder addToLast(MultiPhaseAction action){
         prepareActionComposer();
-        actionComposer.addActionToTail(action);
+        actionComposer.addActionToLast(action);
         return this;
     }
     
@@ -191,7 +190,7 @@ public class ActionComposerBuilder{
      * @return
      */
     public ActionComposerBuilder accept(MultiPhaseAction action){
-            if (action!=null) addToTail(action);
+            if (action!=null) addToLast(action);
             return this;
         }
     
@@ -807,7 +806,7 @@ public class ActionComposerBuilder{
                 if (by==null) throw new IllegalArgumentException("No locator specified to build");
                 if (keysToSend==null) throw new IllegalArgumentException("No keys specified to build");
                 this.by = by;
-                this.keysToSend = ActionUtility.purifyCharSequences(keysToSend);
+                this.keysToSend = keysToSend;
             }
 
             /**

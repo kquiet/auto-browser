@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.Keys;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
@@ -31,6 +32,7 @@ public class SendKey extends OneTimeAction {
     private final By by;
     private final By frameBy;
     private final CharSequence[] keysToSend;
+    private final boolean clearBeforeSend;
     
     /**
      *
@@ -43,28 +45,51 @@ public class SendKey extends OneTimeAction {
         super(null);
         this.by = by;
         this.frameBy = frameBy;
-        this.keysToSend = keysToSend;
+        this.clearBeforeSend = clearBeforeSend;
+        this.keysToSend = purifyCharSequences(keysToSend);
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();
-                if (frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(frameBy));
+                if (this.frameBy!=null){
+                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(by);
+                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                
-                ActionUtility.clickToSendKeys(actionComposer.getBrsDriver(), element, clearBeforeSend, keysToSend);
+                if (element==null) throw new ExecutionException("can't find the element to sendkey");
+                else clickToSendKeys(element, this.clearBeforeSend, this.keysToSend);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
         });
     }
     
+    private CharSequence[] purifyCharSequences(CharSequence... sequence){
+        if (sequence==null){
+            sequence = new CharSequence[]{};
+        }
+        else{
+            for (int i=0;i<sequence.length;i++){
+                if (sequence[i]==null){
+                    sequence[i]="";
+                }
+            }
+        }
+        return sequence;
+    }
+    
+    public static void clickToSendKeys(WebElement element, boolean clearBeforeSend, CharSequence... keysToSend){
+        //click before send key
+        element.click();
+        if (clearBeforeSend) element.sendKeys(Keys.chord(Keys.CONTROL+"a"));
+        else element.sendKeys(Keys.chord(Keys.CONTROL, Keys.END));
+        element.sendKeys(keysToSend);
+    }
+    
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s/%s"
+        return String.format("%s(%s) %s:%s/%s/%s/%s"
                         , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
-                        , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend), (frameBy!=null?frameBy.toString():""));
+                        , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend), (frameBy!=null?frameBy.toString():""), String.valueOf(clearBeforeSend));
     }
 }

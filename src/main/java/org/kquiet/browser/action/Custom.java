@@ -25,6 +25,7 @@ import org.kquiet.browser.action.exception.ExecutionException;
  * @author Kimberly
  */
 public class Custom extends OneTimeAction {
+    private final Consumer<ActionComposer> customFunc;
     
     /**
      *
@@ -32,11 +33,12 @@ public class Custom extends OneTimeAction {
      */
     public Custom(Consumer<ActionComposer> customFunc){
         super(null);
+        this.customFunc = customFunc;
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();
-                customFunc.accept(actionComposer);
+                this.customFunc.accept(actionComposer);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }

@@ -70,17 +70,16 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     @Override
     public boolean isDone(){
         boolean isDoneFlag = super.isDone();
+        List<MultiPhaseAction> actionList;
         if (predicateResult){
-            for (MultiPhaseAction action: thenActionList){
-                isDoneFlag = isDoneFlag && action.isDone() && !action.hasNextPhase();
-                if (!isDoneFlag) break;
-            }
+            actionList = thenActionList;
         }
         else {
-            for (MultiPhaseAction action: elseActionList){
-                isDoneFlag = isDoneFlag && action.isDone() && !action.hasNextPhase();
-                if (!isDoneFlag) break;
-            }
+            actionList = elseActionList;
+        }
+        for (MultiPhaseAction action: actionList){
+            isDoneFlag = isDoneFlag && action.isDone() && !action.hasNextPhase();
+            if (!isDoneFlag) break;
         }
         return isDoneFlag;
     }

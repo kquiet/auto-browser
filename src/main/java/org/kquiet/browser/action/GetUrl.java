@@ -36,7 +36,7 @@ public class GetUrl extends OneTimeAction {
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();
-                actionComposer.getBrsDriver().get(url);
+                actionComposer.getBrsDriver().get(this.url);
             }
             catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);

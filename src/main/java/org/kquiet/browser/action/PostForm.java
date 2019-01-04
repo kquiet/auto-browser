@@ -55,13 +55,13 @@ public class PostForm extends OneTimeAction {
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                String scriptStr = String.format("var formE = document.createElement('form');formE.setAttribute('id','%s');formE.setAttribute('name','%s');formE.setAttribute('method','post');formE.setAttribute('enctype','application/x-www-form-urlencoded');formE.setAttribute('action','%s');", formId.replaceAll("'", "\'"), formId.replaceAll("'", "\'"), url);
-                if (acceptCharset!=null && !acceptCharset.isEmpty()){
-                    scriptStr+="formE.setAttribute('accept-charset','"+acceptCharset.replaceAll("'", "\'")+"');";
+                String scriptStr = String.format("var formE = document.createElement('form');formE.setAttribute('id','%s');formE.setAttribute('name','%s');formE.setAttribute('method','post');formE.setAttribute('enctype','application/x-www-form-urlencoded');formE.setAttribute('action','%s');", formId.replaceAll("'", "\'"), formId.replaceAll("'", "\'"), this.url);
+                if (this.acceptCharset!=null && !this.acceptCharset.isEmpty()){
+                    scriptStr+="formE.setAttribute('accept-charset','"+this.acceptCharset.replaceAll("'", "\'")+"');";
                 }
                 
-                if (formData!=null){
-                    List<SimpleImmutableEntry<String,String>> formDataList = (List<SimpleImmutableEntry<String,String>>) formData;
+                if (this.formData!=null){
+                    List<SimpleImmutableEntry<String,String>> formDataList = (List<SimpleImmutableEntry<String,String>>) this.formData;
                     if (!formDataList.isEmpty()){
                         scriptStr+="var customE;";
                         for(SimpleImmutableEntry<String, String> input:formDataList){

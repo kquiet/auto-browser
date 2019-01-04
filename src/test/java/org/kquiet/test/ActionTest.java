@@ -140,7 +140,7 @@ public class ActionTest {
                 .waitUntil(driver->false, 300)
             .returnToComposerBuilder()
             .build("waitUntilTimeout", false, false)
-            .cacheFailInfo(false);
+            .keepFailInfo(false);
         long startTime = System.nanoTime();
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         long endTime = System.nanoTime();
@@ -443,7 +443,7 @@ public class ActionTest {
                 sb.append("success");
             })
             .build("onFail", false, false)
-            .cacheFailInfo(false);
+            .keepFailInfo(false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue("customfail".equals(sb.toString()) && actionComposer.isFail());
     }

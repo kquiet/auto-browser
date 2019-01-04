@@ -118,7 +118,7 @@ public class CompositeTest {
                 }, 300)
             .returnToComposerBuilder()
             .build("priorityTest-lowerPriority")
-            .cacheFailInfo(false);
+            .keepFailInfo(false);
         lowerPriorityComposer.setPriority(2);
         
         ActionComposer higherPriorityComposer = getEmptyActionComposerBuilder()
@@ -129,7 +129,7 @@ public class CompositeTest {
                 }, 300)
             .returnToComposerBuilder()
             .build("priorityTest-higherPriority")
-            .cacheFailInfo(false);
+            .keepFailInfo(false);
         higherPriorityComposer.setPriority(1);
         
         Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);

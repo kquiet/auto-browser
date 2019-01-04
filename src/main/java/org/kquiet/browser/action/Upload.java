@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 kquiet.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,31 @@ import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link Click} is a subclass of {@link OneTimeAction} which clicks an element
+ * {@link Upload} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
  * @author Kimberly
  */
-public class Click extends OneTimeAction {
+public class Upload extends OneTimeAction {
     private final By by;
     private final By frameBy;
+    private final String pathOfFile;
 
     /**
      *
      * @param by the element locating mechanism
      * @param frameBy the frame locating mechanism if the element resides in a frame
+     * @param pathOfFile the path of file to upload
      */
-    public Click(By by, By frameBy){
+    public Upload(By by, By frameBy, String pathOfFile){
         super(null);
         this.by = by;
         this.frameBy = frameBy;
+        this.pathOfFile = pathOfFile;
         this.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
@@ -49,8 +53,11 @@ public class Click extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to click");
-                else element.click();
+                if (element==null) throw new ExecutionException("can't find the element to set upload file path");
+                else {
+                    ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.visibility = 'block'; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1", element);
+                    element.sendKeys(this.pathOfFile);
+                }
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
@@ -59,8 +66,8 @@ public class Click extends OneTimeAction {
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName()
-                , getComposer()==null?"":getComposer().getName(), Click.class.getSimpleName(), by.toString()
-                , (frameBy!=null?frameBy.toString():""));
+        return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName()
+                , getComposer()==null?"":getComposer().getName(), Upload.class.getSimpleName(), by.toString()
+                , (frameBy!=null?frameBy.toString():""), pathOfFile);
     }
 }

@@ -74,17 +74,45 @@ public class Select extends OneTimeAction {
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();
-                if (frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(frameBy));
+                if (this.frameBy!=null){
+                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(by);
+                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                
-                ActionUtility.clickToSelect(actionComposer.getBrsDriver(), element, selectBy, optionValue);
+                if (element==null) throw new ExecutionException("can't find the element to select");
+                else clickToSelect(element, this.selectBy, this.optionValue);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
         });
+    }
+    
+    public static void clickToSelect(WebElement element, SelectBy selectBy, Object... optionValue){
+        element.click();
+        org.openqa.selenium.support.ui.Select elementToSelect = new org.openqa.selenium.support.ui.Select(element);
+        if ((optionValue==null||optionValue.length==0)&&elementToSelect.isMultiple()){
+            elementToSelect.deselectAll();
+        }
+        else if (optionValue!=null){
+            switch(selectBy){
+                case Index:
+                    for (Object obj: optionValue){
+                        elementToSelect.selectByIndex((Integer)obj);
+                    }
+                    break;
+                case Value:
+                    for (Object obj: optionValue){
+                        elementToSelect.selectByValue((String)obj);
+                    }
+                    break;
+                default:
+                case Text:
+                    for (Object obj: optionValue){
+                        elementToSelect.selectByVisibleText((String)obj);
+                    }
+                    break;
+            }
+        }
     }
     
     @Override
