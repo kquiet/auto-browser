@@ -323,9 +323,10 @@ public class ActionComposerBuilder{
             private final boolean closeAllRegistered;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
-             * @param closeAllRegistered
+             * Create a new {@link CloseWindowBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
+             * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
              */
             public CloseWindowBuilder(ActionSequenceBuilder parentActionSequenceBuilder, boolean closeAllRegistered){
                 super(parentActionSequenceBuilder);
@@ -333,8 +334,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link CloseWindow} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new CloseWindow(closeAllRegistered);
@@ -368,8 +370,9 @@ public class ActionComposerBuilder{
             private String registerName = UUID.randomUUID().toString();
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link OpenWindowBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              */
             public OpenWindowBuilder(ActionSequenceBuilder parentActionSequenceBuilder){
                 super(parentActionSequenceBuilder);
@@ -395,8 +398,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link OpenWindow} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new OpenWindow(asComposerFocusWindow, registerName);
@@ -441,8 +445,9 @@ public class ActionComposerBuilder{
             private Consumer<ActionComposer> timeoutCallback;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link WaitUntilBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param evaluateFunc
              * @param totalTimeout
              */
@@ -500,8 +505,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link WaitUntil} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new WaitUntil<>(evaluateFunc, totalTimeout, phaseTimeout, pollInterval, ignoreExceptionList, timeoutCallback);
@@ -537,8 +543,9 @@ public class ActionComposerBuilder{
             private int phaseTimeout = 10;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link JustWaitBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param totalTimeout
              */
             public JustWaitBuilder(ActionSequenceBuilder parentActionSequenceBuilder, int totalTimeout){
@@ -559,8 +566,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link JustWait} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new JustWait(totalTimeout, phaseTimeout);
@@ -598,8 +606,9 @@ public class ActionComposerBuilder{
             private String acceptCharset;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link PostFormBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param url
              */
             public PostFormBuilder(ActionSequenceBuilder parentActionSequenceBuilder, String url){
@@ -631,8 +640,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link PostForm} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new PostForm(url, simpleFormData, acceptCharset);
@@ -667,8 +677,9 @@ public class ActionComposerBuilder{
             private final String url;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link GetUrlBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param url
              */
             public GetUrlBuilder(ActionSequenceBuilder parentActionSequenceBuilder, String url){
@@ -678,8 +689,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link GetUrl} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new GetUrl(url);
@@ -740,8 +752,9 @@ public class ActionComposerBuilder{
             private Object[] options;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link SelectBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param by
              */
             public SelectBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by){
@@ -795,8 +808,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link Select} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new Select(by, frameBy, selectBy, options);
@@ -836,8 +850,9 @@ public class ActionComposerBuilder{
             private volatile boolean clearBeforeSend=false;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link SendKeyBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param by
              * @param keysToSend
              */
@@ -870,8 +885,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link SendKey} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new SendKey(by, frameBy, clearBeforeSend, keysToSend);
@@ -907,8 +923,9 @@ public class ActionComposerBuilder{
             private volatile By frameBy;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link ClickBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param by
              */
             public ClickBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by){
@@ -929,8 +946,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link Click} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new Click(by, frameBy);
@@ -965,8 +983,9 @@ public class ActionComposerBuilder{
             private final Consumer<ActionComposer> composerConsumer;
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link CustomBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param composerConsumer
              */
             public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Consumer<ActionComposer> composerConsumer){
@@ -976,8 +995,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link Custom} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new Custom(composerConsumer);
@@ -1132,8 +1152,9 @@ public class ActionComposerBuilder{
             private final List<MultiPhaseAction> elseActionList = new ArrayList<>();
 
             /**
-             *
-             * @param parentActionSequenceBuilder
+             * Create a new {@link IfThenElseBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param predicate
              */
             public IfThenElseBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Predicate<ActionComposer> predicate){
@@ -1182,8 +1203,9 @@ public class ActionComposerBuilder{
             }
             
             /**
-             *
-             * @return
+             * Finish building {@link IfThenElse} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder endIf(){
                 parentActionSequenceBuilder.add(new IfThenElse(predicate, thenActionList, elseActionList));
