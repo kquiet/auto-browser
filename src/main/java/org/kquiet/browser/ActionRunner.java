@@ -67,7 +67,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     private final PausablePriorityThreadPoolExecutor composerExecutor;
     
     /**
-     * Create {@link ActionRunner} with org.openqa.selenium.PageLoadStrategy.NONE and {@link BrowserType#CHROME BrowserType.CHROME}
+     * Create an {@link ActionRunner} with org.openqa.selenium.PageLoadStrategy.NONE and {@link BrowserType#CHROME BrowserType.CHROME}
      * 
      * @param name name of {@link ActionRunner}
      * @param maxConcurrentComposer the max number of {@link ActionComposer} that could be executed by this ActionRunner concurrently.
@@ -77,12 +77,12 @@ public class ActionRunner implements Closeable,AutoCloseable {
     }
     
     /**
-     * Create {@link ActionRunner} with specified page load strategy, browser type, name, and max number of concurrent composer.     *
+     * Create an {@link ActionRunner} with specified page load strategy, browser type, name, and max number of concurrent composer.     *
      * 
-     * @param pageLoadStrategy page load strategy used by this {@link ActionRunner}
-     * @param browserType the type of browser this {@link ActionRunner} will use.
+     * @param pageLoadStrategy page load strategy
+     * @param browserType the type of browser
      * @param name name
-     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed by this {@link ActionRunner} concurrently.
+     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed concurrently.
      * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
      * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
      */
@@ -211,7 +211,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      *
-     * @return org.openqa.selenium.WebDriver this {@link ActionRunner} is using
+     * @return org.openqa.selenium.WebDriver in use
      */
     public WebDriver getWebDriver(){
         return brsDriver;
@@ -219,7 +219,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     
     /**
      * This method checks the existence of root window and use the result as the aliveness of browser.
-     * When a false result is monitored, users can choose to {@link #close() close} this {@link ActionRunner} and create a new one.
+     * When a false result is monitored, users can choose to {@link #close() close} {@link ActionRunner} and create a new one.
      * 
      * @return {@code true} if the root window exists; {@code false} otherwise
      */

@@ -46,7 +46,7 @@ import org.kquiet.browser.action.ScrollToView;
 import org.kquiet.browser.action.Upload;
 
 /**
- * {@link ActionComposerBuilder} is a builder to build {@link ActionComposer} in a fluent way.
+ * A builder to build {@link ActionComposer} in a fluent way.
  * <p>Below example constructs an {@link ActionComposer} that searches for the link to source code of {@link ActionComposerBuilder}, and then click it:</p>
  * <pre>
  * ActionComposer actionComposer = new ActionComposerBuilder()
@@ -255,7 +255,7 @@ public class ActionComposerBuilder{
          * Add an action to sequence.
          * 
          * @param action action to add
-         * @return this {@link ActionSequenceBuilder}
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder add(MultiPhaseAction action){
             if (action!=null) actionList.add(action);
@@ -265,7 +265,7 @@ public class ActionComposerBuilder{
         /**
          * Finish building the sequence of actions so far and return control to root builder({@link ActionComposerBuilder}).
          * 
-         * @return {@link ActionComposerBuilder}
+         * @return root builder({@link ActionComposerBuilder})
          */
         public ActionComposerBuilder returnToComposerBuilder(){
             if (parentIfThenElseBuilder!=null){
@@ -285,11 +285,11 @@ public class ActionComposerBuilder{
         /**
          * Finish building the sequence of actions so far and return control to parent builder({@link IfThenElseBuilder}).
          * 
-         * @return {@link IfThenElseBuilder}
-         * @throws IllegalArgumentException if parent builder is not {@link IfThenElseBuilder}.
+         * @return parent builder({@link IfThenElseBuilder})
+         * @throws UnsupportedOperationException if parent builder is not {@link IfThenElseBuilder}.
          */
         public IfThenElseBuilder endActionSequence(){
-            if (parentIfThenElseBuilder==null) throw new IllegalArgumentException("Parent builder is not IfThenElseBuilder");
+            if (parentIfThenElseBuilder==null) throw new UnsupportedOperationException("Parent builder is not IfThenElseBuilder");
             actionList.forEach(action->{
                 parentIfThenElseBuilder.add(action);
             });
@@ -297,25 +297,27 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
-         * @param closeAllRegistered
-         * @return
+         * Add a {@link CloseWindow} to the sequence of actions.
+         * 
+         * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder closeWindow(boolean closeAllRegistered){
             return new CloseWindowBuilder(this, closeAllRegistered).done();
         }
 
         /**
-         *
-         * @param closeAllRegistered
-         * @return
+         * Start building a {@link CloseWindow}.
+         * 
+         * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
+         * @return a new {@link CloseWindowBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public CloseWindowBuilder prepareCloseWindow(boolean closeAllRegistered){
             return new CloseWindowBuilder(this, closeAllRegistered);
         }
 
         /**
-         *
+         * A builder to build {@link CloseWindow} in a fluent way.
          */
         public class CloseWindowBuilder extends InnerBuilderBase{
             private final boolean closeAllRegistered;
@@ -341,23 +343,25 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
-         * @return
+         * Add a {@link OpenWindow} to the sequence of actions.
+         * 
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder openWindow(){
             return new OpenWindowBuilder(this).done();
         }
 
         /**
-         *
-         * @return
+         * Start building a {@link OpenWindow}.
+         * 
+         * @return a new {@link OpenWindowBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public OpenWindowBuilder prepareOpenWindow(){
             return new OpenWindowBuilder(this);
         }
 
         /**
-         *
+         * A builder to build {@link OpenWindow} in a fluent way.
          */
         public class OpenWindowBuilder extends InnerBuilderBase{
             private boolean asComposerFocusWindow = false;
@@ -401,29 +405,31 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link WaitUntil} to the sequence of actions.
+         * 
          * @param <V>
          * @param evaluateFunc
          * @param totalTimeout
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public <V> ActionSequenceBuilder waitUntil(Function<WebDriver,V> evaluateFunc, int totalTimeout){
             return new WaitUntilBuilder<>(this, evaluateFunc, totalTimeout).done();
         }
 
         /**
-         *
+         * Start building a {@link WaitUntil}.
+         * 
          * @param <V>
          * @param evaluateFunc
          * @param totalTimeout
-         * @return
+         * @return a new {@link WaitUntilBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public <V> WaitUntilBuilder<V> prepareWaitUntil(Function<WebDriver,V> evaluateFunc, int totalTimeout){
             return new WaitUntilBuilder<>(this, evaluateFunc, totalTimeout);
         }
 
         /**
-         *
+         * A builder to build {@link WaitUntil} in a fluent way.
          * @param <V>
          */
         public class WaitUntilBuilder<V> extends InnerBuilderBase{
@@ -504,25 +510,27 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link JustWait} to the sequence of actions.
+         * 
          * @param totalTimeout
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder justWait(int totalTimeout){
             return new JustWaitBuilder(this, totalTimeout).done();
         }
 
         /**
-         *
+         * Start building a {@link JustWait}.
+         * 
          * @param totalTimeout
-         * @return
+         * @return a new {@link JustWaitBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public JustWaitBuilder prepareJustWait(int totalTimeout){
             return new JustWaitBuilder(this, totalTimeout);
         }
 
         /**
-         *
+         * A builder to build {@link JustWait} in a fluent way.
          */
         public class JustWaitBuilder extends InnerBuilderBase{
             private final int totalTimeout;
@@ -561,26 +569,28 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link PostForm} to the sequence of actions.
+         * 
          * @param url
          * @param simpleFormData
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder postForm(String url, List<SimpleImmutableEntry<String,String>> simpleFormData){
             return new PostFormBuilder(this, url).withSimpleFormData(simpleFormData).done();
         }
 
         /**
-         *
+         * Start building a {@link PostForm}.
+         * 
          * @param url
-         * @return
+         * @return a new {@link PostFormBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public PostFormBuilder preparePostForm(String url){
             return new PostFormBuilder(this, url);
         }
 
         /**
-         *
+         * A builder to build {@link PostForm} in a fluent way.
          */
         public class PostFormBuilder extends InnerBuilderBase{
             private final String url;
@@ -631,25 +641,27 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link GetUrl} to the sequence of actions.
+         * 
          * @param url
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder getUrl(String url){
             return new GetUrlBuilder(this, url).done();
         }
 
         /**
-         *
+         * Start building a {@link GetUrl}.
+         * 
          * @param url
-         * @return
+         * @return a new {@link GetUrlBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public GetUrlBuilder prepareGetUrl(String url){
             return new GetUrlBuilder(this, url);
         }
 
         /**
-         *
+         * A builder to build {@link GetUrl} in a fluent way.
          */
         public class GetUrlBuilder extends InnerBuilderBase{
             private final String url;
@@ -676,46 +688,50 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link Select} to the sequence of actions, which select by index.
+         * 
          * @param by
          * @param options
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByIndex(By by, Integer... options){
             return new SelectBuilder(this, by).selectByIndex(options).done();
         }
 
         /**
-         *
+         * Add a {@link Select} to the sequence of actions, which select by text.
+         * 
          * @param by
          * @param options
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByText(By by, String... options){
             return new SelectBuilder(this, by).selectByText(options).done();
         }
 
         /**
-         *
+         * Add a {@link Select} to the sequence of actions, which select by value.
+         * 
          * @param by
          * @param options
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByValue(By by, String... options){
             return new SelectBuilder(this, by).selectByValue(options).done();
         }
 
         /**
-         *
+         * Start building a {@link Select}.
+         * 
          * @param by
-         * @return
+         * @return a new {@link SelectBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public SelectBuilder prepareSelect(By by){
             return new SelectBuilder(this, by);
         }
 
         /**
-         *
+         * A builder to build {@link Select} in a fluent way.
          */
         public class SelectBuilder extends InnerBuilderBase{
             private final By by;
@@ -789,27 +805,29 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link SendKey} to the sequence of actions.
+         * 
          * @param by
          * @param keysToSend
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder sendKey(By by, CharSequence... keysToSend){
             return new SendKeyBuilder(this, by, keysToSend).done();
         }
 
         /**
-         *
+         * Start building a {@link SendKey}.
+         * 
          * @param by
          * @param keysToSend
-         * @return
+         * @return a new {@link SendKeyBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public SendKeyBuilder prepareSendKey(By by, CharSequence... keysToSend){
             return new SendKeyBuilder(this, by, keysToSend);
         }
 
         /**
-         *
+         * A builder to build {@link SendKey} in a fluent way.
          */
         public class SendKeyBuilder extends InnerBuilderBase{
             private final By by;
@@ -862,25 +880,27 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link Click} to the sequence of actions.
+         * 
          * @param by
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder click(By by){
             return new ClickBuilder(this, by).done();
         }
 
         /**
-         *
+         * Start building a {@link Click}.
+         * 
          * @param by
-         * @return
+         * @return a new {@link ClickBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public ClickBuilder prepareClick(By by){
             return new ClickBuilder(this, by);
         }
 
         /**
-         *
+         * A builder to build {@link Click} in a fluent way.
          */
         public class ClickBuilder extends InnerBuilderBase{
             private final By by;
@@ -919,25 +939,27 @@ public class ActionComposerBuilder{
         }
         
         /**
-         *
+         * Add a {@link Custom} to the sequence of actions.
+         * 
          * @param composerConsumer
-         * @return
+         * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder custom(Consumer<ActionComposer> composerConsumer){
             return new CustomBuilder(this, composerConsumer).done();
         }
 
         /**
-         *
+         * Start building a {@link Custom}.
+         * 
          * @param composerConsumer
-         * @return
+         * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public CustomBuilder prepareCustom(Consumer<ActionComposer> composerConsumer){
             return new CustomBuilder(this, composerConsumer);
         }
 
         /**
-         *
+         * A builder to build {@link Custom} in a fluent way.
          */
         public class CustomBuilder extends InnerBuilderBase{
             private final Consumer<ActionComposer> composerConsumer;
@@ -1091,15 +1113,17 @@ public class ActionComposerBuilder{
         
         /**
          *
+         * Start building a {@link IfThenElse}.
+         * 
          * @param predicate
-         * @return
+         * @return a new {@link IfThenElseBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public IfThenElseBuilder prepareIfThenElse(Predicate<ActionComposer> predicate){
             return new IfThenElseBuilder(this, predicate);
         }
 
         /**
-         *
+         * A builder to build {@link IfThenElse} in a fluent way.
          */
         public class IfThenElseBuilder extends InnerBuilderBase{
             private final Predicate<ActionComposer> predicate;

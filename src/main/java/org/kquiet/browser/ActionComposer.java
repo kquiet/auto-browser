@@ -273,7 +273,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with this {@link ActionComposer}'s priority
+     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with invoking {@link ActionComposer}'s priority
      * 
      * @param runnable the object whose run method will be invoked
      * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link java.lang.Runnable runnable}.
@@ -284,9 +284,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after this {@link ActionComposer} is done.
+     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after invoking {@link ActionComposer} is done.
      * Every {@link ActionComposer} has at most one parent/child {@link ActionComposer}.
-     * If this {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
+     * If invoking {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
      * 
      * <p>For example, before calling this method: ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
      * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
@@ -317,7 +317,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if invoking {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasChild(){
         return child!=null;
@@ -337,7 +337,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if invoking {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasParent(){
         return parent!=null;
@@ -356,7 +356,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Switch browser's focus window to this {@link ActionComposer}'s focus window.
+     * Switch browser's focus window to invoking {@link ActionComposer}'s focus window.
      * 
      * @return {@code true} if switch success; {@code false} otherwise
      */
@@ -381,10 +381,10 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     * Set the callback function to be executed when this {@link ActionComposer} is marked as failed.
+     * Set the callback function to be executed when invoking {@link ActionComposer} is marked as failed.
      * 
      * @param onFailFunc the callback function to be executed
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setOnFailFunction(Consumer<ActionComposer> onFailFunc) {
         if (onFailFunc != null) this.onFailFunc = onFailFunc;
@@ -392,10 +392,10 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Set the callback function to be executed when this {@link ActionComposer} is finished without being marked as failed.
+     * Set the callback function to be executed when invoking {@link ActionComposer} is finished without being marked as failed.
      * 
      * @param onSuccessFunc the callback function to be executed
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setOnSuccessFunction(Consumer<ActionComposer> onSuccessFunc) {
         if (onSuccessFunc != null) this.onSuccessFunc = onSuccessFunc;
@@ -403,11 +403,11 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Set the callback function to be executed when this {@link ActionComposer} is done.
+     * Set the callback function to be executed when invoking {@link ActionComposer} is done.
      * This callback function is executed after <i>fail function</i> and <i>success function</i>.
      * 
      * @param onDoneFunc the callback function to be executed
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setOnDoneFunction(Consumer<ActionComposer> onDoneFunc) {
         if (onDoneFunc != null) this.onDoneFunc = onDoneFunc;
@@ -416,17 +416,17 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return the name of this {@link ActionComposer}
+     * @return the name of invoking {@link ActionComposer}
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set the name of this {@link ActionComposer}.
+     * Set the name of invoking {@link ActionComposer}.
      * 
      * @param name name
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setName(String name) {
         this.name = name;
@@ -439,10 +439,10 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     * Set the priority of this {@link ActionComposer}.
+     * Set the priority of invoking {@link ActionComposer}.
      * 
      * @param priority priority
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setPriority(int priority) {
         this.priority = priority;
@@ -451,7 +451,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return total execution time of this {@link ActionComposer}
+     * @return total execution time of invoking {@link ActionComposer}
      */
     public Duration getCostTime() {
         return totalCostWatch.getDuration();
@@ -459,7 +459,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has been marked as failed; {@code false} otherwise
+     * @return {@code true} if invoking {@link ActionComposer} has been marked as failed; {@code false} otherwise
      */
     public boolean isFail(){
         return isFail;
@@ -467,7 +467,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
+     * @return {@code true} if invoking {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
      */
     public boolean isSuccess(){
         return !isFail;
@@ -480,7 +480,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the url of the last page when invoking {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailUrl() {
         return failUrl;
@@ -488,7 +488,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      *
-     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the content of the last page when invoking {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailPage() {
         return failPage;
@@ -501,12 +501,12 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Enable/Disable the function of keeping fail information when this {@link ActionComposer} is marked as failed.
+     * Enable/Disable the function of keeping fail information when invoking {@link ActionComposer} is marked as failed.
      * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
      * hence this method can be used to determine keep or not.
      * 
      * @param flag {@code true} to enable; {@code false} to disable
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer keepFailInfo(boolean flag){
         this.keepFailInfo = flag;
@@ -541,7 +541,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     /**
      * @param windowIdentity the window identity to set as the focus window
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setFocusWindow(String windowIdentity) {
         this.focusWindowIdentity = windowIdentity;
@@ -609,7 +609,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     /**
-     * Skip the execution of remaining actions and mark this {@link ActionComposer} as failed.
+     * Skip the execution of remaining actions and mark invoking {@link ActionComposer} as failed.
      */
     public void skipToFail(){
         isFail = true;
@@ -653,7 +653,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     /**
      * Determine whether open a window as focus window at the begining
      * @param openWindowFlag {@code true}: open; {@code false}: not open
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setOpenWindow(boolean openWindowFlag) {
         this.openWindowFlag = openWindowFlag;
@@ -667,7 +667,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     /**
      * Determine whether close all registered windows at the end
      * @param closeWindowFlag {@code true}: close; {@code false}: not close
-     * @return this {@link ActionComposer}
+     * @return invoking {@link ActionComposer}
      */
     public ActionComposer setCloseWindow(boolean closeWindowFlag) {
         this.closeWindowFlag = closeWindowFlag;
