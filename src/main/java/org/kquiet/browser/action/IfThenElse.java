@@ -42,7 +42,7 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
         if (thenActionList!=null) this.thenActionList.addAll(thenActionList);
         if (elseActionList!=null) this.elseActionList.addAll(elseActionList);
         
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 predicateResult = predicate.test(actionComposer);

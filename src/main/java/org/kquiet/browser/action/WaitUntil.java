@@ -57,12 +57,12 @@ public class WaitUntil<V> extends MultiPhaseAction {
     
     /**
      *
-     * @param conditionFunc the condition function to evaluation by phases
+     * @param conditionFunc the condition function for evaluation by phases
      * @param totalTimeout the maximum amount of time to wait totally
      * @param phaseTimeout the maximum amount of time to wait for each execution phase
      * @param pollInterval how often the condition function should be evaluated(the cost of actually evaluating the condition function is not factored in)
-     * @param ignoreExceptionList the types of exceptions to ignore
-     * @param timeoutCallback timeout callback function to be called when total timeout expires
+     * @param ignoreExceptionList the types of exceptions to ignore when evaluating condition function
+     * @param timeoutCallback the callback function to be called when total timeout expires
      */
     public WaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout, int phaseTimeout, int pollInterval, List<Class<? extends Throwable>> ignoreExceptionList, Consumer<ActionComposer> timeoutCallback){
         super(null);
@@ -72,7 +72,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
         this.conditionFunc = conditionFunc;
         this.ignoreExceptionList = ignoreExceptionList;
         this.timeoutCallback = timeoutCallback;
-        this.setInternalAction(multiPhaseWaitUntil());
+        super.setInternalAction(multiPhaseWaitUntil());
     }
     
     private Runnable multiPhaseWaitUntil(){

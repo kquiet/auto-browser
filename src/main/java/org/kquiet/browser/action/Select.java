@@ -59,8 +59,8 @@ public class Select extends OneTimeAction {
     
     /**
      *
-     * @param by
-     * @param frameBy
+     * @param by by the element locating mechanism
+     * @param frameBy the frame locating mechanism for the element resides in a frame
      * @param selectBy
      * @param optionValue
      */
@@ -70,7 +70,7 @@ public class Select extends OneTimeAction {
         this.frameBy = frameBy;
         this.selectBy = selectBy;
         this.optionValue = optionValue;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

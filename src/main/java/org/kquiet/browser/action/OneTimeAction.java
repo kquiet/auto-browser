@@ -23,7 +23,7 @@ import org.kquiet.browser.ActionState;
  *
  * @author Kimberly
  */
-public class OneTimeAction extends MultiPhaseAction{
+public abstract class OneTimeAction extends MultiPhaseAction{
     
     /**
      *
@@ -31,7 +31,7 @@ public class OneTimeAction extends MultiPhaseAction{
      */
     public OneTimeAction(Runnable action){
         super(null);
-        this.setInternalAction(makeOnetimeRunnable(action));
+        super.setInternalAction(makeOnetimeRunnable(action));
     }
     
     private Runnable makeOnetimeRunnable(Runnable action){

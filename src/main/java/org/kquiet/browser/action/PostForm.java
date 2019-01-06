@@ -52,7 +52,7 @@ public class PostForm extends OneTimeAction {
         this.acceptCharset = acceptCharset;
         String formId = UUID.randomUUID().toString();
         
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 String scriptStr = String.format("var formE = document.createElement('form');formE.setAttribute('id','%s');formE.setAttribute('name','%s');formE.setAttribute('method','post');formE.setAttribute('enctype','application/x-www-form-urlencoded');formE.setAttribute('action','%s');", formId.replaceAll("'", "\'"), formId.replaceAll("'", "\'"), this.url);

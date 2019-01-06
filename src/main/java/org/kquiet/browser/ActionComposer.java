@@ -651,7 +651,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     * Determine whether open a window as focus window at the begining
+     * Determine whether open a window as focus window at the begining.
+     * 
      * @param openWindowFlag {@code true}: open; {@code false}: not open
      * @return invoking {@link ActionComposer}
      */
@@ -665,7 +666,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
 
     /**
-     * Determine whether close all registered windows at the end
+     * Determine whether close all registered windows at the end.
+     * 
      * @param closeWindowFlag {@code true}: close; {@code false}: not close
      * @return invoking {@link ActionComposer}
      */

@@ -25,7 +25,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link Upload} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
+ * {@link Upload} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window.
+ * 
  * @author Kimberly
  */
 public class Upload extends OneTimeAction {
@@ -36,7 +37,7 @@ public class Upload extends OneTimeAction {
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism if the element resides in a frame
+     * @param frameBy the frame locating mechanism for the element resides in a frame
      * @param pathOfFile the path of file to upload
      */
     public Upload(By by, By frameBy, String pathOfFile){
@@ -44,7 +45,7 @@ public class Upload extends OneTimeAction {
         this.by = by;
         this.frameBy = frameBy;
         this.pathOfFile = pathOfFile;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

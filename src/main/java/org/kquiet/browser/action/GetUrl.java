@@ -32,7 +32,7 @@ public class GetUrl extends OneTimeAction {
     public GetUrl(String url){
         super(null);
         this.url = url;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

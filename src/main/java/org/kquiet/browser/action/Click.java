@@ -24,7 +24,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link Click} is a subclass of {@link OneTimeAction} which clicks an element
+ * {@link Click} is a subclass of {@link OneTimeAction} which clicks an element.
+ * 
  * @author Kimberly
  */
 public class Click extends OneTimeAction {
@@ -34,13 +35,13 @@ public class Click extends OneTimeAction {
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism if the element resides in a frame
+     * @param frameBy the frame locating mechanism for the element resides in a frame
      */
     public Click(By by, By frameBy){
         super(null);
         this.by = by;
         this.frameBy = frameBy;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

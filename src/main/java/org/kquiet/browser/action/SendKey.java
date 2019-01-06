@@ -36,8 +36,8 @@ public class SendKey extends OneTimeAction {
     
     /**
      *
-     * @param by
-     * @param frameBy
+     * @param by by the element locating mechanism
+     * @param frameBy the frame locating mechanism for the element resides in a frame
      * @param clearBeforeSend
      * @param keysToSend
      */
@@ -47,7 +47,7 @@ public class SendKey extends OneTimeAction {
         this.frameBy = frameBy;
         this.clearBeforeSend = clearBeforeSend;
         this.keysToSend = purifyCharSequences(keysToSend);
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

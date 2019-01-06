@@ -25,7 +25,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link CloseWindow} is a subclass of {@link OneTimeAction} which closes window(s).
+ * 
  * @author Kimberly
  */
 public class CloseWindow extends OneTimeAction {
@@ -35,12 +36,12 @@ public class CloseWindow extends OneTimeAction {
                 
     /**
      *
-     * @param closeAllRegistered
+     * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
      */
     public CloseWindow(boolean closeAllRegistered){
         super(null);
         this.closeAllRegistered = closeAllRegistered;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = getComposer();
             //root window should never be closed
             String rootWindow = actionComposer.getRootWindow();

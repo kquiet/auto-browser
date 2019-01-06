@@ -32,7 +32,7 @@ import org.kquiet.browser.ActionState;
  *
  * @author Kimberly
  */
-public class MultiPhaseAction implements Runnable{
+public abstract class MultiPhaseAction implements Runnable{
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiPhaseAction.class);
     
     /**

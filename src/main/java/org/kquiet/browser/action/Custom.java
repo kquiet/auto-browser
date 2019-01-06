@@ -34,7 +34,7 @@ public class Custom extends OneTimeAction {
     public Custom(Consumer<ActionComposer> customFunc){
         super(null);
         this.customFunc = customFunc;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

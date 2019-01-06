@@ -31,14 +31,14 @@ public class JustWait extends MultiPhaseAction {
     
     /**
      *
-     * @param totalTimeout the maximum amount of time to wait
+     * @param totalTimeout the maximum amount of time to wait totally
      * @param phaseTimeout the maximum amount of time to wait for each execution phase
      */
     public JustWait(int totalTimeout, int phaseTimeout){
         super(null);
         this.totalTimeout = totalTimeout;
         this.phaseTimeout = phaseTimeout;
-        this.setInternalAction(multiPhasePureWait());
+        super.setInternalAction(multiPhasePureWait());
     }
     
     private Runnable multiPhasePureWait(){

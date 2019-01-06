@@ -25,7 +25,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link ScrollToView} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window
+ * {@link ScrollToView} is a subclass of {@link OneTimeAction} which scrolls an element into visible area of the browser window.
+ * 
  * @author Kimberly
  */
 public class ScrollToView extends OneTimeAction {
@@ -36,7 +37,7 @@ public class ScrollToView extends OneTimeAction {
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism if the element resides in a frame
+     * @param frameBy the frame locating mechanism for the element resides in a frame
      * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
      */
     public ScrollToView(By by, By frameBy, boolean toTop){
@@ -44,7 +45,7 @@ public class ScrollToView extends OneTimeAction {
         this.by = by;
         this.frameBy = frameBy;
         this.toTop = toTop;
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 actionComposer.switchToFocusWindow();

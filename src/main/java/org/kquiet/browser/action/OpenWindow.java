@@ -28,7 +28,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link OpenWindow} is a subclass of {@link OneTimeAction} which openes a window.
+ * 
  * @author Kimberly
  */
 public class OpenWindow extends OneTimeAction {
@@ -39,14 +40,14 @@ public class OpenWindow extends OneTimeAction {
     
     /**
      *
-     * @param asComposerFocusWindow
-     * @param registerName
+     * @param asComposerFocusWindow {@code true}: set opened window as focus window; {@code false}: don't set opened window as focus window
+     * @param registerName name to register
      */
     public OpenWindow(boolean asComposerFocusWindow, String registerName){
         super(null);
         this.asComposerFocusWindow = asComposerFocusWindow;
         this.registerName = Optional.ofNullable(registerName).orElse("");
-        this.setInternalAction(()->{
+        super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             WebDriver brsDriver = actionComposer.getBrsDriver();
             //find existing windows before open new one
