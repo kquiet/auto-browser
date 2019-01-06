@@ -23,7 +23,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link IfThenElse} is a subclass of {@link OneTimeAction} which performs conditional actions.
+ * 
  * @author Kimberly
  */
 public class IfThenElse extends OneTimeAction implements Aggregatable {
@@ -32,10 +33,10 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     private volatile boolean predicateResult=true;
     
     /**
-     *
-     * @param predicate
-     * @param thenActionList
-     * @param elseActionList
+     * Create an {@link IfThenElse} to perform actions according to the test result of predicate.
+     * @param predicate the predicate to test
+     * @param thenActionList the actions to perform if the test result is true
+     * @param elseActionList the actions to perform if the test result is false
      */
     public IfThenElse(Predicate<ActionComposer> predicate, List<MultiPhaseAction> thenActionList, List<MultiPhaseAction> elseActionList){
         super(null);

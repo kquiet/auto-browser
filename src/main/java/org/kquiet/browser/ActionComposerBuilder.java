@@ -587,22 +587,23 @@ public class ActionComposerBuilder{
         /**
          * Add a {@link PostForm} to the sequence of actions.
          * 
-         * @param url
-         * @param simpleFormData
+         * @param url the address where to submit the form
+         * @param formData the form data to submit
          * @return invoking {@link ActionSequenceBuilder}
          */
-        public ActionSequenceBuilder postForm(String url, List<SimpleImmutableEntry<String,String>> simpleFormData){
-            return new PostFormBuilder(this, url).withSimpleFormData(simpleFormData).done();
+        public ActionSequenceBuilder postForm(String url, List<SimpleImmutableEntry<String,String>> formData){
+            return new PostFormBuilder(this, url, formData).done();
         }
 
         /**
          * Start building a {@link PostForm}.
          * 
-         * @param url
+         * @param url the address where to submit the form
+         * @param formData the form data to submit
          * @return a new {@link PostFormBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public PostFormBuilder preparePostForm(String url){
-            return new PostFormBuilder(this, url);
+        public PostFormBuilder preparePostForm(String url, List<SimpleImmutableEntry<String,String>> formData){
+            return new PostFormBuilder(this, url, formData);
         }
 
         /**
@@ -610,35 +611,26 @@ public class ActionComposerBuilder{
          */
         public class PostFormBuilder extends InnerBuilderBase{
             private final String url;
-            private List<SimpleImmutableEntry<String,String>> simpleFormData;
+            private final List<SimpleImmutableEntry<String,String>> formData;
             private String acceptCharset;
 
             /**
              * Create a new {@link PostFormBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param url
+             * @param url the address where to submit the form
+             * @param formData the form data to submit
              */
-            public PostFormBuilder(ActionSequenceBuilder parentActionSequenceBuilder, String url){
+            public PostFormBuilder(ActionSequenceBuilder parentActionSequenceBuilder, String url, List<SimpleImmutableEntry<String,String>> formData){
                 super(parentActionSequenceBuilder);
                 if (url==null || url.isEmpty()) throw new IllegalArgumentException("No url specified to build");
                 this.url = url;
+                this.formData = formData;
             }
 
             /**
              *
-             * @param simpleFormData
-             * @return invoking {@link PostFormBuilder}
-             */
-            public PostFormBuilder withSimpleFormData(List<SimpleImmutableEntry<String,String>> simpleFormData){
-                if (simpleFormData==null) throw new IllegalArgumentException("Illegal form data to build");
-                this.simpleFormData = simpleFormData;
-                return this;
-            }
-
-            /**
-             *
-             * @param acceptCharset
+             * @param acceptCharset the charset used in the submitted form
              * @return invoking {@link PostFormBuilder}
              */
             public PostFormBuilder withAcceptCharset(String acceptCharset){
@@ -653,7 +645,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new PostForm(url, simpleFormData, acceptCharset);
+                MultiPhaseAction action = new PostForm(url, formData, acceptCharset);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -661,7 +653,7 @@ public class ActionComposerBuilder{
         /**
          * Add a {@link GetUrl} to the sequence of actions.
          * 
-         * @param url
+         * @param url the url of web page
          * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder getUrl(String url){
@@ -671,7 +663,7 @@ public class ActionComposerBuilder{
         /**
          * Start building a {@link GetUrl}.
          * 
-         * @param url
+         * @param url the url of web page
          * @return a new {@link GetUrlBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public GetUrlBuilder prepareGetUrl(String url){
@@ -688,7 +680,7 @@ public class ActionComposerBuilder{
              * Create a new {@link GetUrlBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param url
+             * @param url the url of web page
              */
             public GetUrlBuilder(ActionSequenceBuilder parentActionSequenceBuilder, String url){
                 super(parentActionSequenceBuilder);
@@ -711,7 +703,7 @@ public class ActionComposerBuilder{
          * Add a {@link Select} to the sequence of actions, which select by index.
          * 
          * @param by the element locating mechanism
-         * @param options
+         * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
          * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByIndex(By by, Integer... options){
@@ -722,7 +714,7 @@ public class ActionComposerBuilder{
          * Add a {@link Select} to the sequence of actions, which select by text.
          * 
          * @param by the element locating mechanism
-         * @param options
+         * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
          * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByText(By by, String... options){
@@ -974,39 +966,39 @@ public class ActionComposerBuilder{
         /**
          * Add a {@link Custom} to the sequence of actions.
          * 
-         * @param composerConsumer
+         * @param customAction custom action
          * @return invoking {@link ActionSequenceBuilder}
          */
-        public ActionSequenceBuilder custom(Consumer<ActionComposer> composerConsumer){
-            return new CustomBuilder(this, composerConsumer).done();
+        public ActionSequenceBuilder custom(Consumer<ActionComposer> customAction){
+            return new CustomBuilder(this, customAction).done();
         }
 
         /**
          * Start building a {@link Custom}.
          * 
-         * @param composerConsumer
+         * @param customAction custom action
          * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public CustomBuilder prepareCustom(Consumer<ActionComposer> composerConsumer){
-            return new CustomBuilder(this, composerConsumer);
+        public CustomBuilder prepareCustom(Consumer<ActionComposer> customAction){
+            return new CustomBuilder(this, customAction);
         }
 
         /**
          * A builder to build {@link Custom} in a fluent way.
          */
         public class CustomBuilder extends InnerBuilderBase{
-            private final Consumer<ActionComposer> composerConsumer;
+            private final Consumer<ActionComposer> customAction;
 
             /**
              * Create a new {@link CustomBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param composerConsumer
+             * @param customAction custom action
              */
-            public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Consumer<ActionComposer> composerConsumer){
+            public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Consumer<ActionComposer> customAction){
                 super(parentActionSequenceBuilder);
-                if (composerConsumer==null) throw new IllegalArgumentException("No composer consumer specified to build");
-                this.composerConsumer = composerConsumer;
+                if (customAction==null) throw new IllegalArgumentException("No composer consumer specified to build");
+                this.customAction = customAction;
             }
 
             /**
@@ -1015,7 +1007,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Custom(composerConsumer);
+                MultiPhaseAction action = new Custom(customAction);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1156,9 +1148,9 @@ public class ActionComposerBuilder{
         
         /**
          *
-         * Start building a {@link IfThenElse}.
+         * Start building an {@link IfThenElse}.
          * 
-         * @param predicate
+         * @param predicate the predicate to test
          * @return a new {@link IfThenElseBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public IfThenElseBuilder prepareIfThenElse(Predicate<ActionComposer> predicate){
@@ -1178,7 +1170,7 @@ public class ActionComposerBuilder{
              * Create a new {@link IfThenElseBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param predicate
+             * @param predicate the predicate to test
              */
             public IfThenElseBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Predicate<ActionComposer> predicate){
                 super(parentActionSequenceBuilder);
@@ -1187,8 +1179,9 @@ public class ActionComposerBuilder{
             }
             
             /**
-             *
-             * @param action
+             * Add action to the building {@link IfThenElseBuilder}
+             * 
+             * @param action the action to add
              * @return invoking {@link IfThenElseBuilder}
              */
             public IfThenElseBuilder add(MultiPhaseAction action){
@@ -1199,8 +1192,9 @@ public class ActionComposerBuilder{
             }
             
             /**
-             *
-             * @return
+             * Finish building the sequence of actions so far and return control to root builder({@link ActionComposerBuilder}).
+             * 
+             * @return root builder({@link ActionComposerBuilder})
              */
             public ActionComposerBuilder returnToComposerBuilder(){
                 parentActionSequenceBuilder.add(new IfThenElse(predicate, thenActionList, elseActionList));
@@ -1208,8 +1202,9 @@ public class ActionComposerBuilder{
             }
             
             /**
-             *
-             * @return
+             * Start building the action list for the positive result of predicate.
+             * 
+             * @return a new {@link ActionSequenceBuilder} with invoking {@link IfThenElseBuilder} as parent builder
              */
             public ActionSequenceBuilder then(){
                 isPrepareThenAction = true;
@@ -1217,8 +1212,9 @@ public class ActionComposerBuilder{
             }
             
             /**
-             *
-             * @return
+             * Start building the action list for the negative result of predicate.
+             * 
+             * @return a new {@link ActionSequenceBuilder} with invoking {@link IfThenElseBuilder} as parent builder
              */
             public ActionSequenceBuilder otherwise(){
                 isPrepareThenAction = false;

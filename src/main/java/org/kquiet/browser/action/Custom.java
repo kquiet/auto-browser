@@ -21,7 +21,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link Custom} is a subclass of {@link OneTimeAction} which performs custom action
+ * 
  * @author Kimberly
  */
 public class Custom extends OneTimeAction {
@@ -29,11 +30,11 @@ public class Custom extends OneTimeAction {
     
     /**
      *
-     * @param customFunc
+     * @param customAction custom action
      */
-    public Custom(Consumer<ActionComposer> customFunc){
+    public Custom(Consumer<ActionComposer> customAction){
         super(null);
-        this.customFunc = customFunc;
+        this.customFunc = customAction;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{

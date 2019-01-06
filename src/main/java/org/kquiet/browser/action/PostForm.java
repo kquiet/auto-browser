@@ -29,7 +29,9 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link PostForm} is a subclass of {@link OneTimeAction} which submits a form by http post.
+ * Currently only supports enctype 'application/x-www-form-urlencoded'.
+ * 
  * @author Kimberly
  */
 public class PostForm extends OneTimeAction {
@@ -40,10 +42,10 @@ public class PostForm extends OneTimeAction {
     private final String acceptCharset;
     
     /**
-     *
-     * @param url
-     * @param formData
-     * @param acceptCharset
+     * 
+     * @param url the address where to submit the form
+     * @param formData the form data to submit
+     * @param acceptCharset the charset used in the submitted form
      */
     public PostForm(String url, List<SimpleImmutableEntry<String,String>> formData, String acceptCharset){
         super(null);

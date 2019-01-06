@@ -19,7 +19,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link GetUrl} is a subclass of {@link OneTimeAction} which loads a web page.
+ * 
  * @author Kimberly
  */
 public class GetUrl extends OneTimeAction {
@@ -27,7 +28,7 @@ public class GetUrl extends OneTimeAction {
             
     /**
      *
-     * @param url
+     * @param url the url of web page
      */
     public GetUrl(String url){
         super(null);
