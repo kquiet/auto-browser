@@ -26,28 +26,29 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link Select} is a subclass of {@link OneTimeAction} which selects/deselects options on a SELECT element.
+ * 
  * @author Kimberly
  */
 public class Select extends OneTimeAction {
 
     /**
-     *
+     * The way to perform the selecting.
      */
     public static enum SelectBy {
 
         /**
-         *
+         * Select/deselect the option by index
          */
         Index,
 
         /**
-         *
+         * Select/deselect the option by value
          */
         Value,
 
         /**
-         *
+         * Select/deselect the option by text
          */
         Text
     }
@@ -55,21 +56,21 @@ public class Select extends OneTimeAction {
     private final By by;
     private final By frameBy;
     private final SelectBy selectBy;
-    private final Object[] optionValue;
+    private final Object[] options;
     
     /**
      *
      * @param by by the element locating mechanism
      * @param frameBy the frame locating mechanism for the element resides in a frame
-     * @param selectBy
-     * @param optionValue
+     * @param selectBy the way to perform the selecting
+     * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
      */
-    public Select(By by, By frameBy, SelectBy selectBy, Object... optionValue){
+    public Select(By by, By frameBy, SelectBy selectBy, Object... options){
         super(null);
         this.by = by;
         this.frameBy = frameBy;
         this.selectBy = selectBy;
-        this.optionValue = optionValue;
+        this.options = options;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
@@ -80,7 +81,7 @@ public class Select extends OneTimeAction {
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
                 if (element==null) throw new ExecutionException("can't find the element to select");
-                else clickToSelect(element, this.selectBy, this.optionValue);
+                else clickToSelect(element, this.selectBy, this.options);
             }catch(Exception e){
                 throw new ExecutionException("Error: "+toString(), e);
             }
@@ -88,32 +89,33 @@ public class Select extends OneTimeAction {
     }
     
     /**
-     *
-     * @param element
-     * @param selectBy
-     * @param optionValue
+     * Clicks an element and then performs selecting on it.
+     * 
+     * @param element the element to perform the selecting
+     * @param selectBy the way to perform the selecting
+     * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
      */
-    public static void clickToSelect(WebElement element, SelectBy selectBy, Object... optionValue){
+    public static void clickToSelect(WebElement element, SelectBy selectBy, Object... options){
         element.click();
         org.openqa.selenium.support.ui.Select elementToSelect = new org.openqa.selenium.support.ui.Select(element);
-        if ((optionValue==null||optionValue.length==0)&&elementToSelect.isMultiple()){
+        if ((options==null||options.length==0)&&elementToSelect.isMultiple()){
             elementToSelect.deselectAll();
         }
-        else if (optionValue!=null){
+        else if (options!=null){
             switch(selectBy){
                 case Index:
-                    for (Object obj: optionValue){
+                    for (Object obj: options){
                         elementToSelect.selectByIndex((Integer)obj);
                     }
                     break;
                 case Value:
-                    for (Object obj: optionValue){
+                    for (Object obj: options){
                         elementToSelect.selectByValue((String)obj);
                     }
                     break;
                 default:
                 case Text:
-                    for (Object obj: optionValue){
+                    for (Object obj: options){
                         elementToSelect.selectByVisibleText((String)obj);
                     }
                     break;
@@ -125,6 +127,6 @@ public class Select extends OneTimeAction {
     public String toString(){
         return String.format("%s(%s) %s:%s/%s/%s/%s"
                 , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
-                , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(optionValue).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBy!=null?frameBy.toString():""));
+                , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBy!=null?frameBy.toString():""));
     }
 }

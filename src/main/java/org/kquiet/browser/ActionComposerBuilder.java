@@ -733,7 +733,7 @@ public class ActionComposerBuilder{
          * Add a {@link Select} to the sequence of actions, which select by value.
          * 
          * @param by the element locating mechanism
-         * @param options
+         * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
          * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder selectByValue(By by, String... options){
@@ -790,8 +790,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @param options
+             * Select by index.
+             * 
+             * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
              * @return invoking {@link SelectBuilder}
              */
             public SelectBuilder selectByIndex(Integer... options){
@@ -799,8 +800,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @param options
+             * Select By text.
+             * 
+             * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
              * @return invoking {@link SelectBuilder}
              */
             public SelectBuilder selectByText(String... options){
@@ -808,8 +810,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @param options
+             * Select by value.
+             * 
+             * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
              * @return invoking {@link SelectBuilder}
              */
             public SelectBuilder selectByValue(String... options){
@@ -831,7 +834,7 @@ public class ActionComposerBuilder{
          * Add a {@link SendKey} to the sequence of actions.
          * 
          * @param by the element locating mechanism
-         * @param keysToSend
+         * @param keysToSend character sequence to send to the element
          * @return invoking {@link ActionSequenceBuilder}
          */
         public ActionSequenceBuilder sendKey(By by, CharSequence... keysToSend){
@@ -842,7 +845,7 @@ public class ActionComposerBuilder{
          * Start building a {@link SendKey}.
          * 
          * @param by the element locating mechanism
-         * @param keysToSend
+         * @param keysToSend character sequence to send to the element
          * @return a new {@link SendKeyBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
         public SendKeyBuilder prepareSendKey(By by, CharSequence... keysToSend){
@@ -863,7 +866,7 @@ public class ActionComposerBuilder{
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param by the element locating mechanism
-             * @param keysToSend
+             * @param keysToSend character sequence to send to the element
              */
             public SendKeyBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by, CharSequence... keysToSend){
                 super(parentActionSequenceBuilder);
@@ -886,7 +889,8 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
+             * Clear before sending keys.
+             * 
              * @return invoking {@link SendKeyBuilder}
              */
             public SendKeyBuilder withClearBeforeSend(){

@@ -32,10 +32,11 @@ public enum BrowserType {
     FIREFOX;
     
     /**
-     * Get BrowserType represented by its text(case insensitive).
+     * Get {@link BrowserType} represented by parsing its text(case insensitive).
      * 'Chromium' is considered as BrowserType.CHROME.
-     * @param text
-     * @return
+     * 
+     * @param text text to be parsed
+     * @return {@link BrowserType} represented by text
      */
     public static BrowserType fromString(String text) {
         for (BrowserType browserType : BrowserType.values()) {
@@ -46,6 +47,6 @@ public enum BrowserType {
                 return browserType;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No such browser type:"+text);
     }
 }

@@ -25,7 +25,8 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- *
+ * {@link SendKey} is a subclass of {@link OneTimeAction} which types into an element.
+ * 
  * @author Kimberly
  */
 public class SendKey extends OneTimeAction {
@@ -38,8 +39,8 @@ public class SendKey extends OneTimeAction {
      *
      * @param by by the element locating mechanism
      * @param frameBy the frame locating mechanism for the element resides in a frame
-     * @param clearBeforeSend
-     * @param keysToSend
+     * @param clearBeforeSend {@code true}: clear before sending; {@code false}: send without clearing first
+     * @param keysToSend character sequence to send to the element
      */
     public SendKey(By by, By frameBy, boolean clearBeforeSend, CharSequence... keysToSend){
         super(null);
@@ -79,10 +80,11 @@ public class SendKey extends OneTimeAction {
     }
     
     /**
-     *
-     * @param element
-     * @param clearBeforeSend
-     * @param keysToSend
+     * Clicks an element and then types into it.
+     * 
+     * @param element the element to send keys to
+     * @param clearBeforeSend {@code true}: clear before sending; {@code false}: send without clearing first
+     * @param keysToSend character sequence to send to the element
      */
     public static void clickToSendKeys(WebElement element, boolean clearBeforeSend, CharSequence... keysToSend){
         //click before send key
