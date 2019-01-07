@@ -16,32 +16,36 @@
 package org.kquiet.browser.action.exception;
 
 /**
- *
+ * Thrown to indicate that a browser action encounters a non-recoverable problem during execution.
+ * 
  * @author Kimberly
  */
 public class ActionException extends RuntimeException {
     static final long serialVersionUID = 1L;
 
     /**
-     *
-     * @param message
+     * Constructs an {@link ActionException} with the specified detail message.
+     * 
+     * @param message the detail message
      */
     public ActionException(String message){
         super(message);
     }
 
     /**
-     *
-     * @param cause
+     * Constructs an {@link ActionException} with the specified cause.
+     * 
+     * @param cause the cause
      */
     public ActionException(Throwable cause){
         super(cause);
     }
 
     /**
-     *
-     * @param message
-     * @param cause
+     * Constructs a new exception with the specified detail message and cause.
+     * 
+     * @param message the detail message
+     * @param cause the cause
      */
     public ActionException(String message, Throwable cause){
         super(message, cause);

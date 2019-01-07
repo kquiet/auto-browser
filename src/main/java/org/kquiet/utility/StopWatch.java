@@ -46,8 +46,6 @@ public class StopWatch {
         }
     }
 
-    //elaspsed time in milliseconds
-
     /**
      *
      * @return
@@ -61,8 +59,6 @@ public class StopWatch {
         }
         return elapsed;
     }
-    
-    //elaspsed time in nanoseconds
 
     /**
      *

@@ -15,10 +15,20 @@
  */
 package org.kquiet.browser.action;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- *
+ * A marker annotation that indicates the annotated class is non-browserable.
+ * 
  * @author Kimberly
  */
-public interface Nonbrowserable {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Nonbrowserable {
     
 }

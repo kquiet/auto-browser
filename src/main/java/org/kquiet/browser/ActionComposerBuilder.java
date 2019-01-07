@@ -1035,7 +1035,7 @@ public class ActionComposerBuilder{
         }
 
         /**
-         *
+         * A builder to build {@link ScrollToView} in a fluent way.
          */
         public class ScrollToViewBuilder extends InnerBuilderBase{
             private final By by;
@@ -1070,8 +1070,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link ScrollToView} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new ScrollToView(by, frameBy, toTop);
@@ -1102,7 +1103,7 @@ public class ActionComposerBuilder{
         }
 
         /**
-         *
+         * A builder to build {@link Upload} in a fluent way.
          */
         public class UploadBuilder extends InnerBuilderBase{
             private final By by;
@@ -1137,8 +1138,9 @@ public class ActionComposerBuilder{
             }
 
             /**
-             *
-             * @return
+             * Finish building {@link Upload} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new Upload(by, frameBy, pathOfFile);

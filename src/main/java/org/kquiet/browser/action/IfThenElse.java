@@ -35,7 +35,8 @@ import org.kquiet.browser.action.exception.ActionException;
  * 
  * @author Kimberly
  */
-public class IfThenElse extends SinglePhaseAction implements Aggregatable {
+@Nonbrowserable
+public class IfThenElse extends SinglePhaseAction{
     private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
     private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
     private final Predicate<ActionComposer> predicate;

@@ -78,7 +78,7 @@ public abstract class MultiPhaseAction implements Runnable{
                 setActionState(ActionState.RUNNING);
 
                 //only browserable action is gonna run at browser to avoid blocking browser unnecessarily
-                if (this instanceof Aggregatable || this instanceof Nonbrowserable){
+                if (this.getClass().isAnnotationPresent(Nonbrowserable.class)){
                     getInternalAction().run();
                 }
                 else{
