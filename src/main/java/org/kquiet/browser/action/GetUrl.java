@@ -16,14 +16,14 @@
 package org.kquiet.browser.action;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link GetUrl} is a subclass of {@link OneTimeAction} which loads a web page.
+ * {@link GetUrl} is a subclass of {@link SinglePhaseAction} which loads a web page.
  * 
  * @author Kimberly
  */
-public class GetUrl extends OneTimeAction {
+public class GetUrl extends SinglePhaseAction {
     private final String url;
             
     /**
@@ -40,7 +40,7 @@ public class GetUrl extends OneTimeAction {
                 actionComposer.getBrsDriver().get(this.url);
             }
             catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

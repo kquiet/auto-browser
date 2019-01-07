@@ -25,14 +25,14 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link OpenWindow} is a subclass of {@link OneTimeAction} which openes a window.
+ * {@link OpenWindow} is a subclass of {@link SinglePhaseAction} which openes a window.
  * 
  * @author Kimberly
  */
-public class OpenWindow extends OneTimeAction {
+public class OpenWindow extends SinglePhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenWindow.class);
     
     private final boolean asComposerFocusWindow;
@@ -75,14 +75,14 @@ public class OpenWindow extends OneTimeAction {
                         actionComposer.setFocusWindow(actualHandle);
                     }
                     if (!actionComposer.registerWindow(this.registerName, actualHandle)){
-                        throw new ExecutionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
+                        throw new ActionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
                     }
                     break;
                 }
             }
 
             if (actualHandle==null){
-                throw new ExecutionException(String.format("%s(%s) can't find new window! %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString()));
+                throw new ActionException(String.format("%s(%s) can't find new window! %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString()));
             }
         });
     }

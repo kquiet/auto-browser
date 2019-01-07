@@ -23,14 +23,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Select} is a subclass of {@link OneTimeAction} which selects/deselects options on a SELECT element.
+ * {@link Select} is a subclass of {@link SinglePhaseAction} which selects/deselects options on a SELECT element.
  * 
  * @author Kimberly
  */
-public class Select extends OneTimeAction {
+public class Select extends SinglePhaseAction {
 
     /**
      * The way to perform the selecting.
@@ -80,10 +80,10 @@ public class Select extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to select");
+                if (element==null) throw new ActionException("can't find the element to select");
                 else clickToSelect(element, this.selectBy, this.options);
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

@@ -21,14 +21,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Click} is a subclass of {@link OneTimeAction} which clicks an element.
+ * {@link Click} is a subclass of {@link SinglePhaseAction} which clicks an element.
  * 
  * @author Kimberly
  */
-public class Click extends OneTimeAction {
+public class Click extends SinglePhaseAction {
     private final By by;
     private final By frameBy;
 
@@ -50,10 +50,10 @@ public class Click extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to click");
+                if (element==null) throw new ActionException("can't find the element to click");
                 else element.click();
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

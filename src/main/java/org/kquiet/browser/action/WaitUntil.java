@@ -25,7 +25,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 import org.kquiet.utility.StopWatch;
 
 /**
@@ -39,8 +39,8 @@ import org.kquiet.utility.StopWatch;
  * <li>the execution thread of this {@link WaitUntil} is interrupted</li>
  * </ol>
  * 
- * <p>When timeout expires, it will throw an {@link org.kquiet.browser.action.exception.ExecutionException ExecutionException} if no timeout callback function is supplied;
- * if a timeout callback function is supplied, it will execute the callback function instead of throwing {@link org.kquiet.browser.action.exception.ExecutionException ExecutionException}.</p>
+ * <p>When timeout expires, it will throw an {@link org.kquiet.browser.action.exception.ActionException ActionException} if no timeout callback function is supplied;
+ * if a timeout callback function is supplied, it will execute the callback function instead of throwing {@link org.kquiet.browser.action.exception.ActionException ActionException}.</p>
  * 
  * @author Kimberly
  * @param <V> the expected return type of condition function
@@ -111,20 +111,20 @@ public class WaitUntil<V> extends MultiPhaseAction {
             }
             else{
                 //condition met => no next phase
-                this.unregisterNextPhase();
+                this.noNextPhase();
             }
         };
     }
     
     private void timeoutToDo(){
-        this.unregisterNextPhase();
+        this.noNextPhase();
         if (timeoutCallback!=null){
             ActionComposer actionComposer = this.getComposer();
             actionComposer.switchToFocusWindow();
             timeoutCallback.accept(actionComposer);
         }
         else{
-            throw new ExecutionException("Timeout! "+toString());
+            throw new ActionException("Timeout! "+toString());
         }
     }
     

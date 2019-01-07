@@ -19,14 +19,14 @@ package org.kquiet.browser.action.exception;
  *
  * @author Kimberly
  */
-public class ExecutionException extends RuntimeException {
+public class ActionException extends RuntimeException {
     static final long serialVersionUID = 1L;
 
     /**
      *
      * @param message
      */
-    public ExecutionException(String message){
+    public ActionException(String message){
         super(message);
     }
 
@@ -34,7 +34,7 @@ public class ExecutionException extends RuntimeException {
      *
      * @param cause
      */
-    public ExecutionException(Throwable cause){
+    public ActionException(Throwable cause){
         super(cause);
     }
 
@@ -43,7 +43,7 @@ public class ExecutionException extends RuntimeException {
      * @param message
      * @param cause
      */
-    public ExecutionException(String message, Throwable cause){
+    public ActionException(String message, Throwable cause){
         super(message, cause);
     }
 }

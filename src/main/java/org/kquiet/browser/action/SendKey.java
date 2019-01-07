@@ -22,14 +22,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.Keys;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link SendKey} is a subclass of {@link OneTimeAction} which types into an element.
+ * {@link SendKey} is a subclass of {@link SinglePhaseAction} which types into an element.
  * 
  * @author Kimberly
  */
-public class SendKey extends OneTimeAction {
+public class SendKey extends SinglePhaseAction {
     private final By by;
     private final By frameBy;
     private final CharSequence[] keysToSend;
@@ -57,10 +57,10 @@ public class SendKey extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to sendkey");
+                if (element==null) throw new ActionException("can't find the element to sendkey");
                 else clickToSendKeys(element, this.clearBeforeSend, this.keysToSend);
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

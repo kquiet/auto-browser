@@ -18,14 +18,14 @@ package org.kquiet.browser.action;
 import java.util.function.Consumer;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Custom} is a subclass of {@link OneTimeAction} which performs custom action
+ * {@link Custom} is a subclass of {@link SinglePhaseAction} which performs custom action
  * 
  * @author Kimberly
  */
-public class Custom extends OneTimeAction {
+public class Custom extends SinglePhaseAction {
     private final Consumer<ActionComposer> customFunc;
     
     /**
@@ -41,7 +41,7 @@ public class Custom extends OneTimeAction {
                 actionComposer.switchToFocusWindow();
                 this.customFunc.accept(actionComposer);
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

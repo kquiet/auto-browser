@@ -26,15 +26,15 @@ import org.slf4j.LoggerFactory;
 import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link PostForm} is a subclass of {@link OneTimeAction} which submits a form by http post.
+ * {@link PostForm} is a subclass of {@link SinglePhaseAction} which submits a form by http post.
  * Currently only supports enctype 'application/x-www-form-urlencoded'.
  * 
  * @author Kimberly
  */
-public class PostForm extends OneTimeAction {
+public class PostForm extends SinglePhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostForm.class);
 
     private final String url;
@@ -80,7 +80,7 @@ public class PostForm extends OneTimeAction {
                 }
             }
             catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

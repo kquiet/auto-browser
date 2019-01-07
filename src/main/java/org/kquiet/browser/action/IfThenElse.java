@@ -22,10 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link IfThenElse} is a subclass of {@link OneTimeAction} which performs actions according to the result of a predicate.
+ * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according to the result of a predicate.
  * 
  * {@link IfThenElse} maintains two lists of actions internally:
  * <ul>
@@ -35,7 +35,7 @@ import org.kquiet.browser.action.exception.ExecutionException;
  * 
  * @author Kimberly
  */
-public class IfThenElse extends OneTimeAction implements Aggregatable {
+public class IfThenElse extends SinglePhaseAction implements Aggregatable {
     private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
     private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
     private final Predicate<ActionComposer> predicate;
@@ -68,7 +68,7 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
                     });
                 }
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }
@@ -114,7 +114,7 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     
     @Override
     public List<Exception> getErrors() {
-        List<Exception> errList = new ArrayList<>(this.errorList);
+        List<Exception> errList = new ArrayList<>(super.getErrors());
         positiveActionList.forEach(action->{
             errList.addAll(action.getErrors());
         });

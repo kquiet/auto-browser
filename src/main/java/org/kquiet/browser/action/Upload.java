@@ -22,14 +22,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Upload} is a subclass of {@link OneTimeAction} which scroll an element into visible area of the browser window.
+ * {@link Upload} is a subclass of {@link SinglePhaseAction} which scroll an element into visible area of the browser window.
  * 
  * @author Kimberly
  */
-public class Upload extends OneTimeAction {
+public class Upload extends SinglePhaseAction {
     private final By by;
     private final By frameBy;
     private final String pathOfFile;
@@ -54,13 +54,13 @@ public class Upload extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to set upload file path");
+                if (element==null) throw new ActionException("can't find the element to set upload file path");
                 else {
                     ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1", element);
                     element.sendKeys(this.pathOfFile);
                 }
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }

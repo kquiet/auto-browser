@@ -22,14 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link CloseWindow} is a subclass of {@link OneTimeAction} which closes window(s).
+ * {@link CloseWindow} is a subclass of {@link SinglePhaseAction} which closes window(s).
  * 
  * @author Kimberly
  */
-public class CloseWindow extends OneTimeAction {
+public class CloseWindow extends SinglePhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloseWindow.class);
     
     private final boolean closeAllRegistered;
@@ -59,12 +59,12 @@ public class CloseWindow extends OneTimeAction {
                         LOGGER.info("{}({}): root window({}) can't be closed", ActionComposer.class.getSimpleName(), actionComposer.getName(), window);
                     }
                 }
-                if (!failList.isEmpty()) throw new ExecutionException(String.format("%s(%s) close registered windows(%s) fail; it may have been closed or equal to the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), String.join(",", failList)));
+                if (!failList.isEmpty()) throw new ActionException(String.format("%s(%s) close registered windows(%s) fail; it may have been closed or equal to the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), String.join(",", failList)));
             }
             else{
                 String focusWindow = actionComposer.getFocusWindow();
                 if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getBrsDriver().close();
-                else throw new ExecutionException(String.format("%s(%s) close focus window(%s) fail; it may have been closed or is the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), focusWindow));
+                else throw new ActionException(String.format("%s(%s) close focus window(%s) fail; it may have been closed or is the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), focusWindow));
             }
         });
     }

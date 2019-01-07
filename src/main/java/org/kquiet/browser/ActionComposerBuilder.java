@@ -1179,11 +1179,10 @@ public class ActionComposerBuilder{
             }
             
             /**
-             * Add action to the building {@link IfThenElseBuilder}.It depends on the building progress to add to positive/negative action list.
+             * Add action to the building {@link IfThenElseBuilder}.It depends on the building progress to add to positive or negative action list.
              * 
              * @param action the action to add
              * @return invoking {@link IfThenElseBuilder}
-             * @see {@link IfThenElse}
              */
             public IfThenElseBuilder add(MultiPhaseAction action){
                 if (action==null) throw new IllegalArgumentException("No action to add");

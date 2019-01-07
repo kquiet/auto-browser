@@ -22,14 +22,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ExecutionException;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link ScrollToView} is a subclass of {@link OneTimeAction} which scrolls an element into visible area of the browser window.
+ * {@link ScrollToView} is a subclass of {@link SinglePhaseAction} which scrolls an element into visible area of the browser window.
  * 
  * @author Kimberly
  */
-public class ScrollToView extends OneTimeAction {
+public class ScrollToView extends SinglePhaseAction {
     private final By by;
     private final By frameBy;
     private final boolean toTop;
@@ -54,10 +54,10 @@ public class ScrollToView extends OneTimeAction {
                 }
                 List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
                 WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ExecutionException("can't find the element to scroll");
+                if (element==null) throw new ActionException("can't find the element to scroll");
                 else ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
             }catch(Exception e){
-                throw new ExecutionException("Error: "+toString(), e);
+                throw new ActionException("Error: "+toString(), e);
             }
         });
     }
