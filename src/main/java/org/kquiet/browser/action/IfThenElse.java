@@ -17,43 +17,53 @@ package org.kquiet.browser.action;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ExecutionException;
 
 /**
- * {@link IfThenElse} is a subclass of {@link OneTimeAction} which performs conditional actions.
+ * {@link IfThenElse} is a subclass of {@link OneTimeAction} which performs actions according to the result of a predicate.
+ * 
+ * {@link IfThenElse} maintains two lists of actions internally:
+ * <ul>
+ * <li>positive action list - list of actions to perform for positive result</li>
+ * <li>negative action list - list of actions to perform for negative result</li>
+ * </ul>
  * 
  * @author Kimberly
  */
 public class IfThenElse extends OneTimeAction implements Aggregatable {
-    private final List<MultiPhaseAction> thenActionList = new ArrayList<>();
-    private final List<MultiPhaseAction> elseActionList = new ArrayList<>();
+    private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
+    private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
+    private final Predicate<ActionComposer> predicate;
     private volatile boolean predicateResult=true;
     
     /**
-     * Create an {@link IfThenElse} to perform actions according to the test result of predicate.
+     * 
      * @param predicate the predicate to test
-     * @param thenActionList the actions to perform if the test result is true
-     * @param elseActionList the actions to perform if the test result is false
+     * @param positiveActionList the actions to perform if the result is true
+     * @param negativeActionList the actions to perform if the result is false
      */
-    public IfThenElse(Predicate<ActionComposer> predicate, List<MultiPhaseAction> thenActionList, List<MultiPhaseAction> elseActionList){
+    public IfThenElse(Predicate<ActionComposer> predicate, List<MultiPhaseAction> positiveActionList, List<MultiPhaseAction> negativeActionList){
         super(null);
-        if (thenActionList!=null) this.thenActionList.addAll(thenActionList);
-        if (elseActionList!=null) this.elseActionList.addAll(elseActionList);
+        this.predicate = predicate;
+        if (positiveActionList!=null) this.positiveActionList.addAll(positiveActionList);
+        if (negativeActionList!=null) this.negativeActionList.addAll(negativeActionList);
         
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                predicateResult = predicate.test(actionComposer);
+                predicateResult = testPredicate();
                 if (predicateResult){
-                    this.thenActionList.forEach((action) -> {
+                    this.positiveActionList.forEach((action) -> {
                         action.run();
                     });
                 }
                 else{
-                    this.elseActionList.forEach((action) -> {
+                    this.negativeActionList.forEach((action) -> {
                         action.run();
                     });
                 }
@@ -61,6 +71,18 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
                 throw new ExecutionException("Error: "+toString(), e);
             }
         });
+    }
+    
+    private boolean testPredicate() throws Exception{
+        ActionComposer actionComposer = this.getComposer();
+        AtomicBoolean result = new AtomicBoolean();
+        
+        Future<Exception> future= getComposer().callBrowser(()->{
+            result.set(predicate.test(actionComposer));
+        });
+        Exception actionException = future.get();
+        if (actionException!=null) throw actionException;
+        return result.get();
     }
     
     @Override
@@ -73,10 +95,10 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
         boolean isDoneFlag = super.isDone();
         List<MultiPhaseAction> actionList;
         if (predicateResult){
-            actionList = thenActionList;
+            actionList = positiveActionList;
         }
         else {
-            actionList = elseActionList;
+            actionList = negativeActionList;
         }
         for (MultiPhaseAction action: actionList){
             isDoneFlag = isDoneFlag && action.isDone() && !action.hasNextPhase();
@@ -87,16 +109,16 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     
     @Override
     public boolean isFail(){
-        return super.isFail() || thenActionList.stream().anyMatch(s->s.isFail()) || elseActionList.stream().anyMatch(s->s.isFail());
+        return super.isFail() || positiveActionList.stream().anyMatch(s->s.isFail()) || negativeActionList.stream().anyMatch(s->s.isFail());
     }
     
     @Override
     public List<Exception> getErrors() {
         List<Exception> errList = new ArrayList<>(this.errorList);
-        thenActionList.forEach(action->{
+        positiveActionList.forEach(action->{
             errList.addAll(action.getErrors());
         });
-        elseActionList.forEach(action->{
+        negativeActionList.forEach(action->{
             errList.addAll(action.getErrors());
         });
         return errList;
@@ -105,10 +127,10 @@ public class IfThenElse extends OneTimeAction implements Aggregatable {
     @Override
     public IfThenElse setContainingComposer(ActionComposer containingComposer) {
         super.setContainingComposer(containingComposer);
-        thenActionList.forEach(action->{
+        positiveActionList.forEach(action->{
             action.setContainingComposer(containingComposer);
         });
-        elseActionList.forEach(action->{
+        negativeActionList.forEach(action->{
             action.setContainingComposer(containingComposer);
         });
         return this;

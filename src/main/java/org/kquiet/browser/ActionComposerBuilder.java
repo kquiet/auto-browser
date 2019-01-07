@@ -1163,8 +1163,8 @@ public class ActionComposerBuilder{
         public class IfThenElseBuilder extends InnerBuilderBase{
             private final Predicate<ActionComposer> predicate;
             private volatile boolean isPrepareThenAction = true;
-            private final List<MultiPhaseAction> thenActionList = new ArrayList<>();
-            private final List<MultiPhaseAction> elseActionList = new ArrayList<>();
+            private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
+            private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
 
             /**
              * Create a new {@link IfThenElseBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -1179,15 +1179,16 @@ public class ActionComposerBuilder{
             }
             
             /**
-             * Add action to the building {@link IfThenElseBuilder}
+             * Add action to the building {@link IfThenElseBuilder}.It depends on the building progress to add to positive/negative action list.
              * 
              * @param action the action to add
              * @return invoking {@link IfThenElseBuilder}
+             * @see {@link IfThenElse}
              */
             public IfThenElseBuilder add(MultiPhaseAction action){
-                if (action==null) throw new IllegalArgumentException("No action to accept");
-                if (isPrepareThenAction) thenActionList.add(action);
-                else elseActionList.add(action);
+                if (action==null) throw new IllegalArgumentException("No action to add");
+                if (isPrepareThenAction) positiveActionList.add(action);
+                else negativeActionList.add(action);
                 return this;
             }
             
@@ -1197,7 +1198,7 @@ public class ActionComposerBuilder{
              * @return root builder({@link ActionComposerBuilder})
              */
             public ActionComposerBuilder returnToComposerBuilder(){
-                parentActionSequenceBuilder.add(new IfThenElse(predicate, thenActionList, elseActionList));
+                parentActionSequenceBuilder.add(new IfThenElse(predicate, positiveActionList, negativeActionList));
                 return parentActionSequenceBuilder.returnToComposerBuilder();
             }
             
@@ -1227,7 +1228,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder endIf(){
-                parentActionSequenceBuilder.add(new IfThenElse(predicate, thenActionList, elseActionList));
+                parentActionSequenceBuilder.add(new IfThenElse(predicate, positiveActionList, negativeActionList));
                 return parentActionSequenceBuilder;
             }
         }
