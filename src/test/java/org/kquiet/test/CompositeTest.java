@@ -108,7 +108,7 @@ public class CompositeTest {
      * @throws Exception
      */
     @Test
-    public void concurrentOne() throws Exception {
+    public void singleComposeredRunner() throws Exception {
         StringBuilder sb = new StringBuilder();
         ActionComposer lowerPriorityComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
@@ -116,10 +116,10 @@ public class CompositeTest {
                     synchronized(sb){sb.append("L");}
                     return false;
                 }, 300)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("priorityTest-lowerPriority")
-            .keepFailInfo(false);
-        lowerPriorityComposer.setPriority(2);
+            .keepFailInfo(false)
+            .setPriority(2);
         
         ActionComposer higherPriorityComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
@@ -127,10 +127,10 @@ public class CompositeTest {
                     synchronized(sb){sb.append("H");}
                     return false;
                 }, 300)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("priorityTest-higherPriority")
-            .keepFailInfo(false);
-        higherPriorityComposer.setPriority(1);
+            .keepFailInfo(false)
+            .setPriority(1);
         
         Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
         Future<?> higherPriorityFuture = browserRunnerOne.executeComposer(higherPriorityComposer);
@@ -145,22 +145,59 @@ public class CompositeTest {
      * @throws Exception
      */
     @Test
+    public void interleave() throws Exception {
+        StringBuilder sb = new StringBuilder();
+        ActionComposer composer1 = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .prepareWaitUntil(driver->{
+                    synchronized(sb){sb.append("L");}
+                    return false;
+                }, 300)
+                    .withTimeoutCallback(ac->{})
+                    .done()
+                .returnToComposerBuilder()
+            .build("priorityTest-lowerPriority")
+            .keepFailInfo(false)
+            .setPriority(1);
+        
+        ActionComposer composer2 = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .prepareWaitUntil(driver->{
+                    synchronized(sb){sb.append("H");}
+                    return false;
+                }, 300)
+                    .withTimeoutCallback(ac->{})
+                    .done()
+                .returnToComposerBuilder()
+            .build("priorityTest-higherPriority")
+            .keepFailInfo(false)
+            .setPriority(1);
+        
+        Future<?> future1 = browserRunnerTwo.executeComposer(composer1);
+        Future<?> future2 = browserRunnerTwo.executeComposer(composer2);
+        future2.get(1000, TimeUnit.MILLISECONDS);
+        future1.get(1000, TimeUnit.MILLISECONDS);
+        
+        assertTrue("actual:"+sb.toString(), !sb.toString().matches("(L+H+)|(H+L+)"));
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
     public void continuous() throws Exception {
         StringBuilder sb = new StringBuilder();
         ActionComposer parentComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .custom(ac->{
-                    sb.append("parent");
-                })
-            .returnToComposerBuilder()
+                .custom(ac->sb.append("parent"))
+                .returnToComposerBuilder()
             .build("continuousTest-parent");
         
         ActionComposer childComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .custom(ac->{
-                    sb.append("child");
-                })
-            .returnToComposerBuilder()
+                .custom(ac->sb.append("child"))
+                .returnToComposerBuilder()
             .build("continuousTest-child");
         
         parentComposer.continueWith(childComposer);

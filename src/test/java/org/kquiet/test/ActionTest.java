@@ -109,7 +109,7 @@ public class ActionTest {
         return new ActionComposerBuilder()
                 .prepareActionSequence()
                     .getUrl(htmlFileUrl.toString())
-                .returnToComposerBuilder();
+                    .returnToComposerBuilder();
     }
     
     private ActionComposerBuilder getEmptyActionComposerBuilder(){
@@ -125,7 +125,7 @@ public class ActionTest {
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .waitUntil(driver->true, 500)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("waitUntilSuccess", false, false);
         long startTime = System.nanoTime();
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
@@ -143,7 +143,7 @@ public class ActionTest {
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .waitUntil(driver->false, 300)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("waitUntilTimeout", false, false)
             .keepFailInfo(false);
         long startTime = System.nanoTime();
@@ -162,7 +162,7 @@ public class ActionTest {
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .justWait(300)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("justWait", false, false);
         long startTime = System.nanoTime();
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
@@ -181,10 +181,8 @@ public class ActionTest {
         String customText = "custom";
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .custom(ac->{
-                    text.set(customText);
-                })
-            .returnToComposerBuilder()
+                .custom(ac-> text.set(customText))
+                .returnToComposerBuilder()
             .build("custom", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue(!actionComposer.isFail() && customText.equals(text.get()));
@@ -201,48 +199,34 @@ public class ActionTest {
             .prepareActionSequence()
                 .prepareIfThenElse(s->true)
                     .then()
-                        .custom(ac->{
-                            sb.append("1");
-                        })
+                        .custom(ac->sb.append("1"))
                         .prepareIfThenElse(s->false)
                             .then()
-                                .custom(ac->{
-                                    sb.append("2");
-                                })
-                            .endActionSequence()
+                                .custom(ac->sb.append("2"))
+                                .endActionSequence()
                             .otherwise()
                                 .prepareIfThenElse(s->true)
                                     .then()
-                                        .custom(ac->{
-                                            sb.append("3");
-                                        })
-                                    .endActionSequence()
+                                        .custom(ac->sb.append("3"))
+                                        .endActionSequence()
                                     .endIf()
-                                .custom(ac->{
-                                    sb.append("4");
-                                })
-                            .endActionSequence()
-                        .endIf()
-                    .endActionSequence()
+                                .custom(ac->sb.append("4"))
+                                .endActionSequence()
+                            .endIf()
+                        .endActionSequence()
                     .otherwise()
-                        .custom(t -> {
-                            sb.append("5");
-                        })
+                        .custom(t ->sb.append("5"))
                         .prepareIfThenElse(s->true)
                             .then()
-                                .custom(ac->{
-                                    sb.append("6");
-                                })
-                            .endActionSequence()
+                                .custom(ac->sb.append("6"))
+                                .endActionSequence()
                             .otherwise()
-                                .custom(ac->{
-                                    sb.append("7");
-                                })
-                            .endActionSequence()
-                        .endIf()
-                    .endActionSequence()
-                .endIf()
-            .returnToComposerBuilder()
+                                .custom(ac->sb.append("7"))
+                                .endActionSequence()
+                            .endIf()
+                        .endActionSequence()
+                    .endIf()
+                .returnToComposerBuilder()
             .build("ifThenElse", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue(!actionComposer.isFail() && "134".equals(sb.toString()));
@@ -257,7 +241,7 @@ public class ActionTest {
         ActionComposer actionComposer = getDefinedActionComposerBuilder()
             .prepareActionSequence()
                 .waitUntil(ExpectedConditions.titleIs("ActionTest"), 3000)
-            .returnToComposerBuilder()  
+                .returnToComposerBuilder()  
             .build("getUrl", true, true);
         browserRunner.executeComposer(actionComposer).get(4000, TimeUnit.MILLISECONDS);
         assertTrue(actionComposer.isSuccess());
@@ -278,7 +262,7 @@ public class ActionTest {
                     ExpectedConditions.urlContains("postform")
                     , ExpectedConditions.textToBePresentInElementLocated(By.tagName("html"), "value1:value2")
                 ), 1000)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("postForm", true, true);
         
         AtomicBoolean exitFlag = new AtomicBoolean(false);
@@ -328,7 +312,7 @@ public class ActionTest {
                 .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("btnClick")), 3000)
                 .click(By.id("btnClick"))
                 .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("divClickResult")), 1000)
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("click", true, true);
         browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
         assertTrue(actionComposer.isSuccess());
@@ -369,7 +353,7 @@ public class ActionTest {
                         }catch(Exception ex){LOGGER.trace("sendKey error", ex);throw ex;}
                     })
                     .done()
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("input", true, true);
         browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
         assertTrue("actualValue:"+actualValue.get(), actionComposer.isSuccess());
@@ -396,7 +380,7 @@ public class ActionTest {
                         }catch(Exception ex){LOGGER.trace("select error", ex);throw ex;}
                     })
                     .done()
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("select", true, true);
         browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
         
@@ -421,7 +405,7 @@ public class ActionTest {
                 .custom(ac->{
                     if (ac.switchToWindow(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("openAndCloseWindow", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue(actionComposer.isSuccess());
@@ -449,7 +433,7 @@ public class ActionTest {
                     Long top = (Long)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
                     after.set(top);
                 })
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("scrollToView", true, true);
         browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
         assertTrue(String.format("scroll error, initial:%s, after:%s", initial.get(), after.get()), actionComposer.isSuccess() && initial.get()>0 && after.get()==0);
@@ -472,7 +456,7 @@ public class ActionTest {
                     String name = (String)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].files[0].name;", element);
                     fileName.set(name);
                 })
-            .returnToComposerBuilder()
+                .returnToComposerBuilder()
             .build("upload", true, true);
         browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
         assertTrue("upload error", actionComposer.isSuccess() && HTML_FILE_NAME.equalsIgnoreCase(fileName.get()));
@@ -491,13 +475,9 @@ public class ActionTest {
                     sb.append("custom");
                     throw new RuntimeException("some error");
                 })
-            .returnToComposerBuilder()
-            .onFail(ac->{
-                sb.append("fail");
-            })
-            .onSuccess(ac->{
-                sb.append("success");
-            })
+                .returnToComposerBuilder()
+            .onFail(ac->sb.append("fail"))
+            .onSuccess(ac->sb.append("success"))
             .build("onFail", false, false)
             .keepFailInfo(false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
@@ -516,13 +496,9 @@ public class ActionTest {
                 .custom(ac->{
                     sb.append("custom");
                 })
-            .returnToComposerBuilder()
-            .onFail(ac->{
-                sb.append("fail");
-            })
-            .onSuccess(ac->{
-                sb.append("success");
-            })
+                .returnToComposerBuilder()
+            .onFail(ac->sb.append("fail"))
+            .onSuccess(ac->sb.append("success"))
             .build("onSuccess", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue("customsuccess".equals(sb.toString()) && actionComposer.isSuccess());
@@ -537,13 +513,9 @@ public class ActionTest {
         StringBuilder sb = new StringBuilder();
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .custom(ac->{
-                    sb.append("custom");
-                })
-            .returnToComposerBuilder()
-            .onDone(ac->{
-                sb.append("done");
-            })
+                .custom(ac->sb.append("custom"))
+                .returnToComposerBuilder()
+            .onDone(ac->sb.append("done"))
             .build("onDone", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue("customdone".equals(sb.toString()) && actionComposer.isDone());
