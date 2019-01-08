@@ -276,21 +276,6 @@
                         <artifactId>maven-antrun-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>chmod-webdriver</id>
-                                <phase>generate-test-resources</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <exec executable="sh">
-                                            <arg value="-c"/>
-                                            <arg value="chmod +x ${test.webdriver.directory.linux}/chromedriver"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                            </execution>
-                            <execution>
                                 <id>copy-webdriver</id>
                                 <phase>generate-test-resources</phase>
                                 <goals>
@@ -301,6 +286,21 @@
                                         <copy todir="${project.basedir}">
                                             <fileset dir="${test.webdriver.directory.linux}" includes="chromedriver" />
                                         </copy>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>chmod-webdriver</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <exec executable="sh">
+                                            <arg value="-c"/>
+                                            <arg value="chmod +x ${project.basedir}/chromedriver"/>
+                                        </exec>
                                     </target>
                                 </configuration>
                             </execution>
