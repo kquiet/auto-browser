@@ -56,7 +56,6 @@
     </dependencies>
     
     <build>
-        <finalName>${project.artifactId}-${project.version}</finalName>
         <directory>${project.basedir}/target</directory>
         <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
         <outputDirectory>${project.build.directory}/classes</outputDirectory>
@@ -100,6 +99,28 @@
                     </environmentVariables>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         
         <pluginManagement>
@@ -123,6 +144,10 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.0.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
                     <version>3.0.1</version>
                 </plugin>
                 <plugin>
