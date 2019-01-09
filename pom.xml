@@ -409,7 +409,7 @@
     
     <scm>
         <connection>scm:git:git://github.com/kquiet/auto-browser.git</connection>
-        <developerConnection>scm:git:ssh://github.com:kquiet/auto-browser.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:kquiet/auto-browser.git</developerConnection>
         <url>https://github.com/kquiet/auto-browser/tree/master</url>
     </scm>
 </project>
