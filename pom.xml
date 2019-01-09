@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kquiet</groupId>
     <artifactId>auto-browser</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>A java library wrapping selenium to help focus on browser automation.</description>
@@ -311,8 +311,8 @@
                                 <configuration>
                                     <target>
                                         <exec executable="sh">
-                                            <arg value="-c"/>
-                                            <arg value="chmod +x ${project.basedir}/chromedriver"/>
+                                            <arg value="-c" />
+                                            <arg value="chmod +x ${project.basedir}/chromedriver" />
                                         </exec>
                                     </target>
                                 </configuration>
@@ -411,5 +411,6 @@
         <connection>scm:git:git://github.com/kquiet/auto-browser.git</connection>
         <developerConnection>scm:git:git@github.com:kquiet/auto-browser.git</developerConnection>
         <url>https://github.com/kquiet/auto-browser/tree/master</url>
-    </scm>
+      <tag>0.1.0</tag>
+  </scm>
 </project>
