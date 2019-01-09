@@ -15,11 +15,13 @@
  */
 package org.kquiet.browser.action;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
@@ -30,6 +32,8 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 public class ScrollToView extends SinglePhaseAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScrollToView.class);
+    
     private final By by;
     private final By frameBy;
     private final boolean toTop;
@@ -52,10 +56,15 @@ public class ScrollToView extends SinglePhaseAction {
                 if (this.frameBy!=null){
                     actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
-                WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ActionException("can't find the element to scroll");
-                else ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
+                while(true){ //loop when StaleElementReferenceException is encountered
+                    WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                    try{
+                        ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
+                        break;
+                    }catch(StaleElementReferenceException ignoreE){
+                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), this, ignoreE);
+                    }
+                }
             }catch(Exception e){
                 throw new ActionException("Error: "+toString(), e);
             }

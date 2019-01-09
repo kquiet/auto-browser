@@ -112,24 +112,26 @@ public class CompositeTest {
         StringBuilder sb = new StringBuilder();
         ActionComposer lowerPriorityComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(driver->{
+                .prepareWaitUntil(driver->{
                     synchronized(sb){sb.append("L");}
                     return false;
                 }, 300)
+                    .withTimeoutCallback(ac->{})
+                    .done()
                 .returnToComposerBuilder()
             .build("priorityTest-lowerPriority")
-            .keepFailInfo(false)
             .setPriority(2);
         
         ActionComposer higherPriorityComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(driver->{
+                .prepareWaitUntil(driver->{
                     synchronized(sb){sb.append("H");}
                     return false;
                 }, 300)
+                    .withTimeoutCallback(ac->{})
+                    .done()
                 .returnToComposerBuilder()
             .build("priorityTest-higherPriority")
-            .keepFailInfo(false)
             .setPriority(1);
         
         Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
@@ -156,7 +158,7 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("priorityTest-lowerPriority")
+            .build("interleaveTest-1")
             .keepFailInfo(false)
             .setPriority(1);
         
@@ -169,7 +171,7 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("priorityTest-higherPriority")
+            .build("interleaveTest-2")
             .keepFailInfo(false)
             .setPriority(1);
         

@@ -15,11 +15,13 @@
  */
 package org.kquiet.browser.action;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
@@ -30,6 +32,8 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 public class Upload extends SinglePhaseAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
+    
     private final By by;
     private final By frameBy;
     private final String pathOfFile;
@@ -52,12 +56,15 @@ public class Upload extends SinglePhaseAction {
                 if (this.frameBy!=null){
                     actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                List<WebElement> elementList = actionComposer.getBrsDriver().findElements(this.by);
-                WebElement element = elementList.isEmpty()?null:elementList.get(0);
-                if (element==null) throw new ActionException("can't find the element to set upload file path");
-                else {
-                    ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1", element);
-                    element.sendKeys(this.pathOfFile);
+                while(true){
+                    WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                    try{
+                        ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1", element);
+                        element.sendKeys(this.pathOfFile);
+                        break;
+                    }catch(StaleElementReferenceException ignoreE){
+                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), this, ignoreE);
+                    }
                 }
             }catch(Exception e){
                 throw new ActionException("Error: "+toString(), e);

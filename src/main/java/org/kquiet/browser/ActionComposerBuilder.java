@@ -22,6 +22,7 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.openqa.selenium.WebDriver;
@@ -444,7 +445,7 @@ public class ActionComposerBuilder{
             private final Function<WebDriver,V> conditionFunc;
             private int phaseTimeout = 10;
             private int pollInterval = 5;
-            private List<Class<? extends Throwable>> ignoreExceptionList = Arrays.asList(NoSuchElementException.class, StaleElementReferenceException.class);
+            private Set<Class<? extends Throwable>> ignoreExceptions;
             private Consumer<ActionComposer> timeoutCallback;
 
             /**
@@ -490,12 +491,12 @@ public class ActionComposerBuilder{
             /**
              * Set the types of exceptions to ignore when evaluating condition function.
              * 
-             * @param ignoreExceptionList exception list
+             * @param ignoreExceptions exception list
              * @return invoking {@link WaitUntilBuilder}
              */
-            public WaitUntilBuilder<V> withIgnoredException(List<Class<? extends Throwable>> ignoreExceptionList){
-                if (ignoreExceptionList==null || ignoreExceptionList.isEmpty()) throw new IllegalArgumentException("Illegal ignore exception list to build");
-                this.ignoreExceptionList = ignoreExceptionList;
+            public WaitUntilBuilder<V> withIgnoredException(Set<Class<? extends Throwable>> ignoreExceptions){
+                if (ignoreExceptions==null || ignoreExceptions.isEmpty()) throw new IllegalArgumentException("Illegal ignore exception list to build");
+                this.ignoreExceptions = ignoreExceptions;
                 return this;
             }
 
@@ -517,7 +518,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new WaitUntil<>(conditionFunc, totalTimeout, phaseTimeout, pollInterval, ignoreExceptionList, timeoutCallback);
+                MultiPhaseAction action = new WaitUntil<>(conditionFunc, totalTimeout, phaseTimeout, pollInterval, ignoreExceptions, timeoutCallback);
                 return parentActionSequenceBuilder.add(action);
             }
         }

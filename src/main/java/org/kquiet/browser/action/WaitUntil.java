@@ -16,13 +16,16 @@
 package org.kquiet.browser.action;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.function.Function;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.NoSuchElementException;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
@@ -52,7 +55,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
     private final int phaseTimeout;
     private final int pollInterval;
     private final Function<WebDriver,V> conditionFunc;
-    private final List<Class<? extends Throwable>> ignoreExceptionList;
+    private final Set<Class<? extends Throwable>> ignoreExceptions = new HashSet<>();
     private final Consumer<ActionComposer> timeoutCallback;
     
     /**
@@ -61,16 +64,18 @@ public class WaitUntil<V> extends MultiPhaseAction {
      * @param totalTimeout the maximum amount of time to wait totally
      * @param phaseTimeout the maximum amount of time to wait for each execution phase
      * @param pollInterval how often the condition function should be evaluated(the cost of actually evaluating the condition function is not factored in)
-     * @param ignoreExceptionList the types of exceptions to ignore when evaluating condition function
+     * @param ignoreExceptions the types of exceptions to ignore when evaluating condition function
      * @param timeoutCallback the callback function to be called when total timeout expires
      */
-    public WaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout, int phaseTimeout, int pollInterval, List<Class<? extends Throwable>> ignoreExceptionList, Consumer<ActionComposer> timeoutCallback){
+    public WaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout, int phaseTimeout, int pollInterval, Set<Class<? extends Throwable>> ignoreExceptions, Consumer<ActionComposer> timeoutCallback){
         super(null);
         this.totalTimeout = totalTimeout;
         this.phaseTimeout = phaseTimeout;
         this.pollInterval = pollInterval;
         this.conditionFunc = conditionFunc;
-        this.ignoreExceptionList = ignoreExceptionList;
+        this.ignoreExceptions.add(StaleElementReferenceException.class);
+        this.ignoreExceptions.add(NoSuchElementException.class);
+        if (ignoreExceptions!=null) this.ignoreExceptions.addAll(ignoreExceptions);
         this.timeoutCallback = timeoutCallback;
         super.setInternalAction(multiPhaseWaitUntil());
     }
@@ -87,10 +92,9 @@ public class WaitUntil<V> extends MultiPhaseAction {
             ActionComposer actionComposer = this.getComposer();
             FluentWait<WebDriver> wait = new FluentWait<>(actionComposer.getBrsDriver())
             .withTimeout(Duration.ofMillis(phaseTimeout))
-            .pollingEvery(Duration.ofMillis(pollInterval));
-            if (ignoreExceptionList!=null && ignoreExceptionList.size()>0){
-                wait = wait.ignoreAll(ignoreExceptionList);
-            }
+            .pollingEvery(Duration.ofMillis(pollInterval))
+            .ignoreAll(ignoreExceptions);
+            
             V result=null;
             try{
                 actionComposer.switchToFocusWindow();
