@@ -27,11 +27,12 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link ScrollToView} is a subclass of {@link SinglePhaseAction} which scrolls an element into visible area of the browser window.
+ * {@link ScrollToView} is a subclass of {@link MultiPhaseAction} which scrolls an element into visible area of the browser window.
+ * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link ScrollToView} tries to manipulate the element, so multi-phase is used to perform the action again.
  * 
  * @author Kimberly
  */
-public class ScrollToView extends SinglePhaseAction {
+public class ScrollToView extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScrollToView.class);
     
     private final By by;
@@ -56,16 +57,15 @@ public class ScrollToView extends SinglePhaseAction {
                 if (this.frameBy!=null){
                     actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                while(true){ //loop when StaleElementReferenceException is encountered
-                    WebElement element = actionComposer.getBrsDriver().findElement(this.by);
-                    try{
-                        ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
-                        break;
-                    }catch(StaleElementReferenceException ignoreE){
-                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), this, ignoreE);
-                    }
+                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                try{
+                    ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
+                    noNextPhase();
+                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
                 }
             }catch(Exception e){
+                noNextPhase();
                 throw new ActionException("Error: "+toString(), e);
             }
         });

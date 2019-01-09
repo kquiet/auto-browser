@@ -29,11 +29,12 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Select} is a subclass of {@link SinglePhaseAction} which selects/deselects options on a SELECT element.
+ * {@link Select} is a subclass of {@link MultiPhaseAction} which selects/deselects options on a SELECT element.
+ * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Select} tries to manipulate the element, so multi-phase is used to perform the action again.
  * 
  * @author Kimberly
  */
-public class Select extends SinglePhaseAction {
+public class Select extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(Select.class);
 
     /**
@@ -82,16 +83,15 @@ public class Select extends SinglePhaseAction {
                 if (this.frameBy!=null){
                     actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                while(true){ //loop when StaleElementReferenceException is encountered
-                    WebElement element = actionComposer.getBrsDriver().findElement(this.by);
-                    try{
-                        clickToSelect(element, this.selectBy, this.options);
-                        break;
-                    }catch(StaleElementReferenceException ignoreE){
-                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), this, ignoreE);
-                    }
+                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                try{
+                    clickToSelect(element, this.selectBy, this.options);
+                    noNextPhase();
+                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
                 }
             }catch(Exception e){
+                noNextPhase();
                 throw new ActionException("Error: "+toString(), e);
             }
         });

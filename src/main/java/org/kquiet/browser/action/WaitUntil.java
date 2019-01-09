@@ -64,7 +64,8 @@ public class WaitUntil<V> extends MultiPhaseAction {
      * @param totalTimeout the maximum amount of time to wait totally
      * @param phaseTimeout the maximum amount of time to wait for each execution phase
      * @param pollInterval how often the condition function should be evaluated(the cost of actually evaluating the condition function is not factored in)
-     * @param ignoreExceptions the types of exceptions to ignore when evaluating condition function
+     * @param ignoreExceptions the types of exceptions to ignore when evaluating condition function;
+     * {@link org.openqa.selenium.StaleElementReferenceException} and {@link org.openqa.selenium.NoSuchElementException} are ignored by default.
      * @param timeoutCallback the callback function to be called when total timeout expires
      */
     public WaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout, int phaseTimeout, int pollInterval, Set<Class<? extends Throwable>> ignoreExceptions, Consumer<ActionComposer> timeoutCallback){

@@ -29,7 +29,7 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link PostForm} is a subclass of {@link SinglePhaseAction} which submits a form by http post.
+ * {@link PostForm} is a subclass of {@link SinglePhaseAction} which creates a form and submits it through http post.
  * Currently only supports enctype 'application/x-www-form-urlencoded'.
  * 
  * @author Kimberly

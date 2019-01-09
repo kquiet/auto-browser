@@ -27,11 +27,21 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Upload} is a subclass of {@link SinglePhaseAction} which scroll an element into visible area of the browser window.
+ * {@link Upload} is a subclass of {@link MultiPhaseAction} which types path of file into the file upload element.
+ * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Select} tries to manipulate the element, so multi-phase is used to perform the action again.
+ * 
+ * <p>{@link Upload} needs to make the file upload element visible first, so below javascript will be executed before typing into it:</p>
+ * <pre>
+ * fileUploadElement.style.display = '';
+ * fileUploadElement.style.visibility = 'visible';
+ * fileUploadElement.style.height = '1px';
+ * fileUploadElement.style.width = '1px';
+ * fileUploadElement.style.opacity = 1;
+ * </pre>
  * 
  * @author Kimberly
  */
-public class Upload extends SinglePhaseAction {
+public class Upload extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
     
     private final By by;
@@ -56,17 +66,16 @@ public class Upload extends SinglePhaseAction {
                 if (this.frameBy!=null){
                     actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
                 }
-                while(true){
-                    WebElement element = actionComposer.getBrsDriver().findElement(this.by);
-                    try{
-                        ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1", element);
-                        element.sendKeys(this.pathOfFile);
-                        break;
-                    }catch(StaleElementReferenceException ignoreE){
-                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), this, ignoreE);
-                    }
+                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                try{
+                    ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+                    element.sendKeys(this.pathOfFile);
+                    noNextPhase();
+                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
                 }
             }catch(Exception e){
+                noNextPhase();
                 throw new ActionException("Error: "+toString(), e);
             }
         });
