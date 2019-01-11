@@ -397,7 +397,7 @@ public class ActionTest {
             .prepareActionSequence()
                 .prepareOpenWindow()
                     .registerAs("newwindow")
-                .done()
+                    .done()
                 .custom(ac->{
                     if (!ac.switchToWindow(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
@@ -519,5 +519,26 @@ public class ActionTest {
             .build("onDone", false, false);
         browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
         assertTrue("customdone".equals(sb.toString()) && actionComposer.isDone());
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test    
+    public void skipAction() throws Exception{
+        StringBuilder sb = new StringBuilder();
+        AtomicBoolean result = new AtomicBoolean(true);
+        ActionComposer actionComposer = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .custom(ac->ac.skipToSuccess())
+                .returnToComposerBuilder()
+            .onDone(ac->{
+                String focusWindow = ac.getRegisteredWindow("");
+                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
+            })
+            .build("skipAction", true, true);
+        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
+        assertTrue(actionComposer.isSuccess() && !result.get());
     }
 }
