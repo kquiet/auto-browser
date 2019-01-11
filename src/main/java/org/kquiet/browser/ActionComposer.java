@@ -151,17 +151,29 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             totalCostWatch.start();
             boolean anyActionFail = false;
             
-            //do all action
-            int index=0;
-            List<MultiPhaseAction> actionList = getAllActionInSequence();
-            while(index<actionList.size() && !skipAction){
-                MultiPhaseAction action = actionList.get(index);
-                action.run();
-                anyActionFail = anyActionFail || action.isFail();
-                //break when any action fail
-                if (anyActionFail) break;
-                actionList = getAllActionInSequence();
-                index++;
+            //run init action first
+            initAction.run();
+            anyActionFail = anyActionFail || initAction.isFail();
+            
+            //run other action
+            if (!anyActionFail){
+                int index=0;
+                List<MultiPhaseAction> actionList = new ArrayList<>(mainActionList);
+                while(index<actionList.size() && !skipAction){
+                    MultiPhaseAction action = actionList.get(index);
+                    action.run();
+                    anyActionFail = anyActionFail || action.isFail();
+                    //break when any action fail
+                    if (anyActionFail) break;
+                    actionList = new ArrayList<>(mainActionList);
+                    index++;
+                }
+                
+                //run final action
+                if (!anyActionFail){
+                    finalAction.run();
+                    anyActionFail = anyActionFail || finalAction.isFail();
+                }
             }
             
             if (anyActionFail) runFail();
