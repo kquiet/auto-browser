@@ -30,7 +30,6 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.openqa.selenium.WebDriver;
 
@@ -181,7 +180,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         //keep fail info=>this may take about one second to do;uses a flag to avoid when necessary
         if (keepFailInfo){
             try{
-                setFailInfo(getBrsDriver().getCurrentUrl(), getBrsDriver().getPageSource());
+                setFailInfo(getWebDriver().getCurrentUrl(), getWebDriver().getPageSource());
             }catch(Exception e){
                 LOGGER.warn("{}({}) set fail info error!", ActionComposer.class.getSimpleName(), getName(), e);
             }
@@ -218,7 +217,13 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         //continue with child composer
         if (hasChild()){
             try{
-                actionRunner.executeComposer(getChild());
+                ActionComposer tempChild = getChild();
+                //use parent's focus window as child's focus window when parent doesn't close window & child doesn't open window
+                if (!this.needCloseWindow() && !tempChild.needOpenWindow()){
+                    tempChild.setFocusWindow(this.getFocusWindow());
+                    tempChild.registerWindow("", tempChild.getFocusWindow());
+                }
+                actionRunner.executeComposer(tempChild);
             }catch(Exception ex){
                 LOGGER.warn("{} execute child composer error", getName(), ex);
             }
@@ -266,10 +271,10 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     /**
      *
-     * @return all window identities of registered windows
+     * @return all windows(register name and window identity) of registered windows
      */
-    public List<String> getRegisteredWindows(){
-        return registeredWindows.values().stream().collect(Collectors.toList());
+    public Map<String, String> getRegisteredWindows(){
+        return new LinkedHashMap<>(registeredWindows);
     }
     
     /**
@@ -372,7 +377,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      */
     public boolean switchToWindow(String windowIdentity){
         try{
-            getBrsDriver().switchTo().window(windowIdentity);
+            getWebDriver().switchTo().window(windowIdentity);
             return true;
         }catch(Exception ex){
             LOGGER.error("{} switchToWindow error", getName(), ex);
@@ -523,7 +528,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * 
      * @return the {@link org.openqa.selenium.WebDriver WebDriver} from associated {@link ActionRunner}.
      */
-    public WebDriver getBrsDriver() {
+    public WebDriver getWebDriver() {
         return actionRunner.getWebDriver();
     }
 

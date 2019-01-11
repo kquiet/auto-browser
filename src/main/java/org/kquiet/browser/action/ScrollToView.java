@@ -15,6 +15,8 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
@@ -36,30 +38,27 @@ public class ScrollToView extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScrollToView.class);
     
     private final By by;
-    private final By frameBy;
+    private final List<By> frameBySequence;
     private final boolean toTop;
 
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism for the element resides in a frame
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
      */
-    public ScrollToView(By by, By frameBy, boolean toTop){
+    public ScrollToView(By by, List<By> frameBySequence, boolean toTop){
         super(null);
         this.by = by;
-        this.frameBy = frameBy;
+        this.frameBySequence = frameBySequence;
         this.toTop = toTop;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                if (this.frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
-                }
-                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                switchToInnerFrame(frameBySequence);
+                WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 try{
-                    ((JavascriptExecutor) actionComposer.getBrsDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
+                    ((JavascriptExecutor) actionComposer.getWebDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
                     noNextPhase();
                 }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
                     if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
@@ -75,6 +74,6 @@ public class ScrollToView extends MultiPhaseAction {
     public String toString(){
         return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName()
                 , getComposer()==null?"":getComposer().getName(), ScrollToView.class.getSimpleName(), by.toString()
-                , (frameBy!=null?frameBy.toString():""), String.valueOf(toTop));
+                , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), String.valueOf(toTop));
     }
 }

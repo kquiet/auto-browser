@@ -24,9 +24,13 @@ import java.util.concurrent.Future;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
 import org.kquiet.utility.StopWatch;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionState;
+import org.kquiet.browser.action.exception.ActionException;
 
 /**
  * {@link MultiPhaseAction} models a browser action with multiple phases which is executed through {@link ActionComposer} or {@link org.kquiet.browser.ActionRunner}. Multi-phase means {@link MultiPhaseAction} will be executed multiple times, and it works just like a loop.
@@ -82,7 +86,13 @@ public abstract class MultiPhaseAction implements Runnable{
                     getInternalAction().run();
                 }
                 else{
-                    Future<Exception> future= getComposer().callBrowser(getInternalAction());
+                    Future<Exception> future= getComposer().callBrowser(()->{
+                        //switch to focus window before execute internal action
+                        if (!getComposer().switchToFocusWindow()){
+                            throw new ActionException("can't switch to focus window");
+                        }
+                        getInternalAction().run();
+                    });
                     Exception actionException = future.get();
                     if (actionException!=null) throw actionException;
                 }
@@ -187,5 +197,15 @@ public abstract class MultiPhaseAction implements Runnable{
      */
     protected void setActionState(ActionState actionState) {
         this.actionState = actionState;
+    }
+    
+    protected WebDriver switchToInnerFrame(List<By> frameByList){
+        WebDriver driver = this.getComposer().getWebDriver();
+        if (frameByList!=null){
+            for (By frameBy: frameByList){
+                driver.switchTo().frame(driver.findElement(frameBy));
+            }
+        }
+        return driver;
     }
 }

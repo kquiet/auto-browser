@@ -49,7 +49,7 @@ public class OpenWindow extends SinglePhaseAction {
         this.registerName = Optional.ofNullable(registerName).orElse("");
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
-            WebDriver brsDriver = actionComposer.getBrsDriver();
+            WebDriver brsDriver = actionComposer.getWebDriver();
             //find existing windows before open new one
             LinkedHashSet<String> beforeWindowSet = new LinkedHashSet<>();
             for(String winHandle: brsDriver.getWindowHandles()){
@@ -57,7 +57,7 @@ public class OpenWindow extends SinglePhaseAction {
             }
             final String rootWindow = actionComposer.getRootWindow();
             try{
-                ((JavascriptExecutor)actionComposer.getBrsDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
+                ((JavascriptExecutor)actionComposer.getWebDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
             }catch(Exception ex){
                 LOGGER.warn("[{}] open new window script error!", actionComposer.getName(), ex);
             }

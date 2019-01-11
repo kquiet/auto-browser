@@ -38,7 +38,6 @@ public class Custom extends SinglePhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
                 this.customFunc.accept(actionComposer);
             }catch(Exception e){
                 throw new ActionException("Error: "+toString(), e);

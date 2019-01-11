@@ -15,6 +15,8 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
@@ -45,30 +47,27 @@ public class Upload extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
     
     private final By by;
-    private final By frameBy;
+    private final List<By> frameBySequence;
     private final String pathOfFile;
 
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism for the element resides in a frame
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param pathOfFile the path of file to upload
      */
-    public Upload(By by, By frameBy, String pathOfFile){
+    public Upload(By by, List<By> frameBySequence, String pathOfFile){
         super(null);
         this.by = by;
-        this.frameBy = frameBy;
+        this.frameBySequence = frameBySequence;
         this.pathOfFile = pathOfFile;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                if (this.frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
-                }
-                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                switchToInnerFrame(frameBySequence);
+                WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 try{
-                    ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+                    ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
                     element.sendKeys(this.pathOfFile);
                     noNextPhase();
                 }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
@@ -85,6 +84,6 @@ public class Upload extends MultiPhaseAction {
     public String toString(){
         return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName()
                 , getComposer()==null?"":getComposer().getName(), Upload.class.getSimpleName(), by.toString()
-                , (frameBy!=null?frameBy.toString():""), pathOfFile);
+                , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), pathOfFile);
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -35,25 +37,22 @@ public class Click extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(Click.class);
     
     private final By by;
-    private final By frameBy;
+    private final List<By> frameBySequence;
 
     /**
      *
      * @param by the element locating mechanism
-     * @param frameBy the frame locating mechanism for the element resides in a frame
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      */
-    public Click(By by, By frameBy){
+    public Click(By by, List<By> frameBySequence){
         super(null);
         this.by = by;
-        this.frameBy = frameBy;
+        this.frameBySequence = frameBySequence;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                if (this.frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
-                }
-                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                switchToInnerFrame(frameBySequence);
+                WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 try{
                     element.click();
                     noNextPhase();
@@ -71,6 +70,6 @@ public class Click extends MultiPhaseAction {
     public String toString(){
         return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName()
                 , getComposer()==null?"":getComposer().getName(), Click.class.getSimpleName(), by.toString()
-                , (frameBy!=null?frameBy.toString():""));
+                , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
     }
 }

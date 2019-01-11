@@ -91,14 +91,13 @@ public class WaitUntil<V> extends MultiPhaseAction {
             }
 
             ActionComposer actionComposer = this.getComposer();
-            FluentWait<WebDriver> wait = new FluentWait<>(actionComposer.getBrsDriver())
+            FluentWait<WebDriver> wait = new FluentWait<>(actionComposer.getWebDriver())
             .withTimeout(Duration.ofMillis(phaseTimeout))
             .pollingEvery(Duration.ofMillis(pollInterval))
             .ignoreAll(ignoreExceptions);
             
             V result=null;
             try{
-                actionComposer.switchToFocusWindow();
                 result = wait.until(conditionFunc);
             }
             catch(TimeoutException e){

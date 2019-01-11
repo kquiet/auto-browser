@@ -36,8 +36,7 @@ public class GetUrl extends SinglePhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                actionComposer.getBrsDriver().get(this.url);
+                actionComposer.getWebDriver().get(this.url);
             }
             catch(Exception e){
                 throw new ActionException("Error: "+toString(), e);

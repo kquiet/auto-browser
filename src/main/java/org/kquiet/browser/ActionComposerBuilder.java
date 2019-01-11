@@ -748,7 +748,7 @@ public class ActionComposerBuilder{
          */
         public class SelectBuilder extends InnerBuilderBase{
             private final By by;
-            private By frameBy;
+            private List<By> frameBySequence;
             private SelectBy selectBy;
             private Object[] options;
 
@@ -767,12 +767,12 @@ public class ActionComposerBuilder{
             /**
              * Set the frame locating mechanism for the element resides in a frame.
              * 
-             * @param frameBy the locating mechanism for the frame
+             * @param frameBySequence the sequence of the frame locating mechanism
              * @return invoking {@link SelectBuilder}
              */
-            public SelectBuilder withInFrame(By frameBy){
-                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
-                this.frameBy = frameBy;
+            public SelectBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
                 return this;
             }
             private SelectBuilder selectBy(SelectBy selectBy, Object... options){
@@ -818,7 +818,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Select(by, frameBy, selectBy, options);
+                MultiPhaseAction action = new Select(by, frameBySequence, selectBy, options);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -851,7 +851,7 @@ public class ActionComposerBuilder{
         public class SendKeyBuilder extends InnerBuilderBase{
             private final By by;
             private final CharSequence[] keysToSend;
-            private volatile By frameBy;
+            private volatile List<By> frameBySequence;
             private volatile boolean clearBeforeSend=false;
 
             /**
@@ -872,12 +872,12 @@ public class ActionComposerBuilder{
             /**
              * Set the frame locating mechanism for the element resides in a frame.
              * 
-             * @param frameBy the locating mechanism for the frame
+             * @param frameBySequence the sequence of the frame locating mechanism
              * @return invoking {@link SendKeyBuilder}
              */
-            public SendKeyBuilder withInFrame(By frameBy){
-                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
-                this.frameBy = frameBy;
+            public SendKeyBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
                 return this;
             }
 
@@ -897,7 +897,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new SendKey(by, frameBy, clearBeforeSend, keysToSend);
+                MultiPhaseAction action = new SendKey(by, frameBySequence, clearBeforeSend, keysToSend);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -927,7 +927,7 @@ public class ActionComposerBuilder{
          */
         public class ClickBuilder extends InnerBuilderBase{
             private final By by;
-            private volatile By frameBy;
+            private volatile List<By> frameBySequence;
 
             /**
              * Create a new {@link ClickBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -944,12 +944,12 @@ public class ActionComposerBuilder{
             /**
              * Set the frame locating mechanism for the element resides in a frame.
              * 
-             * @param frameBy the locating mechanism for the frame
+             * @param frameBySequence the sequence of the frame locating mechanism
              * @return invoking {@link ClickBuilder}
              */
-            public ClickBuilder withInFrame(By frameBy){
-                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
-                this.frameBy = frameBy;
+            public ClickBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
                 return this;
             }
 
@@ -959,7 +959,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Click(by, frameBy);
+                MultiPhaseAction action = new Click(by, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1041,7 +1041,7 @@ public class ActionComposerBuilder{
         public class ScrollToViewBuilder extends InnerBuilderBase{
             private final By by;
             private final boolean toTop;
-            private volatile By frameBy;
+            private volatile List<By> frameBySequence;
             
 
             /**
@@ -1061,12 +1061,12 @@ public class ActionComposerBuilder{
             /**
              * Set the frame locating mechanism for the element resides in a frame.
              * 
-             * @param frameBy the locating mechanism for the frame
+             * @param frameBySequence the sequence of the frame locating mechanism
              * @return invoking {@link ScrollToViewBuilder}
              */
-            public ScrollToViewBuilder withInFrame(By frameBy){
-                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
-                this.frameBy = frameBy;
+            public ScrollToViewBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
                 return this;
             }
 
@@ -1076,7 +1076,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new ScrollToView(by, frameBy, toTop);
+                MultiPhaseAction action = new ScrollToView(by, frameBySequence, toTop);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1109,7 +1109,7 @@ public class ActionComposerBuilder{
         public class UploadBuilder extends InnerBuilderBase{
             private final By by;
             private final String pathOfFile;
-            private volatile By frameBy;
+            private volatile List<By> frameBySequence;
             
 
             /**
@@ -1129,12 +1129,12 @@ public class ActionComposerBuilder{
             /**
              * Set the frame locating mechanism for the element resides in a frame.
              * 
-             * @param frameBy the locating mechanism for the frame
+             * @param frameBySequence the sequence of the frame locating mechanism
              * @return invoking {@link UploadBuilder}
              */
-            public UploadBuilder withInFrame(By frameBy){
-                if (frameBy==null)  throw new IllegalArgumentException("Illegal frame locator to build");
-                this.frameBy = frameBy;
+            public UploadBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
                 return this;
             }
 
@@ -1144,7 +1144,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Upload(by, frameBy, pathOfFile);
+                MultiPhaseAction action = new Upload(by, frameBySequence, pathOfFile);
                 return parentActionSequenceBuilder.add(action);
             }
         }        

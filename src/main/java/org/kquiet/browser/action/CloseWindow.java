@@ -17,6 +17,7 @@ package org.kquiet.browser.action;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +47,12 @@ public class CloseWindow extends SinglePhaseAction {
             //root window should never be closed
             String rootWindow = actionComposer.getRootWindow();
             if (this.closeAllRegistered){
-                List<String> windowList = actionComposer.getRegisteredWindows();
+                List<String> windowList = actionComposer.getRegisteredWindows().values().stream().distinct().collect(Collectors.toList());
                 List<String> failList = new ArrayList<>();
                 for (String window: windowList){
                     if (!window.equals(rootWindow)){
                         if (actionComposer.switchToWindow(window)){
-                            actionComposer.getBrsDriver().close();
+                            actionComposer.getWebDriver().close();
                         }
                         else failList.add(window);
                     }
@@ -63,7 +64,7 @@ public class CloseWindow extends SinglePhaseAction {
             }
             else{
                 String focusWindow = actionComposer.getFocusWindow();
-                if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getBrsDriver().close();
+                if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getWebDriver().close();
                 else throw new ActionException(String.format("%s(%s) close focus window(%s) fail; it may have been closed or is the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), focusWindow));
             }
         });

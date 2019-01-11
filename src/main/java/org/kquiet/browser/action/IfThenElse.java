@@ -79,6 +79,9 @@ public class IfThenElse extends SinglePhaseAction{
         AtomicBoolean result = new AtomicBoolean();
         
         Future<Exception> future= getComposer().callBrowser(()->{
+            if (!getComposer().switchToFocusWindow()){
+                throw new ActionException("can't switch to focus window");
+            }
             result.set(predicate.test(actionComposer));
         });
         Exception actionException = future.get();

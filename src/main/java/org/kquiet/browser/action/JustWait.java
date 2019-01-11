@@ -51,7 +51,6 @@ public class JustWait extends MultiPhaseAction {
             }
 
             try{
-                getComposer().switchToFocusWindow();
                 Thread.sleep(phaseTimeout);
             }
             catch(Exception e){

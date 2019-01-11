@@ -16,6 +16,7 @@
 package org.kquiet.browser.action;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
@@ -59,31 +60,28 @@ public class Select extends MultiPhaseAction {
     }
     
     private final By by;
-    private final By frameBy;
+    private final List<By> frameBySequence;
     private final SelectBy selectBy;
     private final Object[] options;
     
     /**
      *
      * @param by by the element locating mechanism
-     * @param frameBy the frame locating mechanism for the element resides in a frame
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param selectBy the way to perform the selecting
      * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
      */
-    public Select(By by, By frameBy, SelectBy selectBy, Object... options){
+    public Select(By by, List<By> frameBySequence, SelectBy selectBy, Object... options){
         super(null);
         this.by = by;
-        this.frameBy = frameBy;
+        this.frameBySequence = frameBySequence;
         this.selectBy = selectBy;
         this.options = options;
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                if (this.frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
-                }
-                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                switchToInnerFrame(frameBySequence);
+                WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 try{
                     clickToSelect(element, this.selectBy, this.options);
                     noNextPhase();
@@ -136,6 +134,6 @@ public class Select extends MultiPhaseAction {
     public String toString(){
         return String.format("%s(%s) %s:%s/%s/%s/%s"
                 , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
-                , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBy!=null?frameBy.toString():""));
+                , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
     }
 }

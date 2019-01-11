@@ -73,8 +73,7 @@ public class PostForm extends SinglePhaseAction {
                 }
                 scriptStr+=String.format("document.body.appendChild(formE);document.getElementById('%s').submit();", formId.replaceAll("'", "\'"));
                 try{
-                    actionComposer.switchToFocusWindow();
-                    ((JavascriptExecutor)actionComposer.getBrsDriver()).executeScript(scriptStr);
+                    ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript(scriptStr);
                 }catch(Exception ex){
                     LOGGER.warn("Execute javascript error:{}", toString(), ex);
                 }

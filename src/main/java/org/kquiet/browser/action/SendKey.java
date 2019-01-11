@@ -15,6 +15,8 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.Keys;
@@ -36,31 +38,28 @@ public class SendKey extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(SendKey.class);
     
     private final By by;
-    private final By frameBy;
+    private final List<By> frameBySequence;
     private final CharSequence[] keysToSend;
     private final boolean clearBeforeSend;
     
     /**
      *
      * @param by by the element locating mechanism
-     * @param frameBy the frame locating mechanism for the element resides in a frame
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param clearBeforeSend {@code true}: clear before sending; {@code false}: send without clearing first
      * @param keysToSend character sequence to send to the element
      */
-    public SendKey(By by, By frameBy, boolean clearBeforeSend, CharSequence... keysToSend){
+    public SendKey(By by, List<By> frameBySequence, boolean clearBeforeSend, CharSequence... keysToSend){
         super(null);
         this.by = by;
-        this.frameBy = frameBy;
+        this.frameBySequence = frameBySequence;
         this.clearBeforeSend = clearBeforeSend;
         this.keysToSend = purifyCharSequences(keysToSend);
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                actionComposer.switchToFocusWindow();
-                if (this.frameBy!=null){
-                    actionComposer.getBrsDriver().switchTo().frame(actionComposer.getBrsDriver().findElement(this.frameBy));
-                }
-                WebElement element = actionComposer.getBrsDriver().findElement(this.by);
+                switchToInnerFrame(frameBySequence);
+                WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 try{
                     clickToSendKeys(element, this.clearBeforeSend, this.keysToSend);
                     noNextPhase();
@@ -106,7 +105,7 @@ public class SendKey extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s(%s) %s:%s/%s/%s/%s"
-                        , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
-                        , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend), (frameBy!=null?frameBy.toString():""), String.valueOf(clearBeforeSend));
+                , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
+                , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), String.valueOf(clearBeforeSend));
     }
 }

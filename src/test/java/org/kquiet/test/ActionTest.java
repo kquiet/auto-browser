@@ -334,7 +334,7 @@ public class ActionTest {
                 .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesend"), 1000)
                     .withTimeoutCallback(ac->{
                         try{
-                            WebDriver driver = ac.getBrsDriver();
+                            WebDriver driver = ac.getWebDriver();
                             WebElement inputE = driver.findElements(By.id("txtSendKey")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
@@ -346,7 +346,7 @@ public class ActionTest {
                 .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesendsendwithoutclear"), 1000)
                     .withTimeoutCallback(ac->{
                         try{
-                            WebDriver driver = ac.getBrsDriver();
+                            WebDriver driver = ac.getWebDriver();
                             WebElement inputE = driver.findElements(By.id("txtSendKey")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
@@ -373,7 +373,7 @@ public class ActionTest {
                 .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("slcSelect"), "value", "optionValue2"), 1000)
                     .withTimeoutCallback(ac->{
                         try{
-                            WebDriver driver = ac.getBrsDriver();
+                            WebDriver driver = ac.getWebDriver();
                             WebElement inputE = driver.findElements(By.id("slcSelect")).stream().findFirst().orElse(null);
                             actualValue.set(Optional.ofNullable(inputE==null?null:inputE.getAttribute("value")).orElse(""));
                             ac.skipToFail();
@@ -423,14 +423,14 @@ public class ActionTest {
             .prepareActionSequence()
                 .waitUntil(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id("divScroll")), 1000)
                 .custom(ac->{
-                    WebElement element = ac.getBrsDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
-                    Long top = (Long)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
                     initial.set(top);
                 })
                 .scrollToView(By.id("divScroll"), true)
                 .custom(ac->{
-                    WebElement element = ac.getBrsDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
-                    Long top = (Long)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
                     after.set(top);
                 })
                 .returnToComposerBuilder()
@@ -452,8 +452,8 @@ public class ActionTest {
                 .upload(By.id("flUpload"), new File(htmlFileUrl.getFile()).getAbsolutePath())
                 .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("flUpload")), 1000)
                 .custom(ac->{
-                    WebElement element = ac.getBrsDriver().findElements(By.id("flUpload")).stream().findFirst().orElse(null);
-                    String name = (String)((JavascriptExecutor) ac.getBrsDriver()).executeScript("return arguments[0].files[0].name;", element);
+                    WebElement element = ac.getWebDriver().findElements(By.id("flUpload")).stream().findFirst().orElse(null);
+                    String name = (String)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].files[0].name;", element);
                     fileName.set(name);
                 })
                 .returnToComposerBuilder()
