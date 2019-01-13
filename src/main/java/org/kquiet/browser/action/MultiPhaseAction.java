@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-import org.kquiet.utility.StopWatch;
+import org.kquiet.utility.Stopwatch;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionState;
 import org.kquiet.browser.action.exception.ActionException;
@@ -48,7 +48,7 @@ public abstract class MultiPhaseAction implements Runnable{
     private Runnable internalAction;
     private volatile ActionState actionState = ActionState.CREATED;
     private final List<Exception> errorList = new ArrayList<>();
-    private final StopWatch stopWatch = new StopWatch();
+    private final Stopwatch stopWatch = new Stopwatch();
     private volatile boolean hasNextPhase = true; //flags whether has next phase or not
 
     /**
@@ -199,13 +199,17 @@ public abstract class MultiPhaseAction implements Runnable{
         this.actionState = actionState;
     }
     
-    protected WebDriver switchToInnerFrame(List<By> frameByList){
+    /**
+     * Switch to send future commands to a frame
+     * 
+     * @param frameBySequence the sequence of the frame locating mechanism
+     */
+    protected void switchToInnerFrame(List<By> frameBySequence){
         WebDriver driver = this.getComposer().getWebDriver();
-        if (frameByList!=null){
-            for (By frameBy: frameByList){
+        if (frameBySequence!=null){
+            for (By frameBy: frameBySequence){
                 driver.switchTo().frame(driver.findElement(frameBy));
             }
         }
-        return driver;
     }
 }

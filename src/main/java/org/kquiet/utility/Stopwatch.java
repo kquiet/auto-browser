@@ -8,24 +8,26 @@ package org.kquiet.utility;
 import java.time.Duration;
 
 /**
- *
+ * Stopwatch.
+ * 
  * @author Kimberly
  */
-public class StopWatch {
+public class Stopwatch {
     private volatile long startTime = 0;
     private volatile long stopTime = 0;
     private volatile boolean running = false;
 
     /**
-     *
+     * Start this {@link Stopwatch} without reset.
      */
     public void start() {
         this.start(false);
     }
     
     /**
-     *
-     * @param resetFlag
+     * Start this {@link Stopwatch} with the option to reset.
+     * 
+     * @param resetFlag {@code true}: reset; {@code false}: not reset
      */
     public void start(boolean resetFlag) {
         if (resetFlag){
@@ -37,7 +39,7 @@ public class StopWatch {
     }
 
     /**
-     *
+     * Stop this {@link Stopwatch}
      */
     public void stop() {
         if (this.running){
@@ -48,7 +50,7 @@ public class StopWatch {
 
     /**
      *
-     * @return
+     * @return elapsed time in millisecond
      */
     public long getElapsedMilliSecond() {
         long elapsed;
@@ -62,7 +64,7 @@ public class StopWatch {
 
     /**
      *
-     * @return
+     * @return elapsed time in nanosecond
      */
     public long getElapsedNanoSecond() {
         long elapsed;
@@ -76,7 +78,7 @@ public class StopWatch {
     
     /**
      *
-     * @return
+     * @return elapsed time
      */
     public Duration getDuration(){
         return Duration.ofNanos(getElapsedNanoSecond());

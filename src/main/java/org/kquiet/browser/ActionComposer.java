@@ -36,7 +36,7 @@ import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.kquiet.utility.StopWatch;
+import org.kquiet.utility.Stopwatch;
 import org.kquiet.browser.action.MultiPhaseAction;
 import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.concurrent.Prioritized;
@@ -74,7 +74,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
 
     private String name = null;
     private int priority = Integer.MIN_VALUE;
-    private final StopWatch totalCostWatch = new StopWatch();
+    private final Stopwatch totalCostWatch = new Stopwatch();
     
     private volatile boolean isFail = false;
     private volatile boolean isDone = false;

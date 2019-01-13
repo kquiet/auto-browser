@@ -29,7 +29,7 @@ import org.openqa.selenium.NoSuchElementException;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
-import org.kquiet.utility.StopWatch;
+import org.kquiet.utility.Stopwatch;
 
 /**
  * {@link WaitUntil} is a subclass of {@link MultiPhaseAction} which waits the evaluation result of condition function by phases to avoid blocking the execution of other browser actions.
@@ -49,7 +49,7 @@ import org.kquiet.utility.StopWatch;
  * @param <V> the expected return type of condition function
  */
 public class WaitUntil<V> extends MultiPhaseAction {
-    private final StopWatch costWatch = new StopWatch();
+    private final Stopwatch costWatch = new Stopwatch();
     
     private final int totalTimeout;
     private final int phaseTimeout;

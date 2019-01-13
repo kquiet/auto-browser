@@ -16,14 +16,14 @@
 package org.kquiet.browser.action;
 
 import org.kquiet.browser.action.exception.ActionException;
-import org.kquiet.utility.StopWatch;
+import org.kquiet.utility.Stopwatch;
 
 /**
  * {@link JustWait} is a subclass of {@link MultiPhaseAction} which just waits by phases to avoid blocking the execution of other browser actions.
  * @author Kimberly
  */
 public class JustWait extends MultiPhaseAction {
-    private final StopWatch costWatch = new StopWatch();
+    private final Stopwatch costWatch = new Stopwatch();
     
     private final int totalTimeout;
     private final int phaseTimeout;
