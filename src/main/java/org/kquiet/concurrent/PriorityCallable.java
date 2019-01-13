@@ -18,9 +18,10 @@ package org.kquiet.concurrent;
 import java.util.concurrent.Callable;
 
 /**
- *
+ * Prioritized {@link Callable}. This class is for internal use.
+ * 
  * @author Kimberly
- * @param <T>
+ * @param <T> the expected return type of {@link Callable}
  */
 public class PriorityCallable<T> implements Prioritized, Callable<T>{
     private final Callable<T> callable;
@@ -28,8 +29,8 @@ public class PriorityCallable<T> implements Prioritized, Callable<T>{
     
     /**
      *
-     * @param callable
-     * @param priority
+     * @param callable wrapped {@link Callable}
+     * @param priority priority
      */
     public PriorityCallable(Callable<T> callable, int priority){
         this.callable = callable;
@@ -41,10 +42,6 @@ public class PriorityCallable<T> implements Prioritized, Callable<T>{
         return this.callable.call();
     }
     
-    /**
-     *
-     * @return
-     */
     @Override
     public int getPriority(){
         return this.priority;

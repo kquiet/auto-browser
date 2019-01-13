@@ -19,17 +19,18 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
+ * {@link CommonThreadFactory} is for internal use to prefix thread pools.
+ * 
  * @author Kimberly
  */
-public class CommonThreadFactory implements ThreadFactory {
+class CommonThreadFactory implements ThreadFactory {
     private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
     private final AtomicInteger threadNumber = new AtomicInteger(1);
     private final String namePrefix;
 
     /**
-     *
-     * @param poolName
+     * 
+     * @param poolName pool name used in prefix
      */
     public CommonThreadFactory(String poolName) {
         if (poolName!=null && !poolName.isEmpty())

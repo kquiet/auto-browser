@@ -16,14 +16,16 @@
 package org.kquiet.concurrent;
 
 /**
- *
+ * {@link Prioritized} is for internal use and should be implemented by the classes whose instances are intended to be executed by {@link PausablePriorityThreadPoolExecutor}.
+ * 
  * @author Kimberly
  */
 public interface Prioritized {
 
     /**
-     *
-     * @return
+     * Get priority. Smaller value means higher priority.
+     * 
+     * @return priority
      */
     int getPriority();
 }

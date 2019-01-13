@@ -21,145 +21,79 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 
 /**
- *
+ * Date and time utility class
  * @author Kimberly
  */
 public final class DateTimeUtils {
     private DateTimeUtils(){}
     
     /**
-     *
-     * @param format
-     * @return
+     * Get current time in specified in system default timezone.
+     * 
+     * @param format time format
+     * @return current time
      */
     public static String nowStr(String format){
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern(format));
     }
 
     /**
-     *
-     * @param format
-     * @return
+     * Get current time in specified in UTC timezone.
+     * 
+     * @param format time format
+     * @return current time
      */
     public static String utcNowStr(String format){
         return LocalDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(format));
     }
 
     /**
-     *
-     * @param d
-     * @param format
-     * @return
+     * Format {@link LocalDateTime} in specified format.
+     * 
+     * @param localDateTime {@link LocalDateTime} to format
+     * @param format time format
+     * @return formatted {@link LocalDateTime}
      */
-    public static String toStr(LocalDateTime d, String format){
-        if (d==null) return "";
-        return d.format(DateTimeFormatter.ofPattern(format));
+    public static String toStr(LocalDateTime localDateTime, String format){
+        if (localDateTime==null) return "";
+        return localDateTime.format(DateTimeFormatter.ofPattern(format));
     }
 
     /**
-     *
-     * @param d
-     * @param format
-     * @return
+     * Format {@link ZonedDateTime} in specified format.
+     * 
+     * @param zonedDateTime {@link ZonedDateTime} to format
+     * @param format time format
+     * @return formatted {@link ZonedDateTime}
      */
-    public static String toStr(ZonedDateTime d, String format){
-        if (d==null) return "";
-        return d.format(DateTimeFormatter.ofPattern(format));
+    public static String toStr(ZonedDateTime zonedDateTime, String format){
+        if (zonedDateTime==null) return "";
+        return zonedDateTime.format(DateTimeFormatter.ofPattern(format));
     }
 
     /**
-     *
-     * @param d
-     * @param format
-     * @return
+     * Format {@link LocalDate} in specified format.
+     * 
+     * @param localDate {@link LocalDate} to format
+     * @param format time format
+     * @return formatted {@link LocalDate}
      */
-    public static String toStr(LocalDate d, String format){
-        if (d==null) return "";
-        return d.format(DateTimeFormatter.ofPattern(format));
+    public static String toStr(LocalDate localDate, String format){
+        if (localDate==null) return "";
+        return localDate.format(DateTimeFormatter.ofPattern(format));
     }
 
     /**
-     *
-     * @param d
-     * @param format
-     * @return
+     * Format {@link LocalTime} in specified format.
+     * 
+     * @param localTime {@link LocalTime} to format
+     * @param format time format
+     * @return formatted {@link LocalTime}
      */
-    public static String toStr(LocalTime d, String format){
-        if (d==null) return "";
-        return d.format(DateTimeFormatter.ofPattern(format));
-    }
-    
-    /**
-     *
-     * @param start
-     * @param end
-     * @param time
-     * @return
-     */
-    public static boolean isBetween(LocalTime start, LocalTime end, LocalTime time) {
-        if (start.equals(end)){
-            return true;
-        }
-        else if (start.isAfter(end)){
-            return !time.isBefore(start) || !time.isAfter(end);
-        }
-        else{
-            return !time.isBefore(start) && !time.isAfter(end);
-        }
-    }
-    
-    /**
-     *
-     * @param start
-     * @param end
-     * @param from
-     * @return
-     */
-    public static LocalDateTime nextFire(LocalTime start, LocalTime end, LocalDateTime from){
-        LocalDate fromDate = from.toLocalDate();
-        LocalTime fromTime = from.toLocalTime();
-        if (start.equals(end)){
-            return from;
-        }
-        else if (start.isAfter(end)){
-            if (fromTime.isBefore(start) && fromTime.isAfter(end)){
-                return LocalDateTime.of(fromDate, start);
-            }
-            else{
-                return from;
-            }
-        }
-        else{
-            if (!fromTime.isBefore(start) && !fromTime.isAfter(end)){
-                return from;
-            }
-            else if (fromTime.isBefore(start)){
-                return LocalDateTime.of(fromDate, start);
-            }
-            else{
-                return LocalDateTime.of(fromDate.plusDays(1), start);
-            }
-        }
-    }
-    
-    /**
-     *
-     * @param conditionList
-     * @param from
-     * @return
-     */
-    public static LocalDateTime nextFire(List<SimpleEntry<LocalTime,LocalTime>> conditionList, LocalDateTime from){
-        LocalDateTime candidate = LocalDateTime.MAX;
-        for(SimpleEntry<LocalTime,LocalTime> condition:conditionList){
-            LocalDateTime nextFire = nextFire(condition.getKey(), condition.getValue(), from);
-            if (nextFire.isBefore(candidate)){
-                candidate = nextFire;
-            }
-        }
-        return candidate;
+    public static String toStr(LocalTime localTime, String format){
+        if (localTime==null) return "";
+        return localTime.format(DateTimeFormatter.ofPattern(format));
     }
 }

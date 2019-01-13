@@ -22,13 +22,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- *
+ * {@link PausableThreadPoolExecutor} which execute tasks by their priority. This class is for internal use.
+ * 
  * @author Kimberly
  */
 public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecutor {
 
     /**
-     *
+     * Create a {@link PausablePriorityThreadPoolExecutor} with core/maximum pool size set to one
      */
     public PausablePriorityThreadPoolExecutor(){
         this("", 1, 1);
@@ -36,9 +37,9 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     
     /**
      *
-     * @param poolPrefix
-     * @param corePoolSize
-     * @param maximumPoolSize
+     * @param poolPrefix prefix name of thread pool
+     * @param corePoolSize core pool size
+     * @param maximumPoolSize maximum pool size
      */
     public PausablePriorityThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize){
         this(poolPrefix, corePoolSize, maximumPoolSize, 5);
@@ -46,10 +47,10 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     
     /**
      *
-     * @param poolPrefix
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param queueSize
+     * @param poolPrefix prefix name of thread pool
+     * @param corePoolSize core pool size
+     * @param maximumPoolSize maximum pool size
+     * @param queueSize the maximum queue size used for holding tasks before they are executed
      */
     public PausablePriorityThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize, int queueSize){
         this(poolPrefix, corePoolSize, maximumPoolSize, queueSize, null);
@@ -57,10 +58,10 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     
     /**
      *
-     * @param poolPrefix
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param afterExecuteFunc
+     * @param poolPrefix prefix name of thread pool
+     * @param corePoolSize core pool size
+     * @param maximumPoolSize maximum pool size
+     * @param afterExecuteFunc the function to execute after any task is executed
      */
     public PausablePriorityThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize, Consumer<Runnable> afterExecuteFunc){
         this(poolPrefix, corePoolSize, maximumPoolSize, 5, afterExecuteFunc);
@@ -68,11 +69,11 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     
     /**
      *
-     * @param poolPrefix
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param queueSize
-     * @param afterExecuteFunc
+     * @param poolPrefix prefix name of thread pool
+     * @param corePoolSize core pool size
+     * @param maximumPoolSize maximum pool size
+     * @param queueSize the maximum queue size used for holding tasks before they are executed
+     * @param afterExecuteFunc the function to execute after any task is executed
      */
     public PausablePriorityThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize, int queueSize, Consumer<Runnable> afterExecuteFunc){
         this(poolPrefix, corePoolSize, maximumPoolSize, queueSize, 10L, TimeUnit.MINUTES, afterExecuteFunc);
@@ -80,13 +81,13 @@ public class PausablePriorityThreadPoolExecutor extends PausableThreadPoolExecut
     
     /**
      *
-     * @param poolPrefix
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param queueSize
-     * @param keepAliveTime
-     * @param unit
-     * @param afterExecuteFunc
+     * @param poolPrefix prefix name of thread pool
+     * @param corePoolSize core pool size
+     * @param maximumPoolSize maximum pool size
+     * @param queueSize the maximum queue size used for holding tasks before they are executed
+     * @param keepAliveTime when the number of threads is greater than the core, this is the maximum time that excess idle threads will wait for new tasks before terminating.
+     * @param unit the time unit for the {@code keepAliveTime} argument
+     * @param afterExecuteFunc the function to execute after any task is executed
      */
     public PausablePriorityThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize, int queueSize, long keepAliveTime, TimeUnit unit, Consumer<Runnable> afterExecuteFunc){
         super(poolPrefix, corePoolSize, maximumPoolSize, keepAliveTime, unit, new PriorityBlockingQueue<Runnable>(queueSize, new PriorityRunnableFutureComparator()), new CommonThreadFactory(poolPrefix), afterExecuteFunc);

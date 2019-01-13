@@ -19,10 +19,11 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 /**
- *
+ * Comparator for {@link PriorityRunnableFuture}. This is for internal use.
+ * 
  * @author Kimberly
  */
-public class PriorityRunnableFutureComparator implements Comparator<Runnable>, Serializable {
+class PriorityRunnableFutureComparator implements Comparator<Runnable>, Serializable {
 
     @Override
     public int compare(Runnable o1, Runnable o2) {

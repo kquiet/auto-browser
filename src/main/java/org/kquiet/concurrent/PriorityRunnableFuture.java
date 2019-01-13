@@ -22,11 +22,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
+ * Prioritized {@link RunnableFuture}. This class is for internal use.
+ * Each {@link PriorityRunnableFuture} has distinct sequence number and can be used to determine he order between different {@link PriorityRunnableFuture} with equal priority.
+ * 
  * @author Kimberly
  * @param <T>
  */
-public class PriorityRunnableFuture<T> implements RunnableFuture<T> {
+class PriorityRunnableFuture<T> implements RunnableFuture<T>, Prioritized {
     private static final AtomicLong CREATE_SEQUENCE = new AtomicLong(Long.MIN_VALUE);
 
     private final RunnableFuture<T> src;
@@ -35,28 +37,25 @@ public class PriorityRunnableFuture<T> implements RunnableFuture<T> {
 
     /**
      *
-     * @param other
-     * @param priority
+     * @param runnableFuture wrapped {@link RunnableFuture}
+     * @param priority priority
      */
-    public PriorityRunnableFuture(RunnableFuture<T> other, int priority) {
-        this.src = other;
+    PriorityRunnableFuture(RunnableFuture<T> runnableFuture, int priority) {
+        this.src = runnableFuture;
         this.priority = priority;
         this.seqNum = CREATE_SEQUENCE.getAndIncrement();
     }
 
-    /**
-     *
-     * @return
-     */
+    @Override
     public int getPriority() {
         return priority;
     }
     
     /**
-     *
-     * @return
+     * 
+     * @return creation sequence.
      */
-    public long getCreateSequence(){
+    long getCreateSequence(){
         return seqNum;
     }
 
