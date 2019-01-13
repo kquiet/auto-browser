@@ -18,6 +18,7 @@ package org.kquiet.test;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -208,5 +209,89 @@ public class CompositeTest {
         childComposer.get(1000, TimeUnit.MILLISECONDS);
         
         assertEquals("parentchild", sb.toString());
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test    
+    public void skipToSuccessAndClose() throws Exception{
+        StringBuilder sb = new StringBuilder();
+        AtomicBoolean result = new AtomicBoolean(true);
+        ActionComposer actionComposer = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .custom(ac->ac.skipToSuccess())
+                .returnToComposerBuilder()
+            .onSuccess(ac->{
+                sb.append("success");
+            })
+            .onFail(ac->{
+                sb.append("fail");
+            })
+            .onDone(ac->{
+                sb.append("done");
+                String focusWindow = ac.getRegisteredWindow("");
+                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
+            })
+            .build("skipToSuccessAndClose", true, true);
+        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
+        assertTrue("actual:"+sb.toString(), actionComposer.isSuccess() && "successdone".equals(sb.toString()) && !result.get());
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test    
+    public void skipToFailAndClose() throws Exception{
+        StringBuilder sb = new StringBuilder();
+        AtomicBoolean result = new AtomicBoolean(true);
+        ActionComposer actionComposer = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .custom(ac->ac.skipToFail())
+                .returnToComposerBuilder()
+            .onSuccess(ac->{
+                sb.append("success");
+            })
+            .onFail(ac->{
+                sb.append("fail");
+            })
+            .onDone(ac->{
+                sb.append("done");
+                String focusWindow = ac.getRegisteredWindow("");
+                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
+            })
+            .build("skipToFailAndClose", true, true);
+        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
+        assertTrue("actual:"+sb.toString(), actionComposer.isFail() && "faildone".equals(sb.toString()) && !result.get());
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test    
+    public void failAndClose() throws Exception{
+        StringBuilder sb = new StringBuilder();
+        AtomicBoolean result = new AtomicBoolean(true);
+        ActionComposer actionComposer = getEmptyActionComposerBuilder()
+            .prepareActionSequence()
+                .custom(ac->{throw new RuntimeException("custom exception for failAndClose");})
+                .returnToComposerBuilder()
+            .onSuccess(ac->{
+                sb.append("success");
+            })
+            .onFail(ac->{
+                sb.append("fail");
+            })
+            .onDone(ac->{
+                sb.append("done");
+                String focusWindow = ac.getRegisteredWindow("");
+                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
+            })
+            .build("skipToFailAndClose", true, true);
+        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
+        assertTrue("actual:"+sb.toString(), actionComposer.isFail() && "faildone".equals(sb.toString()) && !result.get());
     }
 }

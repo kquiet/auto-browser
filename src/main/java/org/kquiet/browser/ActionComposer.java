@@ -156,27 +156,21 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             anyActionFail = anyActionFail || initAction.isFail();
             
             //run other action
-            if (!anyActionFail){
+            if (!isFail() && !anyActionFail){
                 int index=0;
                 List<MultiPhaseAction> actionList = new ArrayList<>(mainActionList);
-                while(index<actionList.size() && !skipAction){
+                while(index<actionList.size() && !isFail() && !isSkipAction()){
                     MultiPhaseAction action = actionList.get(index);
                     action.run();
                     anyActionFail = anyActionFail || action.isFail();
                     //break when any action fail
-                    if (anyActionFail) break;
+                    if (isFail() || anyActionFail) break;
                     actionList = new ArrayList<>(mainActionList);
                     index++;
                 }
-                
-                //run final action
-                if (!anyActionFail){
-                    finalAction.run();
-                    anyActionFail = anyActionFail || finalAction.isFail();
-                }
             }
             
-            if (anyActionFail) runFail();
+            if (isFail() || anyActionFail) runFail();
             else runSuccess();
         }catch(Exception ex){
             LOGGER.warn("{} run error", getName(), ex);
@@ -197,8 +191,15 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
                 LOGGER.warn("{}({}) set fail info error!", ActionComposer.class.getSimpleName(), getName(), e);
             }
         }
+        
+        //run final action after keeping fail info
+        try{
+            finalAction.run();
+        }catch(Exception ex){
+            LOGGER.warn("{} final function error", getName(), ex);
+        }
 
-        if (skipResultFunction) return;
+        if (isSkipResultFunction()) return;
         try{
             onFailFunc.accept(this);
         }catch(Exception e){
@@ -207,7 +208,13 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     private void runSuccess(){
-        if (skipResultFunction) return;
+        try{
+            finalAction.run();
+        }catch(Exception ex){
+            LOGGER.warn("{} final function error", getName(), ex);
+        }
+                
+        if (isSkipResultFunction()) return;
         try{
             onSuccessFunc.accept(this);
         }catch(Exception e){
@@ -474,6 +481,14 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         return totalCostWatch.getDuration();
     }
     
+    private boolean isSkipAction(){
+        return skipAction;
+    }
+    
+    private boolean isSkipResultFunction(){
+        return skipResultFunction;
+    }
+    
     /**
      *
      * @return {@code true} if invoking {@link ActionComposer} has been marked as failed; {@code false} otherwise
@@ -637,13 +652,11 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * Skip the execution of remaining actions.
      */
     public void skipToSuccess(){
+        isFail = false;
         skipAction = true;
     }
     
-    /**
-     * Skip the execution of remaining actions as well as the callback functions for fail/success.
-     */
-    public void skipAll(){
+    private void skipAll(){
         skipAction = true;
         skipResultFunction = true;
     }
