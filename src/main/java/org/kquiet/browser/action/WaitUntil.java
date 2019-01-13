@@ -128,7 +128,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
             timeoutCallback.accept(actionComposer);
         }
         else{
-            throw new ActionException("Timeout! "+toString());
+            throw new ActionException("Timeout!");
         }
     }
     
@@ -138,8 +138,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s/%s"
-                , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
+        return String.format("%s:%s/%s/%s"
                 , WaitUntil.class.getSimpleName(), String.valueOf(totalTimeout), String.valueOf(phaseTimeout), String.valueOf(pollInterval));
     }
 }

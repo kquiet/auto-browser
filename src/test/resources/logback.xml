@@ -3,7 +3,7 @@
     <!-- variables -->
     <property name="logbackAppName" value="${project.artifactId}" />
     <property name="logbackLogDirectory" value="log" scope="local" />
-    <property name="logbackMaxHistory" value="30" scope="local" />
+    <property name="logbackMaxHistory" value="7" scope="local" />
     <property name="logbackTotalSizeCap" value="1GB" scope="local" />
     
     <contextName>${logbackAppName}</contextName>

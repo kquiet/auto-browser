@@ -152,8 +152,13 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             boolean anyActionFail = false;
             
             //run init action first
-            initAction.run();
-            anyActionFail = anyActionFail || initAction.isFail();
+            try{
+                initAction.run();
+                anyActionFail = anyActionFail || initAction.isFail();
+            }catch(Exception ex){
+                LOGGER.warn("{}({}) init action error:{}", ActionComposer.class.getSimpleName(), getName(), initAction.toString(), ex);
+                anyActionFail = true;
+            }
             
             //run other action
             if (!isFail() && !anyActionFail){
@@ -161,8 +166,13 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
                 List<MultiPhaseAction> actionList = new ArrayList<>(mainActionList);
                 while(index<actionList.size() && !isFail() && !isSkipAction()){
                     MultiPhaseAction action = actionList.get(index);
-                    action.run();
-                    anyActionFail = anyActionFail || action.isFail();
+                    try{
+                        action.run();
+                        anyActionFail = anyActionFail || action.isFail();
+                    }catch(Exception ex){
+                        LOGGER.warn("{}({}) action error:{}", ActionComposer.class.getSimpleName(), getName(), action.toString(), ex);
+                        anyActionFail = true;
+                    }
                     //break when any action fail
                     if (isFail() || anyActionFail) break;
                     actionList = new ArrayList<>(mainActionList);
@@ -173,7 +183,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             if (isFail() || anyActionFail) runFail();
             else runSuccess();
         }catch(Exception ex){
-            LOGGER.warn("{} run error", getName(), ex);
+            LOGGER.warn("{}({}) run error", ActionComposer.class.getSimpleName(), getName(), ex);
             runFail();
         }finally{
             runDone();
@@ -196,14 +206,14 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         try{
             finalAction.run();
         }catch(Exception ex){
-            LOGGER.warn("{} final function error", getName(), ex);
+            LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
 
         if (isSkipResultFunction()) return;
         try{
             onFailFunc.accept(this);
         }catch(Exception e){
-            LOGGER.warn("{} fail function error", getName(), e);
+            LOGGER.warn("{}({}) fail function error", ActionComposer.class.getSimpleName(), getName(), e);
         }
     }
     
@@ -211,14 +221,14 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         try{
             finalAction.run();
         }catch(Exception ex){
-            LOGGER.warn("{} final function error", getName(), ex);
+            LOGGER.warn("{}({}) final action error", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
                 
         if (isSkipResultFunction()) return;
         try{
             onSuccessFunc.accept(this);
         }catch(Exception e){
-            LOGGER.warn("{} success function error", getName(), e);
+            LOGGER.warn("{}({}) success function error", ActionComposer.class.getSimpleName(), getName(), e);
         }
     }
     
@@ -226,12 +236,12 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         try{
             onDoneFunc.accept(this);
         }catch(Exception e){
-            LOGGER.warn("{} done function error", getName(), e);
+            LOGGER.warn("{}({}) done function error", ActionComposer.class.getSimpleName(), getName(), e);
         }
 
         setDone();
         checkDoneLatch.countDown();
-        if (LOGGER.isDebugEnabled()) LOGGER.debug("{} costs {} milliseconds", getName(), getCostTime().toMillis());
+        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}) costs {} milliseconds", ActionComposer.class.getSimpleName(), getName(), getCostTime().toMillis());
         
         //continue with child composer
         if (hasChild()){
@@ -244,7 +254,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
                 }
                 actionRunner.executeComposer(tempChild);
             }catch(Exception ex){
-                LOGGER.warn("{} execute child composer error", getName(), ex);
+                LOGGER.warn("{}({}) execute child composer error", ActionComposer.class.getSimpleName(), getName(), ex);
             }
         }
     }
@@ -399,7 +409,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             getWebDriver().switchTo().window(windowIdentity);
             return true;
         }catch(Exception ex){
-            LOGGER.error("{} switchToWindow error", getName(), ex);
+            LOGGER.warn("{} switchToWindow error", getName(), ex);
             return false;
         }
     }

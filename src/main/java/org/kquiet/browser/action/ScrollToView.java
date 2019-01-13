@@ -61,19 +61,18 @@ public class ScrollToView extends MultiPhaseAction {
                     ((JavascriptExecutor) actionComposer.getWebDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
                     noNextPhase();
                 }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
                 }
             }catch(Exception e){
                 noNextPhase();
-                throw new ActionException("Error: "+toString(), e);
+                throw new ActionException(toString(), e);
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName()
-                , getComposer()==null?"":getComposer().getName(), ScrollToView.class.getSimpleName(), by.toString()
+        return String.format("%s:%s/%s/%s", ScrollToView.class.getSimpleName(), by.toString()
                 , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), String.valueOf(toTop));
     }
 }

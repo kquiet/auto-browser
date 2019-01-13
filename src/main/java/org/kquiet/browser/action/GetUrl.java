@@ -39,13 +39,13 @@ public class GetUrl extends SinglePhaseAction {
                 actionComposer.getWebDriver().get(this.url);
             }
             catch(Exception e){
-                throw new ActionException("Error: "+toString(), e);
+                throw new ActionException(e);
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), GetUrl.class.getSimpleName(), url);
+        return String.format("%s:%s", GetUrl.class.getSimpleName(), url);
     }
 }

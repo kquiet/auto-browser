@@ -86,11 +86,11 @@ public class Select extends MultiPhaseAction {
                     clickToSelect(element, this.selectBy, this.options);
                     noNextPhase();
                 }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}:{}", StaleElementReferenceException.class.getSimpleName(), toString(), ignoreE);
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
                 }
             }catch(Exception e){
                 noNextPhase();
-                throw new ActionException("Error: "+toString(), e);
+                throw new ActionException(toString(), e);
             }
         });
     }
@@ -132,8 +132,7 @@ public class Select extends MultiPhaseAction {
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s/%s/%s"
-                , ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName()
+        return String.format("%s:%s/%s/%s/%s"
                 , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
     }
 }

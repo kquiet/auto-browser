@@ -69,7 +69,7 @@ public class IfThenElse extends SinglePhaseAction{
                     });
                 }
             }catch(Exception e){
-                throw new ActionException("Error: "+toString(), e);
+                throw new ActionException(e);
             }
         });
     }
@@ -91,7 +91,7 @@ public class IfThenElse extends SinglePhaseAction{
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), IfThenElse.class.getSimpleName());
+        return IfThenElse.class.getSimpleName();
     }
     
     @Override

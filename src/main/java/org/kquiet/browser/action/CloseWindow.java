@@ -57,21 +57,21 @@ public class CloseWindow extends SinglePhaseAction {
                         else failList.add(window);
                     }
                     else{
-                        LOGGER.info("{}({}): root window({}) can't be closed", ActionComposer.class.getSimpleName(), actionComposer.getName(), window);
+                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): root window({}) can't be closed:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), window);
                     }
                 }
-                if (!failList.isEmpty()) throw new ActionException(String.format("%s(%s) close registered windows(%s) fail; it may have been closed or equal to the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), String.join(",", failList)));
+                if (!failList.isEmpty()) throw new ActionException(String.format("close registered windows(%s) fail; it may have been closed or equal to the root window", String.join(",", failList)));
             }
             else{
                 String focusWindow = actionComposer.getFocusWindow();
                 if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getWebDriver().close();
-                else throw new ActionException(String.format("%s(%s) close focus window(%s) fail; it may have been closed or is the root window", ActionComposer.class.getSimpleName(), actionComposer.getName(), focusWindow));
+                else throw new ActionException(String.format("close focus window(%s) fail; it may have been closed or is the root window", focusWindow));
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), CloseWindow.class.getSimpleName(), String.valueOf(closeAllRegistered));
+        return String.format("%s:%s", CloseWindow.class.getSimpleName(), String.valueOf(closeAllRegistered));
     }
 }

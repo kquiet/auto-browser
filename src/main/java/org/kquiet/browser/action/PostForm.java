@@ -75,17 +75,17 @@ public class PostForm extends SinglePhaseAction {
                 try{
                     ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript(scriptStr);
                 }catch(Exception ex){
-                    LOGGER.warn("Execute javascript error:{}", toString(), ex);
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): Execute javascript error:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ex);
                 }
             }
             catch(Exception e){
-                throw new ActionException("Error: "+toString(), e);
+                throw new ActionException(e);
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s/%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), PostForm.class.getSimpleName(), url, String.join(",", formData.stream().map(s->s.getKey()+"="+s.getValue()).collect(Collectors.toList())), acceptCharset);
+        return String.format("%s:%s/%s/%s", PostForm.class.getSimpleName(), url, String.join(",", formData.stream().map(s->s.getKey()+"="+s.getValue()).collect(Collectors.toList())), acceptCharset);
     }
 }

@@ -103,7 +103,7 @@ public abstract class MultiPhaseAction implements Runnable{
                 noNextPhase();
                 setActionState(ActionState.COMPLETE_WITH_ERROR);
                 errorList.add(e);
-                LOGGER.warn("{} fail", getClass().getSimpleName(), e);
+                LOGGER.warn("{}({}) {} error:{}", ActionComposer.class.getSimpleName(), getComposer().getName(), getClass().getSimpleName(), toString(), e);
             }finally{
                 stopWatch.stop();
             }

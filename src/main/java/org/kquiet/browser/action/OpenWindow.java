@@ -59,7 +59,7 @@ public class OpenWindow extends SinglePhaseAction {
             try{
                 ((JavascriptExecutor)actionComposer.getWebDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
             }catch(Exception ex){
-                LOGGER.warn("[{}] open new window script error!", actionComposer.getName(), ex);
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): open new window script error!", ActionComposer.class.getSimpleName(), actionComposer.getName(), ex);
             }
 
             String actualHandle=null;
@@ -75,20 +75,20 @@ public class OpenWindow extends SinglePhaseAction {
                         actionComposer.setFocusWindow(actualHandle);
                     }
                     if (!actionComposer.registerWindow(this.registerName, actualHandle)){
-                        throw new ActionException(String.format("%s(%s) can't register new window:%s %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), this.registerName, toString()));
+                        throw new ActionException(String.format("can't register new window:%s", this.registerName));
                     }
                     break;
                 }
             }
 
             if (actualHandle==null){
-                throw new ActionException(String.format("%s(%s) can't find new window! %s", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString()));
+                throw new ActionException("can't find new window!");
             }
         });
     }
     
     @Override
     public String toString(){
-        return String.format("%s(%s) %s:%s/%s", ActionComposer.class.getSimpleName(), getComposer()==null?"":getComposer().getName(), OpenWindow.class.getSimpleName(), String.valueOf(asComposerFocusWindow), registerName);
+        return String.format("%s:%s/%s", OpenWindow.class.getSimpleName(), String.valueOf(asComposerFocusWindow), registerName);
     }
 }
