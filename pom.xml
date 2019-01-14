@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kquiet</groupId>
     <artifactId>auto-browser</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>A java library wrapping selenium to help focus on browser automation.</description>
@@ -351,6 +351,6 @@
         <connection>scm:git:git://github.com/kquiet/auto-browser.git</connection>
         <developerConnection>scm:git:git@github.com:kquiet/auto-browser.git</developerConnection>
         <url>https://github.com/kquiet/auto-browser/tree/master</url>
-      <tag>0.4.0</tag>
+      <tag>HEAD</tag>
   </scm>
 </project>
