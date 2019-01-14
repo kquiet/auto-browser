@@ -15,16 +15,17 @@
  */
 package org.kquiet.test;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
@@ -47,7 +48,7 @@ public class CompositeTest {
     /**
      *
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         browserRunnerOne = TestHelper.createRunner(1);
         browserRunnerTwo = TestHelper.createRunner(2);
@@ -56,7 +57,7 @@ public class CompositeTest {
     /**
      *
      */
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
         browserRunnerOne.close();
         browserRunnerTwo.close();
@@ -65,14 +66,14 @@ public class CompositeTest {
     /**
      *
      */
-    @Before
+    @BeforeEach
     public void setUp(){
     }
     
     /**
      *
      */
-    @After
+    @AfterEach
     public void tearDown() {
     }
     
@@ -100,8 +101,12 @@ public class CompositeTest {
                 }, priority);
             }
         }, 100);
-        boolean waitResult = ready.await(3000, TimeUnit.MILLISECONDS);
-        assertTrue("actual:"+sb.toString(), waitResult && sb.toString().matches("Q100Q1Q2Q3Q4Q5"));
+        
+        AtomicBoolean waitResult = new AtomicBoolean(false);
+        assertAll(
+            ()->assertDoesNotThrow(()->waitResult.set(ready.await(3000, TimeUnit.MILLISECONDS)), "not complete in time"),
+            ()->assertTrue(waitResult.get(), "count down timeout"),
+            ()->assertEquals("Q100Q1Q2Q3Q4Q5", sb.toString(), "wrong priority sequence"));
     }
     
     /**
@@ -137,10 +142,10 @@ public class CompositeTest {
         
         Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
         Future<?> higherPriorityFuture = browserRunnerOne.executeComposer(higherPriorityComposer);
-        higherPriorityFuture.get(1000, TimeUnit.MILLISECONDS);
-        lowerPriorityFuture.get(1000, TimeUnit.MILLISECONDS);
         
-        assertTrue("actual:"+sb.toString(), sb.toString().matches("(L+H+)|(H+L+)"));
+        assertAll(
+            ()->assertDoesNotThrow(()->{higherPriorityFuture.get(1000, TimeUnit.MILLISECONDS);lowerPriorityFuture.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
+            ()->assertTrue(sb.toString().matches("(L+H+)|(H+L+)"), "expected:(L+H+)|(H+L+), actual:"+sb.toString()));
     }
     
     /**
@@ -178,10 +183,10 @@ public class CompositeTest {
         
         Future<?> future1 = browserRunnerTwo.executeComposer(composer1);
         Future<?> future2 = browserRunnerTwo.executeComposer(composer2);
-        future2.get(1000, TimeUnit.MILLISECONDS);
-        future1.get(1000, TimeUnit.MILLISECONDS);
         
-        assertTrue("actual:"+sb.toString(), !sb.toString().matches("(L+H+)|(H+L+)"));
+        assertAll(
+            ()->assertDoesNotThrow(()->{future2.get(1000, TimeUnit.MILLISECONDS);future1.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
+            ()->assertFalse(sb.toString().matches("(L+H+)|(H+L+)"), "not expected:(L+H+)|(H+L+), actual:"+sb.toString()));
     }
     
     /**
@@ -204,11 +209,11 @@ public class CompositeTest {
             .build("continuousTest-child");
         
         parentComposer.continueWith(childComposer);
-        
         browserRunnerTwo.executeComposer(parentComposer);
-        childComposer.get(1000, TimeUnit.MILLISECONDS);
         
-        assertEquals("parentchild", sb.toString());
+        assertAll(
+            ()->assertDoesNotThrow(()->childComposer.get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("parentchild", sb.toString(), "composer not executed in order"));
     }
     
     /**
@@ -235,8 +240,12 @@ public class CompositeTest {
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
             .build("skipToSuccessAndClose", true, true);
-        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("actual:"+sb.toString(), actionComposer.isSuccess() && "successdone".equals(sb.toString()) && !result.get());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertFalse(result.get(), "window not closed"),
+            ()->assertEquals("successdone", sb.toString(), "on success/done not triggered"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -263,8 +272,12 @@ public class CompositeTest {
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
             .build("skipToFailAndClose", true, true);
-        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("actual:"+sb.toString(), actionComposer.isFail() && "faildone".equals(sb.toString()) && !result.get());
+
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertFalse(result.get(), "window not closed"),
+            ()->assertEquals("faildone", sb.toString(), "on fail/done not triggered"),
+            ()->assertTrue(actionComposer.isFail(), "composer not fail"));
     }
     
     /**
@@ -290,8 +303,12 @@ public class CompositeTest {
                 String focusWindow = ac.getRegisteredWindow("");
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
-            .build("skipToFailAndClose", true, true);
-        browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("actual:"+sb.toString(), actionComposer.isFail() && "faildone".equals(sb.toString()) && !result.get());
+            .build("failAndClose", true, true);
+
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertFalse(result.get(), "window not closed"),
+            ()->assertEquals("faildone", sb.toString(), "on fail/done not triggered"),
+            ()->assertTrue(actionComposer.isFail(), "composer not fail"));
     }
 }

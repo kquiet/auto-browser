@@ -15,6 +15,14 @@
  */
 package org.kquiet.test;
 
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -26,12 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.By;
@@ -77,7 +79,7 @@ public class ActionTest {
     /**
      *
      */
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         browserRunner = TestHelper.createRunner(5);
         htmlFileUrl = ActionTest.class.getResource(HTML_FILE_NAME);
@@ -86,7 +88,7 @@ public class ActionTest {
     /**
      *
      */
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
         browserRunner.close();
     }
@@ -94,14 +96,14 @@ public class ActionTest {
     /**
      *
      */
-    @Before
+    @BeforeEach
     public void setUp(){
     }
     
     /**
      *
      */
-    @After
+    @AfterEach
     public void tearDown() {
     }
     
@@ -127,11 +129,10 @@ public class ActionTest {
                 .waitUntil(driver->true, 500)
                 .returnToComposerBuilder()
             .build("waitUntilSuccess", false, false);
-        long startTime = System.nanoTime();
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        long endTime = System.nanoTime();
-        long elapsedWaitingMillisecond = (endTime-startTime)/1000000;
-        assertTrue("elapsedWaitingMillisecond:"+elapsedWaitingMillisecond, !actionComposer.isFail() && elapsedWaitingMillisecond>=0 && elapsedWaitingMillisecond<100);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -140,17 +141,21 @@ public class ActionTest {
      */
     @Test
     public void waitUntilTimeout() throws Exception {
+        AtomicBoolean result = new AtomicBoolean(false);
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(driver->false, 300)
+                .prepareWaitUntil(driver->false, 300)
+                    .withTimeoutCallback(ac->{
+                        result.set(true);
+                    }).done()
                 .returnToComposerBuilder()
             .build("waitUntilTimeout", false, false)
             .keepFailInfo(false);
-        long startTime = System.nanoTime();
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        long endTime = System.nanoTime();
-        long elapsedWaitingMillisecond = (endTime-startTime)/1000000;
-        assertTrue("elapsedWaitingMillisecond:"+elapsedWaitingMillisecond, actionComposer.isFail() && elapsedWaitingMillisecond>200 && elapsedWaitingMillisecond<400);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(600, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"),
+            ()->assertTrue(result.get(), "timeout callback not fired"));
     }
     
     /**
@@ -164,11 +169,10 @@ public class ActionTest {
                 .justWait(300)
                 .returnToComposerBuilder()
             .build("justWait", false, false);
-        long startTime = System.nanoTime();
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        long endTime = System.nanoTime();
-        long elapsedWaitingMillisecond = (endTime-startTime)/1000000;
-        assertTrue("elapsedWaitingMillisecond:"+elapsedWaitingMillisecond, !actionComposer.isFail() && elapsedWaitingMillisecond>200 && elapsedWaitingMillisecond<400);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(600, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -184,8 +188,11 @@ public class ActionTest {
                 .custom(ac-> text.set(customText))
                 .returnToComposerBuilder()
             .build("custom", false, false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue(!actionComposer.isFail() && customText.equals(text.get()));
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals(customText, text.get()),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -228,8 +235,11 @@ public class ActionTest {
                     .endIf()
                 .returnToComposerBuilder()
             .build("ifThenElse", false, false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue(!actionComposer.isFail() && "134".equals(sb.toString()));
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("134", sb.toString(), "condition sequence not match"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
 
     /**
@@ -243,8 +253,10 @@ public class ActionTest {
                 .waitUntil(ExpectedConditions.titleIs("ActionTest"), 3000)
                 .returnToComposerBuilder()  
             .build("getUrl", true, true);
-        browserRunner.executeComposer(actionComposer).get(4000, TimeUnit.MILLISECONDS);
-        assertTrue(actionComposer.isSuccess());
+
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(4000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -267,9 +279,11 @@ public class ActionTest {
         
         AtomicBoolean exitFlag = new AtomicBoolean(false);
         tempWebServer4PostForm(exitFlag);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        exitFlag.set(true);
-        assertTrue(actionComposer.isSuccess());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->{
+                browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);exitFlag.set(true);}, "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     //create an temporary web server for testing
     private void tempWebServer4PostForm(AtomicBoolean exitFlag){
@@ -314,8 +328,10 @@ public class ActionTest {
                 .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("divClickResult")), 1000)
                 .returnToComposerBuilder()
             .build("click", true, true);
-        browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
-        assertTrue(actionComposer.isSuccess());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -355,8 +371,10 @@ public class ActionTest {
                     .done()
                 .returnToComposerBuilder()
             .build("input", true, true);
-        browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
-        assertTrue("actualValue:"+actualValue.get(), actionComposer.isSuccess());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()));
     }
     
     /**
@@ -382,9 +400,10 @@ public class ActionTest {
                     .done()
                 .returnToComposerBuilder()
             .build("select", true, true);
-        browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS);
         
-        assertTrue("actualValue:"+actualValue.get(), actionComposer.isSuccess());
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()));
     }
     
     /**
@@ -407,8 +426,10 @@ public class ActionTest {
                 })
                 .returnToComposerBuilder()
             .build("openAndCloseWindow", false, false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue(actionComposer.isSuccess());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -435,8 +456,11 @@ public class ActionTest {
                 })
                 .returnToComposerBuilder()
             .build("scrollToView", true, true);
-        browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
-        assertTrue(String.format("scroll error, initial:%s, after:%s", initial.get(), after.get()), actionComposer.isSuccess() && initial.get()>0 && after.get()==0);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(initial.get()>0 && after.get()==0, String.format("scroll error, initial:%s, after:%s", initial.get(), after.get())),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -458,8 +482,11 @@ public class ActionTest {
                 })
                 .returnToComposerBuilder()
             .build("upload", true, true);
-        browserRunner.executeComposer(actionComposer).get(500000, TimeUnit.MILLISECONDS);
-        assertTrue("upload error", actionComposer.isSuccess() && HTML_FILE_NAME.equalsIgnoreCase(fileName.get()));
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals(HTML_FILE_NAME, fileName.get(), "filename not match"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -480,8 +507,11 @@ public class ActionTest {
             .onSuccess(ac->sb.append("success"))
             .build("onFail", false, false)
             .keepFailInfo(false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("customfail".equals(sb.toString()) && actionComposer.isFail());
+
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("customfail", sb.toString(), "on fail not triggered"),
+            ()->assertTrue(actionComposer.isFail(), "composer not fail"));
     }
     
     /**
@@ -500,8 +530,11 @@ public class ActionTest {
             .onFail(ac->sb.append("fail"))
             .onSuccess(ac->sb.append("success"))
             .build("onSuccess", false, false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("customsuccess".equals(sb.toString()) && actionComposer.isSuccess());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("customsuccess", sb.toString(), "on success not triggered"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
     /**
@@ -517,7 +550,10 @@ public class ActionTest {
                 .returnToComposerBuilder()
             .onDone(ac->sb.append("done"))
             .build("onDone", false, false);
-        browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);
-        assertTrue("customdone".equals(sb.toString()) && actionComposer.isDone());
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("customdone", sb.toString(), "on done not triggered"),
+            ()->assertTrue(actionComposer.isDone(), "composer not done"));
     }
 }

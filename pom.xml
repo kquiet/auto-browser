@@ -30,9 +30,15 @@
             <version>3.141.59</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -89,14 +95,6 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <environmentVariables>
-                        <webdriver_headless>yes</webdriver_headless>
-                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>
@@ -168,7 +166,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.1</version>
+                    <version>3.0.0-M3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -243,7 +241,10 @@
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <!--<groups>single</groups>
+                            <excludedGroups>!single</excludedGroups>-->
                             <environmentVariables>
+                                <webdriver_headless>yes</webdriver_headless>
                                 <PATH>${test.webdriver.directory.windows}${path.separator}{env.PATH}</PATH>
                             </environmentVariables>
                         </configuration>
@@ -264,6 +265,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <environmentVariables>
+                                <webdriver_headless>yes</webdriver_headless>
                                 <PATH>${test.webdriver.directory.linux}${path.separator}{env.PATH}</PATH>
                             </environmentVariables>
                         </configuration>
