@@ -511,8 +511,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      *
      * @return {@code true} if invoking {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
      */
-    public boolean isSuccess(){
-        return !isFail;
+    public boolean isSuccessfulDone(){
+        return isDone && !isFail;
     }
 
     private void setDone() {
