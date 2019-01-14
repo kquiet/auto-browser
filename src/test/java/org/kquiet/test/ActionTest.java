@@ -222,7 +222,7 @@ public class ActionTest {
                             .endIf()
                         .endActionSequence()
                     .otherwise()
-                        .custom(t ->sb.append("5"))
+                        .custom(ac ->sb.append("5"))
                         .prepareIfThenElse(s->true)
                             .then()
                                 .custom(ac->sb.append("6"))
@@ -422,7 +422,7 @@ public class ActionTest {
                 })
                 .closeWindow(true)
                 .custom(ac->{
-                    if (ac.switchToWindow(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
+                    if (ac.getWebDriver().getWindowHandles().contains(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
                 .returnToComposerBuilder()
             .build("openAndCloseWindow", false, false);

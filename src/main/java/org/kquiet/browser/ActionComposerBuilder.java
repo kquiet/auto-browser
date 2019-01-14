@@ -21,14 +21,10 @@ import java.util.function.Function;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.StaleElementReferenceException;
 
 import org.kquiet.browser.action.MultiPhaseAction;
 import org.kquiet.browser.action.Click;
@@ -1008,7 +1004,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Custom(customAction);
+                MultiPhaseAction action = new Custom(customAction, true);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1153,18 +1149,18 @@ public class ActionComposerBuilder{
          *
          * Start building an {@link IfThenElse}.
          * 
-         * @param predicate the predicate to test
+         * @param evalFunction the function to evaluate
          * @return a new {@link IfThenElseBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public IfThenElseBuilder prepareIfThenElse(Predicate<ActionComposer> predicate){
-            return new IfThenElseBuilder(this, predicate);
+        public IfThenElseBuilder prepareIfThenElse(Function<ActionComposer, ?> evalFunction){
+            return new IfThenElseBuilder(this, evalFunction);
         }
 
         /**
          * A builder to build {@link IfThenElse} in a fluent way.
          */
         public class IfThenElseBuilder extends InnerBuilderBase{
-            private final Predicate<ActionComposer> predicate;
+            private final Function<ActionComposer, ?> evalFunction;
             private volatile boolean isPrepareThenAction = true;
             private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
             private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
@@ -1173,12 +1169,12 @@ public class ActionComposerBuilder{
              * Create a new {@link IfThenElseBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param predicate the predicate to test
+             * @param evalFunction the function to evaluate
              */
-            public IfThenElseBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Predicate<ActionComposer> predicate){
+            public IfThenElseBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Function<ActionComposer, ?> evalFunction){
                 super(parentActionSequenceBuilder);
-                if (predicate==null) throw new IllegalArgumentException("No predicate specified to build");
-                this.predicate = predicate;
+                if (evalFunction==null) throw new IllegalArgumentException("No evaluation function specified to build");
+                this.evalFunction = evalFunction;
             }
             
             /**
@@ -1200,7 +1196,7 @@ public class ActionComposerBuilder{
              * @return root builder({@link ActionComposerBuilder})
              */
             public ActionComposerBuilder returnToComposerBuilder(){
-                parentActionSequenceBuilder.add(new IfThenElse(predicate, positiveActionList, negativeActionList));
+                parentActionSequenceBuilder.add(new IfThenElse(evalFunction, positiveActionList, negativeActionList));
                 return parentActionSequenceBuilder.returnToComposerBuilder();
             }
             
@@ -1230,7 +1226,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder endIf(){
-                parentActionSequenceBuilder.add(new IfThenElse(predicate, positiveActionList, negativeActionList));
+                parentActionSequenceBuilder.add(new IfThenElse(evalFunction, positiveActionList, negativeActionList));
                 return parentActionSequenceBuilder;
             }
         }

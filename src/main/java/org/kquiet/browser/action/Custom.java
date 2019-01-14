@@ -21,26 +21,37 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link Custom} is a subclass of {@link SinglePhaseAction} which performs custom action
+ * {@link Custom} is a subclass of {@link MultiPhaseAction} which performs custom action by phases to avoid blocking the execution of other browser actions.
  * 
+ * <p>There is a boolean parameter {@code actAsSinglePhase} in constructor {@link #Custom(java.util.function.Consumer, boolean)},
+ * which is used to make {@link Custom} acts as a {@link SinglePhaseAction}. If this is not the case,
+ * {@link MultiPhaseAction#noNextPhase()} must be called explicitly before ending custom action.</p>
+ *  * 
  * @author Kimberly
  */
-public class Custom extends SinglePhaseAction {
+public class Custom extends MultiPhaseAction {
     private final Consumer<ActionComposer> customFunc;
+    private final boolean actAsSinglePhase;
     
     /**
      *
      * @param customAction custom action
+     * @param actAsSinglePhase flags whether acts as a {@link SinglePhaseAction}
      */
-    public Custom(Consumer<ActionComposer> customAction){
+    public Custom(Consumer<ActionComposer> customAction, boolean actAsSinglePhase){
         super(null);
         this.customFunc = customAction;
+        this.actAsSinglePhase = actAsSinglePhase;
         super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
             try{
+                ActionComposer actionComposer = this.getComposer();
                 this.customFunc.accept(actionComposer);
             }catch(Exception e){
                 throw new ActionException(e);
+            }finally{
+                if(this.actAsSinglePhase){
+                    noNextPhase();
+                }
             }
         });
     }

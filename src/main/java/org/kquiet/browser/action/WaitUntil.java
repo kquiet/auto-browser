@@ -108,7 +108,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
             }
             
             //condition not met
-            if (result==null || ((result instanceof Boolean) && ((Boolean)result)==false)){
+            if (result==null || (Boolean.class==result.getClass() && Boolean.FALSE.equals(result))){
                 if (isTimeout()){
                     timeoutToDo();
                 }

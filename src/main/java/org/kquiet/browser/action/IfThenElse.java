@@ -15,17 +15,24 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.function.Function;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Predicate;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.openqa.selenium.StaleElementReferenceException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according to the result of a predicate.
+ * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according to the evaluation result of specified function.
+ * If this function returns something different from null or false then the result is positive; otherwise negative.
  * 
  * {@link IfThenElse} maintains two lists of actions internally:
  * <ul>
@@ -37,28 +44,30 @@ import org.kquiet.browser.action.exception.ActionException;
  */
 @Nonbrowserable
 public class IfThenElse extends SinglePhaseAction{
+    private static final Logger LOGGER = LoggerFactory.getLogger(IfThenElse.class);
+    
     private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
     private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
-    private final Predicate<ActionComposer> predicate;
-    private volatile boolean predicateResult=true;
+    private final Function<ActionComposer, ?> evalFunction;
+    private volatile boolean evaluationResult=true;
     
     /**
      * 
-     * @param predicate the predicate to test
+     * @param evalFunction the function to evaluate
      * @param positiveActionList the actions to perform if the result is true
      * @param negativeActionList the actions to perform if the result is false
      */
-    public IfThenElse(Predicate<ActionComposer> predicate, List<MultiPhaseAction> positiveActionList, List<MultiPhaseAction> negativeActionList){
+    public IfThenElse(Function<ActionComposer, ?> evalFunction, List<MultiPhaseAction> positiveActionList, List<MultiPhaseAction> negativeActionList){
         super(null);
-        this.predicate = predicate;
+        this.evalFunction = evalFunction;
         if (positiveActionList!=null) this.positiveActionList.addAll(positiveActionList);
         if (negativeActionList!=null) this.negativeActionList.addAll(negativeActionList);
         
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                predicateResult = testPredicate();
-                if (predicateResult){
+                evaluationResult = evaluate();
+                if (evaluationResult){
                     this.positiveActionList.forEach((action) -> {
                         action.run();
                     });
@@ -74,19 +83,28 @@ public class IfThenElse extends SinglePhaseAction{
         });
     }
     
-    private boolean testPredicate() throws Exception{
-        ActionComposer actionComposer = this.getComposer();
-        AtomicBoolean result = new AtomicBoolean();
-        
-        Future<Exception> future= getComposer().callBrowser(()->{
-            if (!getComposer().switchToFocusWindow()){
-                throw new ActionException("can't switch to focus window");
+    private boolean evaluate() throws Exception{
+        AtomicBoolean evalResult = new AtomicBoolean(true);
+        AtomicReference<MultiPhaseAction> customRef = new AtomicReference<>(null);
+        MultiPhaseAction customAction = new Custom(ac->{
+            Object obj =null;
+            try{
+                obj = evalFunction.apply(ac);
+                customRef.get().noNextPhase();
+            }catch(StaleElementReferenceException ignoreE){
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), toString(), ignoreE);
+            }catch(Exception e){
+                customRef.get().noNextPhase();
+                throw new ActionException(e);
             }
-            result.set(predicate.test(actionComposer));
-        });
-        Exception actionException = future.get();
-        if (actionException!=null) throw actionException;
-        return result.get();
+            evalResult.set(obj!=null && (Boolean.class!=obj.getClass() || Boolean.TRUE.equals(obj)));
+        }, false).setContainingComposer(getComposer());
+        customRef.set(customAction);
+        customAction.run();
+
+        List<Exception> errors = customAction.getErrors();
+        if (!errors.isEmpty()) throw errors.get(errors.size()-1);
+        return evalResult.get();
     }
     
     @Override
@@ -98,7 +116,7 @@ public class IfThenElse extends SinglePhaseAction{
     public boolean isDone(){
         boolean isDoneFlag = super.isDone();
         List<MultiPhaseAction> actionList;
-        if (predicateResult){
+        if (evaluationResult){
             actionList = positiveActionList;
         }
         else {
