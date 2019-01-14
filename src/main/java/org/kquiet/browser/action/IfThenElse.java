@@ -92,7 +92,7 @@ public class IfThenElse extends SinglePhaseAction{
                 obj = evalFunction.apply(ac);
                 customRef.get().noNextPhase();
             }catch(StaleElementReferenceException ignoreE){
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), toString(), ignoreE);
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), customRef.get().toString(), ignoreE);
             }catch(Exception e){
                 customRef.get().noNextPhase();
                 throw new ActionException(e);

@@ -339,6 +339,27 @@ public class ActionTest {
      * @throws Exception
      */
     @Test
+    public void mouseOver() throws Exception {
+        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(ExpectedConditions.and(
+                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
+                    , ExpectedConditions.invisibilityOfElementLocated(By.id("spMouseOver"))), 3000)
+                .mouseOver(By.id("divMouseOver"))
+                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("spMouseOver")), 1000)
+                .returnToComposerBuilder()
+            .build("mouseOver", true, true);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
     public void sendKeys() throws Exception {
         AtomicReference<String> actualValue = new AtomicReference<>("original");
         ActionComposer actionComposer = getDefinedActionComposerBuilder()

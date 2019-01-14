@@ -39,6 +39,7 @@ import org.kquiet.browser.action.SendKey;
 import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.IfThenElse;
+import org.kquiet.browser.action.MouseOver;
 import org.kquiet.browser.action.ScrollToView;
 import org.kquiet.browser.action.Upload;
 
@@ -956,6 +957,68 @@ public class ActionComposerBuilder{
              */
             public ActionSequenceBuilder done(){
                 MultiPhaseAction action = new Click(by, frameBySequence);
+                return parentActionSequenceBuilder.add(action);
+            }
+        }
+        
+        /**
+         * Add a {@link MouseOver} to the sequence of actions.
+         * 
+         * @param by the element locating mechanism
+         * @return invoking {@link ActionSequenceBuilder}
+         */
+        public ActionSequenceBuilder mouseOver(By by){
+            return new MouseOverBuilder(this, by).done();
+        }
+
+        /**
+         * Start building a {@link MouseOver}.
+         * 
+         * @param by the element locating mechanism
+         * @return a new {@link MouseOverBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         */
+        public MouseOverBuilder prepareMouseOver(By by){
+            return new MouseOverBuilder(this, by);
+        }
+
+        /**
+         * A builder to build {@link MouseOver} in a fluent way.
+         */
+        public class MouseOverBuilder extends InnerBuilderBase{
+            private final By by;
+            private volatile List<By> frameBySequence;
+
+            /**
+             * Create a new {@link MouseOverBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
+             * @param by the element locating mechanism
+             */
+            public MouseOverBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by){
+                super(parentActionSequenceBuilder);
+                if (by==null) throw new IllegalArgumentException("No locator specified to build");
+                this.by = by;
+            }
+
+            /**
+             * Set the frame locating mechanism for the element resides in a frame.
+             * 
+             * @param frameBySequence the sequence of the frame locating mechanism
+             * @return invoking {@link MouseOverBuilder}
+             */
+            public MouseOverBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
+                return this;
+            }
+
+            /**
+             * Finish building {@link MouseOver} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
+             */
+            public ActionSequenceBuilder done(){
+                MultiPhaseAction action = new MouseOver(by, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
