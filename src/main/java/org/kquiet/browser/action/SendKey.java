@@ -97,9 +97,11 @@ public class SendKey extends MultiPhaseAction {
     public static void clickToSendKeys(WebElement element, boolean clearBeforeSend, CharSequence... keysToSend){
         //click before send key
         element.click();
-        if (clearBeforeSend) element.sendKeys(Keys.chord(Keys.CONTROL+"a"));
-        else element.sendKeys(Keys.chord(Keys.CONTROL, Keys.END));
-        element.sendKeys(keysToSend);
+        if (clearBeforeSend){
+            element.clear();
+            element.sendKeys(Keys.BACK_SPACE);
+        }
+        else element.sendKeys(Keys.END);
     }
     
     @Override
