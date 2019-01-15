@@ -64,7 +64,6 @@ public class IfThenElse extends SinglePhaseAction{
         if (negativeActionList!=null) this.negativeActionList.addAll(negativeActionList);
         
         super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
             try{
                 evaluationResult = evaluate();
                 if (evaluationResult){

@@ -43,6 +43,9 @@ limitations under the License.
         <div id="divMouseOver" onmouseover="document.getElementById('spMouseOver').style.display='';" onmouseout="document.getElementById('spMouseOver').style.display='none';">
             6. mouseover<span id="spMouseOver" style="display:none">hovered</span>
         </div>
+        <div>
+            7. alert<input type="button" id="btnAlert" value="click for prompt" onclick="document.getElementById('txtAlert').value=prompt('PromptMessage');" /><input id="txtAlert" type="text" />
+        </div>
         <div style="height:4096px;width:1px"></div>
     </body>
 </html>

@@ -18,6 +18,7 @@ package org.kquiet.browser;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -71,6 +72,8 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private Consumer<ActionComposer> onDoneFunc = (bac)->{};
     
     private final CountDownLatch checkDoneLatch = new CountDownLatch(1);
+    
+    private final Map<String, Object> variableMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
     private String name = null;
     private int priority = Integer.MIN_VALUE;
@@ -221,7 +224,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         try{
             finalAction.run();
         }catch(Exception ex){
-            LOGGER.warn("{}({}) final action error", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
+            LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
                 
         if (isSkipResultFunction()) return;
@@ -304,6 +307,26 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      */
     public Map<String, String> getRegisteredWindows(){
         return new LinkedHashMap<>(registeredWindows);
+    }
+    
+    /**
+     * Get the value of specified variable.
+     * 
+     * @param variableName variable name
+     * @return variable value
+     */
+    public Object getVariable(String variableName){
+        return variableMap.get(variableName);
+    }
+    
+    /**
+     * Set variable value.
+     * 
+     * @param variableName variable name
+     * @param value variable value
+     */
+    public void setVariable(String variableName, Object value){
+        variableMap.put(variableName, value);
     }
     
     /**

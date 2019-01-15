@@ -40,6 +40,8 @@ import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.IfThenElse;
 import org.kquiet.browser.action.MouseOver;
+import org.kquiet.browser.action.ReplyAlert;
+import org.kquiet.browser.action.ReplyAlert.Decision;
 import org.kquiet.browser.action.ScrollToView;
 import org.kquiet.browser.action.Upload;
 
@@ -1158,7 +1160,7 @@ public class ActionComposerBuilder{
          * @param pathOfFile the path of file to upload
          * @return a new {@link UploadBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public UploadBuilder prepareScrollToView(By by, String pathOfFile){
+        public UploadBuilder prepareUpload(By by, String pathOfFile){
             return new UploadBuilder(this, by, pathOfFile);
         }
 
@@ -1208,6 +1210,81 @@ public class ActionComposerBuilder{
             }
         }        
         
+        /**
+         * Add a {@link ReplyAlert} to the sequence of actions.
+         * 
+         * @param decision the way to deal with alert box
+         * @return invoking {@link ActionSequenceBuilder}
+         */
+        public ActionSequenceBuilder replyAlert(Decision decision){
+            return new ReplyAlertBuilder(this, decision).done();
+        }
+
+        /**
+         * Start building a {@link ReplyAlert}.
+         * 
+         * @param decision the way to deal with alert box
+         * @return a new {@link ReplyAlertBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         */
+        public ReplyAlertBuilder prepareReplyAlert(Decision decision){
+            return new ReplyAlertBuilder(this, decision);
+        }
+
+        /**
+         * A builder to build {@link ReplyAlert} in a fluent way.
+         */
+        public class ReplyAlertBuilder extends InnerBuilderBase{
+            private final Decision decision;
+            private String textVariableName;
+            private String keysToSend;
+
+            /**
+             * Create a new {@link ReplyAlertBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
+             * @param decision the way to deal with alert box
+             */
+            public ReplyAlertBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Decision decision){
+                super(parentActionSequenceBuilder);
+                if (decision==null) throw new IllegalArgumentException("No decision specified to build");
+                this.decision = decision;
+            }
+            
+            /**
+             * Set the text of alert box as a variable of building {@link ActionComposer}.
+             * 
+             * @param textVariableName text variable name
+             * @return invoking {@link ReplyAlertBuilder}
+             */
+            public ReplyAlertBuilder withTextAsVariable(String textVariableName){
+                if (textVariableName==null || textVariableName.isEmpty())  throw new IllegalArgumentException("Illegal text variable name to build");
+                this.textVariableName = textVariableName;
+                return this;
+            }
+            
+            /**
+             * Send characters to alert box.
+             * 
+             * @param keysToSend characters to send to alert box
+             * @return invoking {@link ReplyAlertBuilder}
+             */
+            public ReplyAlertBuilder withKeysToSend(String keysToSend){
+                if (keysToSend==null || keysToSend.isEmpty())  throw new IllegalArgumentException("Illegal keys-to-send to build");
+                this.keysToSend = keysToSend;
+                return this;
+            }
+
+            /**
+             * Finish building {@link ReplyAlert} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
+             */
+            public ActionSequenceBuilder done(){
+                MultiPhaseAction action = new ReplyAlert(decision, textVariableName, keysToSend);
+                return parentActionSequenceBuilder.add(action);
+            }
+        }
+                
         /**
          *
          * Start building an {@link IfThenElse}.

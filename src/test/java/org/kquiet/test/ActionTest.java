@@ -58,6 +58,7 @@ import org.takes.rs.RsWithType;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.action.ReplyAlert;
 
 /**
  *
@@ -507,6 +508,32 @@ public class ActionTest {
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
             ()->assertEquals(HTML_FILE_NAME, fileName.get(), "filename not match"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
+    public void replyAlert() throws Exception {
+        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(ExpectedConditions.and(
+                    ExpectedConditions.visibilityOfElementLocated(By.id("btnAlert"))
+                    , ExpectedConditions.visibilityOfElementLocated(By.id("txtAlert"))), 3000)
+                .click(By.id("btnAlert"))
+                .waitUntil(ExpectedConditions.alertIsPresent(), 1000)
+                .prepareReplyAlert(ReplyAlert.Decision.Accept).withTextAsVariable("AlertMessage").withKeysToSend("AlertInput").done()
+                .waitUntil(ExpectedConditions.and(
+                    ExpectedConditions.not(ExpectedConditions.alertIsPresent())
+                    , ExpectedConditions.attributeToBe(By.id("txtAlert"), "value", "AlertInput")), 1000)
+                .returnToComposerBuilder()
+            .build("mouseOver", true, true);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("PromptMessage", actionComposer.getVariable("AlertMessage"), "alert message not saved as variable"),
             ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     
