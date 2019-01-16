@@ -105,14 +105,14 @@ public class ActionRunner implements Closeable,AutoCloseable {
         switch(browserType){
             case CHROME:
                 ChromeOptions chromeOption = new ChromeOptions();
-                if ("no".equalsIgnoreCase(System.getenv("chrome_sandbox"))){
+                if ("no".equalsIgnoreCase(System.getProperty("chrome_sandbox"))){
                     chromeOption.addArguments("--no-sandbox");
                 }
-                if ("yes".equalsIgnoreCase(System.getenv("webdriver_headless"))){
+                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))){
                     chromeOption.setHeadless(true);
                     LOGGER.info("headless chrome used");
                 }
-                if ("yes".equalsIgnoreCase(System.getenv("webdriver_use_default_user_data_dir"))){
+                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_use_default_user_data_dir"))){
                     String defaultUserDataDir = getDefaultUserDataDir(browserType);
                     if (defaultUserDataDir!=null){
                         chromeOption.addArguments("user-data-dir="+defaultUserDataDir);
@@ -123,15 +123,15 @@ public class ActionRunner implements Closeable,AutoCloseable {
             case FIREFOX:
             default:
                 FirefoxOptions firefoxOption = new FirefoxOptions();
-                if ("yes".equalsIgnoreCase(System.getenv("webdriver_headless"))){
+                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))){
                     firefoxOption.setHeadless(true);
                     LOGGER.info("headless firefox used");
                 }
-                if ("yes".equalsIgnoreCase(System.getenv("webdriver_use_default_user_data_dir"))){
-                    String defaultUserDataDir2 = getDefaultUserDataDir(browserType);
-                    if (defaultUserDataDir2!=null){
-                        firefoxOption.setProfile(new FirefoxProfile(new File(defaultUserDataDir2)));
-                        LOGGER.info("default user profile dir used:{}", defaultUserDataDir2);
+                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_use_default_user_data_dir"))){
+                    String defaultProfileDir = getDefaultUserDataDir(browserType);
+                    if (defaultProfileDir!=null){
+                        firefoxOption.setProfile(new FirefoxProfile(new File(defaultProfileDir)));
+                        LOGGER.info("default user profile dir used:{}", defaultProfileDir);
                     }
                 }
                 return new FirefoxDriver(firefoxOption.merge(extraCapabilities));

@@ -24,6 +24,8 @@ import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.io.IOException;
 import java.net.URL;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -67,6 +69,7 @@ import org.kquiet.browser.action.ReplyAlert;
 public class ActionTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionTest.class);
     private static final String HTML_FILE_NAME = "ActionTest.html";
+    private static final AtomicBoolean TEST_SERVER_EXIT_FLAG = new AtomicBoolean(false);
     
     private static ActionRunner browserRunner;
     private static URL htmlFileUrl;
@@ -84,6 +87,7 @@ public class ActionTest {
     public static void setUpClass() {
         browserRunner = TestHelper.createRunner(5);
         htmlFileUrl = ActionTest.class.getResource(HTML_FILE_NAME);
+        tempWebServer4PostForm(TEST_SERVER_EXIT_FLAG);
     }
     
     /**
@@ -92,6 +96,7 @@ public class ActionTest {
     @AfterAll
     public static void tearDownClass() {
         browserRunner.close();
+        TEST_SERVER_EXIT_FLAG.set(true);
     }
     
     /**
@@ -108,10 +113,55 @@ public class ActionTest {
     public void tearDown() {
     }
     
+    //create an temporary web server for testing
+    private static void tempWebServer4PostForm(AtomicBoolean exitFlag){
+        new Thread(()->{
+            try {
+                new FtBasic(
+                    new TkFork(
+                        new FkRegex("/postform", 
+                            (Request req) -> {
+                                RqGreedy cachedReq = new RqGreedy(req);
+                                String method = new RqMethod.Base(cachedReq).method();
+                                if (RqMethod.POST.equals(method)){
+                                    RqFormSmart rfs = new RqFormSmart(cachedReq);
+                                    String value1 = rfs.single("key1");
+                                    String value2 = rfs.single("key2");
+                                    return new RsWithStatus(
+                                        new RsWithType(
+                                            new RsWithBody("<html>"+value1+":"+value2+"</html>")
+                                        , "text/html")
+                                    , 200);
+                                }
+                                else return new RsWithStatus(new RsWithBody(""), 200);
+                            })
+                        , new FkRegex("/main", 
+                            (Request req) -> {
+                                RqGreedy cachedReq = new RqGreedy(req);
+                                String method = new RqMethod.Base(cachedReq).method();
+                                if (RqMethod.GET.equals(method)){
+                                    return new RsWithStatus(
+                                        new RsWithType(
+                                            new RsWithBody(new String(Files.readAllBytes(Paths.get(new File(htmlFileUrl.getFile()).getAbsolutePath()))))
+                                        , "text/html")
+                                    , 200);
+                                }
+                                else return new RsWithStatus(new RsWithBody(""), 200);
+                            })
+                    ), 62226
+                ).start(() -> {
+                    return exitFlag.get();
+                });
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }).start();
+    }
+    
     private ActionComposerBuilder getDefinedActionComposerBuilder(){
         return new ActionComposerBuilder()
                 .prepareActionSequence()
-                    .getUrl(htmlFileUrl.toString())
+                    .getUrl("http://127.0.0.1:62226/main")
                     .returnToComposerBuilder();
     }
     
@@ -278,42 +328,9 @@ public class ActionTest {
                 .returnToComposerBuilder()
             .build("postForm", true, true);
         
-        AtomicBoolean exitFlag = new AtomicBoolean(false);
-        tempWebServer4PostForm(exitFlag);
-        
         assertAll(
-            ()->assertDoesNotThrow(()->{
-                browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS);exitFlag.set(true);}, "not complete in time"),
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
             ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
-    }
-    //create an temporary web server for testing
-    private void tempWebServer4PostForm(AtomicBoolean exitFlag){
-        new Thread(()->{
-            try {
-                new FtBasic(
-                    new TkFork(
-                        new FkRegex("/postform", 
-                            (Request req) -> {
-                                RqGreedy cachedReq = new RqGreedy(req);
-                                String method = new RqMethod.Base(cachedReq).method();
-                                if (RqMethod.POST.equals(method)){
-                                    RqFormSmart rfs = new RqFormSmart(cachedReq);
-                                    String value1 = rfs.single("key1");
-                                    String value2 = rfs.single("key2");
-                                    return new RsWithStatus(new RsWithType(
-                                            new RsWithBody("<html>"+value1+":"+value2+"</html>")
-                                            , "text/html"), 200);
-                                }
-                                else return new RsWithStatus(new RsWithBody(""), 200);
-                            })
-                    ), 62226
-                ).start(() -> {
-                    return exitFlag.get();
-                });
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }).start();
     }
     
     /**
@@ -361,7 +378,6 @@ public class ActionTest {
      * @throws Exception
      */
     @Test
-    @Tag("single")
     public void sendKeys() throws Exception {
         AtomicReference<String> actualValue = new AtomicReference<>("original");
         ActionComposer actionComposer = getDefinedActionComposerBuilder()

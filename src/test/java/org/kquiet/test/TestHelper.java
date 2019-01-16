@@ -32,6 +32,10 @@ public class TestHelper {
      * @return
      */
     public static ActionRunner createRunner(int maxConcurrentComposer){
-        return new ActionRunner(PageLoadStrategy.NONE, BrowserType.CHROME, "TestBrowser", maxConcurrentComposer);
+        BrowserType browserType = BrowserType.CHROME; //use chrome as default test browser
+        try{
+            browserType = BrowserType.fromString(System.getProperty("test.browser"));
+        }catch(Exception ex){}
+        return new ActionRunner(PageLoadStrategy.NONE, browserType, "TestBrowser", maxConcurrentComposer);
     }
 }
