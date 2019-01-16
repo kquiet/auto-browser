@@ -284,6 +284,11 @@
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <!-- chrome need this to avoid an unknown error: DevToolsActivePort file doesn't exist.
+                            Refer here for detail: https://stackoverflow.com/questions/50642308/org-openqa-selenium-webdriverexception-unknown-error-devtoolsactiveport-file-d/50642913 -->
+                            <systemPropertyVariables>
+                                <webdriver.chrome.driver>${test.webdriver.directory.linux}${file.separator}chromedriver</webdriver.chrome.driver>
+                            </systemPropertyVariables>
                             <environmentVariables>
                                 <webdriver_headless>yes</webdriver_headless>
                                 <PATH>${test.webdriver.directory.linux}${path.separator}{env.PATH}</PATH>
