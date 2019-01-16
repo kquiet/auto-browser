@@ -361,6 +361,7 @@ public class ActionTest {
      * @throws Exception
      */
     @Test
+    @Tag("single")
     public void sendKeys() throws Exception {
         AtomicReference<String> actualValue = new AtomicReference<>("original");
         ActionComposer actionComposer = getDefinedActionComposerBuilder()

@@ -44,7 +44,7 @@ public class SendKey extends MultiPhaseAction {
     
     /**
      *
-     * @param by by the element locating mechanism
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param clearBeforeSend {@code true}: clear before sending; {@code false}: send without clearing first
      * @param keysToSend character sequence to send to the element
@@ -102,6 +102,7 @@ public class SendKey extends MultiPhaseAction {
             element.sendKeys(Keys.BACK_SPACE);
         }
         else element.sendKeys(Keys.END);
+        element.sendKeys(keysToSend);
     }
     
     @Override
