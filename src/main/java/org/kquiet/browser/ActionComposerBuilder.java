@@ -20,7 +20,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.openqa.selenium.WebDriver;
@@ -30,6 +32,7 @@ import org.kquiet.browser.action.MultiPhaseAction;
 import org.kquiet.browser.action.Click;
 import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.Custom;
+import org.kquiet.browser.action.Extract;
 import org.kquiet.browser.action.GetUrl;
 import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.browser.action.PostForm;
@@ -850,8 +853,8 @@ public class ActionComposerBuilder{
         public class SendKeyBuilder extends InnerBuilderBase{
             private final By by;
             private final CharSequence[] keysToSend;
-            private volatile List<By> frameBySequence;
-            private volatile boolean clearBeforeSend=false;
+            private List<By> frameBySequence;
+            private boolean clearBeforeSend=false;
 
             /**
              * Create a new {@link SendKeyBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -902,6 +905,85 @@ public class ActionComposerBuilder{
         }
         
         /**
+         * Start building a {@link Extract}.
+         * 
+         * @param by the element locating mechanism
+         * @return a new {@link ExtractBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         */
+        public ExtractBuilder prepareExtract(By by){
+            return new ExtractBuilder(this, by);
+        }
+
+        /**
+         * A builder to build {@link Extract} in a fluent way.
+         */
+        public class ExtractBuilder extends InnerBuilderBase{
+            private final By by;
+            private List<By> frameBySequence;
+            private String textVariableName;
+            private Map<String, String> attrVariableNames;
+
+            /**
+             * Create a new {@link ExtractBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * 
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
+             * @param by the element locating mechanism
+             */
+            public ExtractBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by){
+                super(parentActionSequenceBuilder);
+                if (by==null) throw new IllegalArgumentException("No locator specified to build");
+                this.by = by;
+            }
+
+            /**
+             * Set the frame locating mechanism for the element resides in a frame.
+             * 
+             * @param frameBySequence the sequence of the frame locating mechanism
+             * @return invoking {@link ExtractBuilder}
+             */
+            public ExtractBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
+                return this;
+            }
+            
+            /**
+             * Set the text of the element as a variable of building {@link ActionComposer}.
+             * 
+             * @param textVariableName text variable name
+             * @return invoking {@link ExtractBuilder}
+             */
+            public ExtractBuilder withTextAsVariable(String textVariableName){
+                if (textVariableName==null || textVariableName.isEmpty())  throw new IllegalArgumentException("Illegal text variable name to build");
+                this.textVariableName = textVariableName;
+                return this;
+            }
+            
+            /**
+             * Set the value of properties/attributes of the element as variables of building {@link ActionComposer}.
+             * 
+             * @param attrVariableNames (attribute name, variable name) pairs to set as variables
+             * @return invoking {@link ExtractBuilder}
+             * @see Extract#Extract(org.openqa.selenium.By, java.util.List, java.lang.String, java.util.Map) 
+             */
+            public ExtractBuilder withAttributeAsVariable(Map<String, String> attrVariableNames){
+                if (attrVariableNames==null || attrVariableNames.isEmpty())  throw new IllegalArgumentException("Illegal attribute variable names to build");
+                this.attrVariableNames = attrVariableNames;
+                return this;
+            }
+
+            /**
+             * Finish building {@link Extract} and add it to parent builder.
+             * 
+             * @return parent builder({@link ActionSequenceBuilder})
+             */
+            public ActionSequenceBuilder done(){
+                MultiPhaseAction action = new Extract(by, frameBySequence, textVariableName, attrVariableNames);
+                return parentActionSequenceBuilder.add(action);
+            }
+        }
+        
+        /**
          * Add a {@link Click} to the sequence of actions.
          * 
          * @param by the element locating mechanism
@@ -926,7 +1008,7 @@ public class ActionComposerBuilder{
          */
         public class ClickBuilder extends InnerBuilderBase{
             private final By by;
-            private volatile List<By> frameBySequence;
+            private List<By> frameBySequence;
 
             /**
              * Create a new {@link ClickBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -988,7 +1070,7 @@ public class ActionComposerBuilder{
          */
         public class MouseOverBuilder extends InnerBuilderBase{
             private final By by;
-            private volatile List<By> frameBySequence;
+            private List<By> frameBySequence;
 
             /**
              * Create a new {@link MouseOverBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -1102,7 +1184,7 @@ public class ActionComposerBuilder{
         public class ScrollToViewBuilder extends InnerBuilderBase{
             private final By by;
             private final boolean toTop;
-            private volatile List<By> frameBySequence;
+            private List<By> frameBySequence;
             
 
             /**
@@ -1170,7 +1252,7 @@ public class ActionComposerBuilder{
         public class UploadBuilder extends InnerBuilderBase{
             private final By by;
             private final String pathOfFile;
-            private volatile List<By> frameBySequence;
+            private List<By> frameBySequence;
             
 
             /**
@@ -1301,7 +1383,7 @@ public class ActionComposerBuilder{
          */
         public class IfThenElseBuilder extends InnerBuilderBase{
             private final Function<ActionComposer, ?> evalFunction;
-            private volatile boolean isPrepareThenAction = true;
+            private boolean isPrepareThenAction = true;
             private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
             private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
 

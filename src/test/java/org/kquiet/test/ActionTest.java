@@ -36,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.By;
@@ -123,7 +125,7 @@ public class ActionTest {
                             (Request req) -> {
                                 RqGreedy cachedReq = new RqGreedy(req);
                                 String method = new RqMethod.Base(cachedReq).method();
-                                if (RqMethod.POST.equals(method)){
+                                if (RqMethod.POST.equalsIgnoreCase(method)){
                                     RqFormSmart rfs = new RqFormSmart(cachedReq);
                                     String value1 = rfs.single("key1");
                                     String value2 = rfs.single("key2");
@@ -133,20 +135,20 @@ public class ActionTest {
                                         , "text/html")
                                     , 200);
                                 }
-                                else return new RsWithStatus(new RsWithBody(""), 200);
+                                else return new RsWithStatus(new RsWithBody("method is not POST:"+method), 200);
                             })
                         , new FkRegex("/main", 
                             (Request req) -> {
                                 RqGreedy cachedReq = new RqGreedy(req);
                                 String method = new RqMethod.Base(cachedReq).method();
-                                if (RqMethod.GET.equals(method)){
+                                if (RqMethod.GET.equalsIgnoreCase(method)){
                                     return new RsWithStatus(
                                         new RsWithType(
                                             new RsWithBody(new String(Files.readAllBytes(Paths.get(new File(htmlFileUrl.getFile()).getAbsolutePath()))))
                                         , "text/html")
                                     , 200);
                                 }
-                                else return new RsWithStatus(new RsWithBody(""), 200);
+                                else return new RsWithStatus(new RsWithBody("method is not GET:"+method), 200);
                             })
                     ), 62226
                 ).start(() -> {
@@ -409,7 +411,7 @@ public class ActionTest {
                     })
                     .done()
                 .returnToComposerBuilder()
-            .build("input", true, true);
+            .build("sendKeys", true, true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -546,11 +548,35 @@ public class ActionTest {
                     ExpectedConditions.not(ExpectedConditions.alertIsPresent())
                     , ExpectedConditions.attributeToBe(By.id("txtAlert"), "value", "AlertInput")), 1000)
                 .returnToComposerBuilder()
-            .build("mouseOver", true, true);
+            .build("replyAlert", true, true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertEquals("PromptMessage", actionComposer.getVariable("AlertMessage"), "alert message not saved as variable"),
+            ()->assertEquals("PromptMessage", actionComposer.getVariable("AlertMessage"), "alert message not saved as variable or not equal"),
+            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+    }
+    
+    /**
+     *
+     * @throws Exception
+     */
+    @Test
+    public void extract() throws Exception {
+        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(ExpectedConditions.and(
+                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
+                    , ExpectedConditions.visibilityOfElementLocated(By.id("txtSendKey"))), 3000)
+                .prepareExtract(By.id("divMouseOver")).withTextAsVariable("varMouseOver1").done()
+                .prepareExtract(By.id("txtSendKey")).withAttributeAsVariable(Stream.of(new String[][]{{"id", "varSendKey1"}, {"value", "varSendKey2"}}).collect(Collectors.toMap(s->s[0], s->s[1]))).done()
+                .returnToComposerBuilder()
+            .build("extract", true, true);
+        
+        assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertEquals("6. mouseover", actionComposer.getVariable("varMouseOver1"), "text of #divMouseOver not saved as variable or not equal"),
+            ()->assertEquals("txtSendKey", actionComposer.getVariable("varSendKey1"), "id of #txtSendKey not saved as variable or not equal"),
+            ()->assertEquals("pre-populated", actionComposer.getVariable("varSendKey2"), "value of #txtSendKey not saved as variable or not equal"),
             ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
     

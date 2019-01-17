@@ -52,14 +52,12 @@ public class MouseOver extends MultiPhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                switchToInnerFrame(frameBySequence);
+                switchToInnerFrame(this.frameBySequence);
                 WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                try{
-                    new Actions(actionComposer.getWebDriver()).moveToElement(element).perform();
-                    noNextPhase();
-                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-                }
+                new Actions(actionComposer.getWebDriver()).moveToElement(element).perform();
+                noNextPhase();
+            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
             }catch(Exception e){
                 noNextPhase();
                 throw new ActionException(e);

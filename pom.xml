@@ -232,7 +232,7 @@
     
     <profiles>
         <profile>
-            <id>path-for-windows-test</id>
+            <id>windows-profile</id>
             <activation>
                 <os>
                     <family>windows</family>
@@ -257,7 +257,7 @@
             </build>
         </profile>
         <profile>
-            <id>path-for-linux-test</id>
+            <id>linux-profile</id>
             <activation>
                 <os>
                     <family>unix</family>

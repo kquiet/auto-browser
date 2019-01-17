@@ -26,7 +26,7 @@ import org.kquiet.browser.action.exception.ActionException;
  * <p>There is a boolean parameter {@code actAsSinglePhase} in constructor {@link #Custom(java.util.function.Consumer, boolean)},
  * which is used to make {@link Custom} acts as a {@link SinglePhaseAction}. If this is not the case,
  * {@link MultiPhaseAction#noNextPhase()} must be called explicitly before ending custom action.</p>
- *  * 
+ *
  * @author Kimberly
  */
 public class Custom extends MultiPhaseAction {

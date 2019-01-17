@@ -72,32 +72,30 @@ public class ReplyAlert extends MultiPhaseAction {
         this.textVariableName = Optional.ofNullable(textVariableName).orElse("");
         this.keysToSend = Optional.ofNullable(keysToSend).orElse("");
         super.setInternalAction(()->{
+            ActionComposer actionComposer = this.getComposer();
             try{
-                ActionComposer actionComposer = this.getComposer();
-                try{
-                    Alert alertBox = actionComposer.getWebDriver().switchTo().alert();
-                    
-                    //get text when necessary
-                    if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, alertBox.getText());
-                    
-                    //send keys when necessary
-                    if (!this.keysToSend.isEmpty()) alertBox.sendKeys(this.keysToSend);
-                    
-                    //deal with alert box
-                    switch(this.decision){
-                        case Accept:
-                            alertBox.accept();
-                            break;
-                        case Dismiss:
-                            alertBox.dismiss();
-                            break;
-                        default:
-                            break;
-                    }
-                    noNextPhase();
-                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+                Alert alertBox = actionComposer.getWebDriver().switchTo().alert();
+
+                //get text when necessary
+                if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, alertBox.getText());
+
+                //send keys when necessary
+                if (!this.keysToSend.isEmpty()) alertBox.sendKeys(this.keysToSend);
+
+                //deal with alert box
+                switch(this.decision){
+                    case Accept:
+                        alertBox.accept();
+                        break;
+                    case Dismiss:
+                        alertBox.dismiss();
+                        break;
+                    default:
+                        break;
                 }
+                noNextPhase();
+            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
             }catch(Exception e){
                 noNextPhase();
                 throw new ActionException(e);

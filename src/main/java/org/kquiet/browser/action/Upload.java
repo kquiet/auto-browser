@@ -64,15 +64,13 @@ public class Upload extends MultiPhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                switchToInnerFrame(frameBySequence);
+                switchToInnerFrame(this.frameBySequence);
                 WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                try{
-                    ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
-                    element.sendKeys(this.pathOfFile);
-                    noNextPhase();
-                }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-                }
+                ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+                element.sendKeys(this.pathOfFile);
+                noNextPhase();
+            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
             }catch(Exception e){
                 noNextPhase();
                 throw new ActionException(toString(), e);
