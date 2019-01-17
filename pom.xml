@@ -276,9 +276,13 @@
                                 </goals>
                                 <configuration>
                                     <target>
+                                        <copy todir="${project.build.testOutputDirectory}">
+                                            <fileset dir="${test.webdriver.directory.chrome.linux}" includes="chromedriver" />
+                                            <fileset dir="${test.webdriver.directory.firefox.linux}" includes="geckodriver" />
+                                        </copy>
                                         <exec executable="sh">
                                             <arg value="-c" />
-                                            <arg value="chmod +x ${test.webdriver.directory.chrome.linux}/* ${test.webdriver.directory.firefox.linux}/*" />
+                                            <arg value="chmod +x ${project.build.testOutputDirectory}/*driver" />
                                         </exec>
                                     </target>
                                 </configuration>
@@ -292,8 +296,8 @@
                             Refer here for detail: https://stackoverflow.com/questions/50642308/org-openqa-selenium-webdriverexception-unknown-error-devtoolsactiveport-file-d/50642913 -->
                             <systemPropertyVariables>
                                 <test.browser>chrome</test.browser>
-                                <webdriver.chrome.driver>${test.webdriver.directory.chrome.linux}${file.separator}chromedriver</webdriver.chrome.driver>
-                                <webdriver.gecko.driver>${test.webdriver.directory.firefox.linux}${file.separator}geckodriver</webdriver.gecko.driver>
+                                <webdriver.chrome.driver>${project.build.testOutputDirectory}${file.separator}chromedriver</webdriver.chrome.driver>
+                                <webdriver.gecko.driver>${project.build.testOutputDirectory}${file.separator}geckodriver</webdriver.gecko.driver>
                                 <webdriver_headless>yes</webdriver_headless>
                             </systemPropertyVariables>
                         </configuration>
