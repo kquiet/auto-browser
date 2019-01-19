@@ -30,16 +30,20 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WebDriver;
@@ -70,11 +74,13 @@ import org.kquiet.browser.action.ReplyAlert;
  */
 public class ActionTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionTest.class);
-    private static final String HTML_FILE_NAME = "ActionTest.html";
+    private static final String ENTRY_HTML_FILE_NAME = "ActionTest.html";
+    private static final String FRAMESET_HTML_FILE_NAME = "ActionTest_frameset.html";
+    private static final String INNER_HTML_FILE_NAME = "ActionTest_inner.html";
     private static final AtomicBoolean TEST_SERVER_EXIT_FLAG = new AtomicBoolean(false);
     
     private static ActionRunner browserRunner;
-    private static URL htmlFileUrl;
+    private static URL entryHtmlFileUrl, framesetHtmlFileUrl, innerHtmlFileUrl;
     
     /**
      *
@@ -88,8 +94,10 @@ public class ActionTest {
     @BeforeAll
     public static void setUpClass() {
         browserRunner = TestHelper.createRunner(5);
-        htmlFileUrl = ActionTest.class.getResource(HTML_FILE_NAME);
-        tempWebServer4PostForm(TEST_SERVER_EXIT_FLAG);
+        entryHtmlFileUrl = ActionTest.class.getResource(ENTRY_HTML_FILE_NAME);
+        framesetHtmlFileUrl = ActionTest.class.getResource(FRAMESET_HTML_FILE_NAME);
+        innerHtmlFileUrl = ActionTest.class.getResource(INNER_HTML_FILE_NAME);
+        createTempWebServer(TEST_SERVER_EXIT_FLAG);
     }
     
     /**
@@ -115,8 +123,42 @@ public class ActionTest {
     public void tearDown() {
     }
     
+    private static List<By> getFrameSequence(boolean withInFrame){
+        if (withInFrame) return new ArrayList<>(Arrays.asList(By.id("frame-level1-01"), By.id("frame-level2-01")));
+        else return new ArrayList<>();
+    }
+    
+    private static ExpectedCondition<?> mergeFrameExpectedCondition(List<By> frameSequence, ExpectedCondition<?> condition){
+        if (frameSequence.size()==2) return ExpectedConditions.and(
+            ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameSequence.get(0))
+            , ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameSequence.get(1))
+            , condition);
+        else return condition;
+    }
+    
+    private static String frameIdentifier(boolean flag){
+        return (flag?"(withInFrame)":"");
+    }
+    
+    private static FkRegex getStaticHtml(String pattern, URL fileUrl){
+        return new FkRegex(pattern, 
+            (Request req) -> {
+                RqGreedy cachedReq = new RqGreedy(req);
+                String method = new RqMethod.Base(cachedReq).method();
+                if (RqMethod.GET.equalsIgnoreCase(method)){
+                    return new RsWithStatus(
+                        new RsWithType(
+                            new RsWithBody(new String(Files.readAllBytes(Paths.get(new File(fileUrl.getFile()).getAbsolutePath()))))
+                        , "text/html")
+                    , 200);
+                }
+                else return new RsWithStatus(new RsWithBody("method is not GET:"+method), 200);
+            }
+        );
+    }
+    
     //create an temporary web server for testing
-    private static void tempWebServer4PostForm(AtomicBoolean exitFlag){
+    private static void createTempWebServer(AtomicBoolean exitFlag){
         new Thread(()->{
             try {
                 new FtBasic(
@@ -136,20 +178,11 @@ public class ActionTest {
                                     , 200);
                                 }
                                 else return new RsWithStatus(new RsWithBody("method is not POST:"+method), 200);
-                            })
-                        , new FkRegex("/main", 
-                            (Request req) -> {
-                                RqGreedy cachedReq = new RqGreedy(req);
-                                String method = new RqMethod.Base(cachedReq).method();
-                                if (RqMethod.GET.equalsIgnoreCase(method)){
-                                    return new RsWithStatus(
-                                        new RsWithType(
-                                            new RsWithBody(new String(Files.readAllBytes(Paths.get(new File(htmlFileUrl.getFile()).getAbsolutePath()))))
-                                        , "text/html")
-                                    , 200);
-                                }
-                                else return new RsWithStatus(new RsWithBody("method is not GET:"+method), 200);
-                            })
+                            }
+                        )
+                        , getStaticHtml("/"+ENTRY_HTML_FILE_NAME, entryHtmlFileUrl)
+                        , getStaticHtml("/"+FRAMESET_HTML_FILE_NAME, framesetHtmlFileUrl)
+                        , getStaticHtml("/"+INNER_HTML_FILE_NAME, innerHtmlFileUrl)
                     ), 62226
                 ).start(() -> {
                     return exitFlag.get();
@@ -163,7 +196,7 @@ public class ActionTest {
     private ActionComposerBuilder getDefinedActionComposerBuilder(){
         return new ActionComposerBuilder()
                 .prepareActionSequence()
-                    .getUrl("http://127.0.0.1:62226/main")
+                    .getUrl("http://127.0.0.1:62226/ActionTest.html")
                     .returnToComposerBuilder();
     }
     
@@ -341,17 +374,31 @@ public class ActionTest {
      */
     @Test
     public void click() throws Exception {
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
-            .prepareActionSequence()
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("btnClick")), 3000)
-                .click(By.id("btnClick"))
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("divClickResult")), 1000)
-                .returnToComposerBuilder()
-            .build("click", true, true);
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->
+            getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(
+                    mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("btnClick")))
+                    , 3000)
+                .prepareClick(By.id("btnClick")).withInFrame(frameSequence.get()).done()
+                .waitUntil(
+                        mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("divClickResult")))
+                    , 1000)
+                .returnToComposerBuilder()
+            .build("click"+frameIdentifier(flag), true, true);
+        
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail"+frameIdentifier(flag)));
+
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -360,19 +407,28 @@ public class ActionTest {
      */
     @Test
     public void mouseOver() throws Exception {
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
-            .prepareActionSequence()
-                .waitUntil(ExpectedConditions.and(
-                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
-                    , ExpectedConditions.invisibilityOfElementLocated(By.id("spMouseOver"))), 3000)
-                .mouseOver(By.id("divMouseOver"))
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("spMouseOver")), 1000)
-                .returnToComposerBuilder()
-            .build("mouseOver", true, true);
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.and(
+                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
+                    , ExpectedConditions.invisibilityOfElementLocated(By.id("spMouseOver")))), 3000)
+                .prepareMouseOver(By.id("divMouseOver")).withInFrame(frameSequence.get()).done()
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("spMouseOver"))), 1000)
+                .returnToComposerBuilder()
+            .build("mouseOver"+frameIdentifier(flag), true, true);
+        
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail"+frameIdentifier(flag)));
+        
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -381,14 +437,14 @@ public class ActionTest {
      */
     @Test
     public void sendKeys() throws Exception {
-        AtomicReference<String> actualValue = new AtomicReference<>("original");
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+        final AtomicReference<String> actualValue = new AtomicReference<>();
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
+        
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("txtSendKey")), 3000)
-                .prepareSendKey(By.id("txtSendKey"), "clearbeforesend")
-                    .withClearBeforeSend()
-                    .done()
-                .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesend"), 1000)
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("txtSendKey"))), 3000)
+                .prepareSendKey(By.id("txtSendKey"), "clearbeforesend").withClearBeforeSend().withInFrame(frameSequence.get()).done()
+                .prepareWaitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesend")), 1000)
                     .withTimeoutCallback(ac->{
                         try{
                             WebDriver driver = ac.getWebDriver();
@@ -399,8 +455,8 @@ public class ActionTest {
                     })
                     .done()
                 .justWait(100)
-                .sendKey(By.id("txtSendKey"), "sendwithoutclear")
-                .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesendsendwithoutclear"), 1000)
+                .prepareSendKey(By.id("txtSendKey"), "sendwithoutclear").withInFrame(frameSequence.get()).done()
+                .prepareWaitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.attributeToBe(By.id("txtSendKey"), "value", "clearbeforesendsendwithoutclear")), 1000)
                     .withTimeoutCallback(ac->{
                         try{
                             WebDriver driver = ac.getWebDriver();
@@ -411,11 +467,19 @@ public class ActionTest {
                     })
                     .done()
                 .returnToComposerBuilder()
-            .build("sendKeys", true, true);
+            .build("sendKeys"+frameIdentifier(flag), true, true);
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()));
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()+frameIdentifier(flag)));
+        
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            actualValue.set("original");
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -424,12 +488,14 @@ public class ActionTest {
      */
     @Test
     public void select() throws Exception {
-        AtomicReference<String> actualValue = new AtomicReference<>("original");
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+        final AtomicReference<String> actualValue = new AtomicReference<>();
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
+        
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("slcSelect")), 3000)
-                .selectByText(By.id("slcSelect"), "option2")
-                .prepareWaitUntil(ExpectedConditions.attributeToBe(By.id("slcSelect"), "value", "optionValue2"), 1000)
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("slcSelect"))), 3000)
+                .prepareSelect(By.id("slcSelect")).selectByText("option2").withInFrame(frameSequence.get()).done()
+                .prepareWaitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.attributeToBe(By.id("slcSelect"), "value", "optionValue2")), 1000)
                     .withTimeoutCallback(ac->{
                         try{
                             WebDriver driver = ac.getWebDriver();
@@ -440,11 +506,19 @@ public class ActionTest {
                     })
                     .done()
                 .returnToComposerBuilder()
-            .build("select", true, true);
+            .build("select"+frameIdentifier(flag), true, true);
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()));
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail, actualValue:"+actualValue.get()+frameIdentifier(flag)));
+        
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            actualValue.set("original");
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -479,29 +553,40 @@ public class ActionTest {
      */
     @Test
     public void scrollToView() throws Exception {
-        AtomicLong initial = new AtomicLong(-1);
-        AtomicLong after = new AtomicLong(-1);
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
-            .prepareActionSequence()
-                .waitUntil(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id("divScroll")), 1000)
-                .custom(ac->{
-                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
-                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
-                    initial.set(top);
-                })
-                .scrollToView(By.id("divScroll"), true)
-                .custom(ac->{
-                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
-                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
-                    after.set(top);
-                })
-                .returnToComposerBuilder()
-            .build("scrollToView", true, true);
+        final AtomicLong initPosition = new AtomicLong(-1);
+        final AtomicLong afterPosition = new AtomicLong(-1);
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertTrue(initial.get()>0 && after.get()==0, String.format("scroll error, initial:%s, after:%s", initial.get(), after.get())),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfAllElementsLocatedBy(By.id("divScroll"))), 1000)
+                .prepareCustom(ac->{
+                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    initPosition.set(top);
+                }).withInFrame(frameSequence.get()).done()
+                .prepareScrollToView(By.id("divScroll"), true).withInFrame(frameSequence.get()).done()
+                .prepareCustom(ac->{
+                    WebElement element = ac.getWebDriver().findElements(By.id("divScroll")).stream().findFirst().orElse(null);
+                    Long top = (Long)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].getBoundingClientRect().top;", element);
+                    afterPosition.set(top);
+                }).withInFrame(frameSequence.get()).done()
+                .returnToComposerBuilder()
+            .build("scrollToView"+frameIdentifier(flag), true, true);
+        
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
+            ()->assertTrue(initPosition.get()>0 && afterPosition.get()==0, String.format("scroll error, initial:%s, after:%s", initPosition.get(), afterPosition.get())),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail"));
+        
+                //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            initPosition.set(-1);
+            afterPosition.set(-1);
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -510,24 +595,34 @@ public class ActionTest {
      */
     @Test
     public void upload() throws Exception {
-        AtomicReference<String> fileName = new AtomicReference<>("");
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
+        final AtomicReference<String> fileName = new AtomicReference<>();
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
+        
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
             .prepareActionSequence()
-                .waitUntil(ExpectedConditions.presenceOfElementLocated(By.id("flUpload")), 1000)
-                .upload(By.id("flUpload"), new File(htmlFileUrl.getFile()).getAbsolutePath())
-                .waitUntil(ExpectedConditions.visibilityOfElementLocated(By.id("flUpload")), 1000)
-                .custom(ac->{
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.presenceOfElementLocated(By.id("flUpload"))), 1000)
+                .prepareUpload(By.id("flUpload"), new File(entryHtmlFileUrl.getFile()).getAbsolutePath()).withInFrame(frameSequence.get()).done()
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("flUpload"))), 1000)
+                .prepareCustom(ac->{
                     WebElement element = ac.getWebDriver().findElements(By.id("flUpload")).stream().findFirst().orElse(null);
                     String name = (String)((JavascriptExecutor) ac.getWebDriver()).executeScript("return arguments[0].files[0].name;", element);
                     fileName.set(name);
-                })
+                }).withInFrame(frameSequence.get()).done()
                 .returnToComposerBuilder()
-            .build("upload", true, true);
+            .build("upload"+frameIdentifier(flag), true, true);
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertEquals(HTML_FILE_NAME, fileName.get(), "filename not match"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertEquals(ENTRY_HTML_FILE_NAME, fileName.get(), "filename not match"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail"+frameIdentifier(flag)));
+        
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            fileName.set("");
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
@@ -562,22 +657,32 @@ public class ActionTest {
      */
     @Test
     public void extract() throws Exception {
-        ActionComposer actionComposer = getDefinedActionComposerBuilder()
-            .prepareActionSequence()
-                .waitUntil(ExpectedConditions.and(
-                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
-                    , ExpectedConditions.visibilityOfElementLocated(By.id("txtSendKey"))), 3000)
-                .prepareExtract(By.id("divMouseOver")).withTextAsVariable("varMouseOver1").done()
-                .prepareExtract(By.id("txtSendKey")).withAttributeAsVariable(Stream.of(new String[][]{{"id", "varSendKey1"}, {"value", "varSendKey2"}}).collect(Collectors.toMap(s->s[0], s->s[1]))).done()
-                .returnToComposerBuilder()
-            .build("extract", true, true);
+        final AtomicReference<List<By>> frameSequence = new AtomicReference<>();
         
-        assertAll(
-            ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertEquals("6. mouseover", actionComposer.getVariable("varMouseOver1"), "text of #divMouseOver not saved as variable or not equal"),
-            ()->assertEquals("txtSendKey", actionComposer.getVariable("varSendKey1"), "id of #txtSendKey not saved as variable or not equal"),
-            ()->assertEquals("pre-populated", actionComposer.getVariable("varSendKey2"), "value of #txtSendKey not saved as variable or not equal"),
-            ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        Function<Boolean, ActionComposer> composerSupplier = (flag)->getDefinedActionComposerBuilder()
+            .prepareActionSequence()
+                .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.and(
+                    ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
+                    , ExpectedConditions.invisibilityOfElementLocated(By.id("spMouseOver"))
+                    , ExpectedConditions.visibilityOfElementLocated(By.id("txtSendKey")))), 3000)
+                .prepareExtract(By.id("divMouseOver")).withTextAsVariable("varMouseOver1"+frameIdentifier(flag)).withInFrame(frameSequence.get()).done()
+                .prepareExtract(By.id("txtSendKey")).withAttributeAsVariable(Stream.of(new String[][]{{"id", "varSendKey1"+frameIdentifier(flag)}, {"value", "varSendKey2"+frameIdentifier(flag)}}).collect(Collectors.toMap(s->s[0], s->s[1]))).withInFrame(frameSequence.get()).done()
+                .returnToComposerBuilder()
+            .build("extract"+frameIdentifier(flag), true, true);
+        
+        BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
+            ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
+            ()->assertEquals("6. mouseover", ac.getVariable("varMouseOver1"+frameIdentifier(flag)), "text of #divMouseOver not saved as variable or not equal"+frameIdentifier(flag)),
+            ()->assertEquals("txtSendKey", ac.getVariable("varSendKey1"+frameIdentifier(flag)), "id of #txtSendKey not saved as variable or not equal"+frameIdentifier(flag)),
+            ()->assertEquals("pre-populated", ac.getVariable("varSendKey2"+frameIdentifier(flag)), "value of #txtSendKey not saved as variable or not equal"+frameIdentifier(flag)),
+            ()->assertTrue(ac.isSuccessfulDone(), "composer fail"+frameIdentifier(flag)));
+        
+        //1:test without frame; 2: test within frame
+        for (int i=1;i<=2;i++){
+            boolean withFrame = (i==2);
+            frameSequence.set(getFrameSequence(withFrame));
+            assertConsumer.accept(withFrame, composerSupplier.apply(withFrame));
+        }
     }
     
     /**
