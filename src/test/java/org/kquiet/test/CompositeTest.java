@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
@@ -126,7 +127,7 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("priorityTest-lowerPriority")
+            .build("singleComposeredRunner-lowerPriority")
             .setPriority(2);
         
         ActionComposer higherPriorityComposer = getEmptyActionComposerBuilder()
@@ -138,7 +139,7 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("priorityTest-higherPriority")
+            .build("singleComposeredRunner-higherPriority")
             .setPriority(1);
         
         Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
@@ -146,7 +147,9 @@ public class CompositeTest {
         
         assertAll(
             ()->assertDoesNotThrow(()->{higherPriorityFuture.get(1000, TimeUnit.MILLISECONDS);lowerPriorityFuture.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
-            ()->assertTrue(sb.toString().matches("(L+H+)|(H+L+)"), "expected:(L+H+)|(H+L+), actual:"+sb.toString()));
+            ()->assertTrue(sb.toString().matches("(L+H+)|(H+L+)"), "expected:(L+H+)|(H+L+), actual:"+sb.toString()),
+            ()->assertTrue(lowerPriorityComposer.isSuccessfulDone(), "lower priority composer fail"),
+            ()->assertTrue(higherPriorityComposer.isSuccessfulDone(), "higher priority composer fail"));
     }
     
     /**
@@ -155,39 +158,40 @@ public class CompositeTest {
      */
     @Test
     public void interleave() throws Exception {
-        StringBuilder sb = new StringBuilder();
+        AtomicInteger counter = new AtomicInteger(0);
         ActionComposer composer1 = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .prepareWaitUntil(driver->{
-                    synchronized(sb){sb.append("L");}
-                    return false;
-                }, 300)
-                    .withTimeoutCallback(ac->{})
-                    .done()
+                .customMultiPhase(ps->ac->{
+                    if (counter.get()%2==0 && counter.getAndIncrement()>10) ps.noNextPhase();
+                    if (!ac.getWebDriver().getWindowHandle().equals(ac.getFocusWindow())){
+                        ac.skipToFail();
+                        ps.noNextPhase();
+                    }
+                })
                 .returnToComposerBuilder()
-            .build("interleaveTest-1")
-            .keepFailInfo(false)
+            .build("interleave-1")
             .setPriority(1);
         
         ActionComposer composer2 = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .prepareWaitUntil(driver->{
-                    synchronized(sb){sb.append("H");}
-                    return false;
-                }, 300)
-                    .withTimeoutCallback(ac->{})
-                    .done()
+                .customMultiPhase(ps->ac->{
+                    if (counter.get()%2==1 && counter.getAndIncrement()>10) ps.noNextPhase();
+                    if (!ac.getWebDriver().getWindowHandle().equals(ac.getFocusWindow())){
+                        ac.skipToFail();
+                        ps.noNextPhase();
+                    }
+                })
                 .returnToComposerBuilder()
-            .build("interleaveTest-2")
-            .keepFailInfo(false)
+            .build("interleave-2")
             .setPriority(1);
         
         Future<?> future1 = browserRunnerTwo.executeComposer(composer1);
         Future<?> future2 = browserRunnerTwo.executeComposer(composer2);
-        
+        future2.get(1000, TimeUnit.MILLISECONDS);future1.get(1000, TimeUnit.MILLISECONDS);
         assertAll(
             ()->assertDoesNotThrow(()->{future2.get(1000, TimeUnit.MILLISECONDS);future1.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
-            ()->assertFalse(sb.toString().matches("(L+H+)|(H+L+)"), "not expected:(L+H+)|(H+L+), actual:"+sb.toString()));
+            ()->assertTrue(composer1.isSuccessfulDone(), "composer1 fail"),
+            ()->assertTrue(composer2.isSuccessfulDone(), "composer2 fail"));
     }
     
     /**
@@ -214,7 +218,9 @@ public class CompositeTest {
         
         assertAll(
             ()->assertDoesNotThrow(()->childComposer.get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertEquals("parentchild", sb.toString(), "composer not executed in order"));
+            ()->assertEquals("parentchild", sb.toString(), "composer not executed in order"),
+            ()->assertTrue(parentComposer.isSuccessfulDone(), "parent composer composer fail"),
+            ()->assertTrue(childComposer.isSuccessfulDone(), "child composer fail"));
     }
     
     /**

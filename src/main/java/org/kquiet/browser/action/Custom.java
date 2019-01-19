@@ -17,6 +17,7 @@ package org.kquiet.browser.action;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.openqa.selenium.By;
 
@@ -26,9 +27,12 @@ import org.kquiet.browser.action.exception.ActionException;
 /**
  * {@link Custom} is a subclass of {@link MultiPhaseAction} which performs custom action by phases to avoid blocking the execution of other browser actions.
  * 
- * <p>There is a boolean parameter {@code actAsSinglePhase} in constructor {@link #Custom(java.util.function.Consumer, boolean)},
- * which is used to make {@link Custom} acts as a {@link SinglePhaseAction}. If this is not the case,
- * {@link MultiPhaseAction#noNextPhase()} must be called explicitly before ending custom action.</p>
+ * <p>There are two constructors of {@link Custom}:
+ * <ol>
+ * <li>{@link Custom#Custom(java.util.function.Function, java.util.List) } is used to make {@link Custom} act as a {@link MultiPhaseAction},
+ * therefore {@link PhaseStoppable#noNextPhase()} must be called explicitly before ending custom action.</li>
+ * <li>{@link Custom#Custom(java.util.function.Consumer, java.util.List) } is used to make {@link Custom} act as a {@link SinglePhaseAction}.</li>
+ * </ol>
  *
  * @author Kimberly
  */
@@ -38,17 +42,35 @@ public class Custom extends MultiPhaseAction {
     private final List<By> frameBySequence;
     
     /**
-     *
+     * Create a {@link Custom} acting like a {@link MultiPhaseAction}.
+     * 
+     * @param customAction phase-stoppable custom action
+     * @param frameBySequence the sequence of the frame locating mechanism for the frame where the custom action to be performed against
+     */    
+    public Custom(Function<PhaseStoppable, Consumer<ActionComposer>> customAction, List<By> frameBySequence){
+        super(null);
+        this.customFunc = customAction.apply((PhaseStoppable)this);
+        this.frameBySequence = frameBySequence;
+        this.actAsSinglePhase = false;
+        super.setInternalAction(multiPhaseCustom());
+    }
+    
+    /**
+     * Create a {@link Custom} acting like a {@link SinglePhaseAction}.
+     * 
      * @param customAction custom action
      * @param frameBySequence the sequence of the frame locating mechanism for the frame where the custom action to be performed against
-     * @param actAsSinglePhase flags whether acts as a {@link SinglePhaseAction}
      */
-    public Custom(Consumer<ActionComposer> customAction, List<By> frameBySequence, boolean actAsSinglePhase){
+    public Custom(Consumer<ActionComposer> customAction, List<By> frameBySequence){
         super(null);
         this.customFunc = customAction;
         this.frameBySequence = frameBySequence;
-        this.actAsSinglePhase = actAsSinglePhase;
-        super.setInternalAction(()->{
+        this.actAsSinglePhase = true;
+        super.setInternalAction(multiPhaseCustom());
+    }
+    
+    private Runnable multiPhaseCustom(){
+        return ()->{
             ActionComposer actionComposer = this.getComposer();
             try{
                 switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
@@ -61,11 +83,11 @@ public class Custom extends MultiPhaseAction {
                 noNextPhase();
                 throw new ActionException(e);
             }
-        });
+        };
     }
     
     @Override
     public String toString(){
-        return Custom.class.getSimpleName();
+        return String.format("%s(%s):%s", Custom.class.getSimpleName(), String.valueOf(actAsSinglePhase), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
     }
 }

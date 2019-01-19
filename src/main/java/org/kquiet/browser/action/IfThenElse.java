@@ -84,19 +84,19 @@ public class IfThenElse extends SinglePhaseAction{
     private boolean evaluate() throws Exception{
         AtomicBoolean evalResult = new AtomicBoolean(true);
         AtomicReference<MultiPhaseAction> customRef = new AtomicReference<>(null);
-        MultiPhaseAction customAction = new Custom(ac->{
+        MultiPhaseAction customAction = new Custom(ps->ac->{
             Object obj =null;
             try{
                 obj = evalFunction.apply(ac);
-                customRef.get().noNextPhase();
+                ps.noNextPhase();
             }catch(StaleElementReferenceException ignoreE){
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), customRef.get().toString(), ignoreE);
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), ps, ignoreE);
             }catch(Exception e){
-                customRef.get().noNextPhase();
+                ps.noNextPhase();
                 throw new ActionException(e);
             }
             evalResult.set(obj!=null && (Boolean.class!=obj.getClass() || Boolean.TRUE.equals(obj)));
-        }, null, false).setContainingComposer(getComposer());
+        }, null).setContainingComposer(getComposer());
         customRef.set(customAction);
         customAction.run();
 

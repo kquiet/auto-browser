@@ -42,7 +42,7 @@ import org.kquiet.browser.action.exception.ActionException;
  * 
  * @author Kimberly
  */
-public abstract class MultiPhaseAction implements Runnable{
+public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiPhaseAction.class);
     
     private ActionComposer containingComposer;
@@ -60,17 +60,12 @@ public abstract class MultiPhaseAction implements Runnable{
         this.internalAction = internalAction;
     }
     
-    /**
-     * Signals that no more phase to execute
-     */
+    @Override
     public void noNextPhase(){
         this.hasNextPhase = false;
     }
     
-    /**
-     *
-     * @return {@code true} if has next phase to execute; {@code false} otherwise
-     */
+    @Override
     public boolean hasNextPhase(){
         return hasNextPhase;
     }

@@ -42,6 +42,7 @@ import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.IfThenElse;
 import org.kquiet.browser.action.MouseOver;
+import org.kquiet.browser.action.PhaseStoppable;
 import org.kquiet.browser.action.ReplyAlert;
 import org.kquiet.browser.action.ReplyAlert.Decision;
 import org.kquiet.browser.action.ScrollToView;
@@ -1107,7 +1108,7 @@ public class ActionComposerBuilder{
         }
         
         /**
-         * Add a {@link Custom} to the sequence of actions.
+         * Add a single-phased {@link Custom} to the sequence of actions.
          * 
          * @param customAction custom action
          * @return invoking {@link ActionSequenceBuilder}
@@ -1115,9 +1116,19 @@ public class ActionComposerBuilder{
         public ActionSequenceBuilder custom(Consumer<ActionComposer> customAction){
             return new CustomBuilder(this, customAction).done();
         }
+        
+        /**
+         * Add a multiple-phased {@link Custom} to the sequence of actions.
+         * 
+         * @param phaseStoppableCustomAction phase-stoppable custom action
+         * @return invoking {@link ActionSequenceBuilder}
+         */
+        public ActionSequenceBuilder customMultiPhase(Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
+            return new CustomBuilder(this, phaseStoppableCustomAction).done();
+        }
 
         /**
-         * Start building a {@link Custom}.
+         * Start building a single-phased {@link Custom}.
          * 
          * @param customAction custom action
          * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
@@ -1125,17 +1136,28 @@ public class ActionComposerBuilder{
         public CustomBuilder prepareCustom(Consumer<ActionComposer> customAction){
             return new CustomBuilder(this, customAction);
         }
+        
+        /**
+         * Start building a multiple-phased {@link Custom}.
+         * 
+         * @param phaseStoppableCustomAction phase-stoppable custom action
+         * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         */
+        public CustomBuilder prepareCustomMultiPhase(Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
+            return new CustomBuilder(this, phaseStoppableCustomAction);
+        }
 
         /**
          * A builder to build {@link Custom} in a fluent way.
          */
         public class CustomBuilder extends InnerBuilderBase{
-            private final Consumer<ActionComposer> customAction;
-            private boolean actAsSinglePhase = true;
+            private Consumer<ActionComposer> customAction;
+            private Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction;
             private List<By> frameBySequence;
 
             /**
              * Create a new {@link CustomBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * This is used to construct a single-phased {@link Custom}.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param customAction custom action
@@ -1147,13 +1169,16 @@ public class ActionComposerBuilder{
             }
             
             /**
-             * Make building {@link Custom} act as a {@link MultiPhaseAction}.
+             * Create a new {@link CustomBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
+             * This is used to construct a multiple-phased {@link Custom}.
              * 
-             * @return invoking {@link CustomBuilder}
+             * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
+             * @param phaseStoppableCustomAction phase-stoppable custom action
              */
-            public CustomBuilder withMultiPhase(){
-                this.actAsSinglePhase = false;
-                return this;
+            public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
+                super(parentActionSequenceBuilder);
+                if (phaseStoppableCustomAction==null) throw new IllegalArgumentException("No phase-stoppable composer consumer specified to build");
+                this.phaseStoppableCustomAction = phaseStoppableCustomAction;
             }
 
             /**
@@ -1174,7 +1199,9 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Custom(customAction, frameBySequence, actAsSinglePhase);
+                MultiPhaseAction action;
+                if (customAction!=null) action = new Custom(customAction, frameBySequence);
+                else action = new Custom(phaseStoppableCustomAction, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
