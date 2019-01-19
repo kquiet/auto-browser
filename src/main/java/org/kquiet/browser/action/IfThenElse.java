@@ -18,7 +18,6 @@ package org.kquiet.browser.action;
 import java.util.function.Function;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -97,7 +96,7 @@ public class IfThenElse extends SinglePhaseAction{
                 throw new ActionException(e);
             }
             evalResult.set(obj!=null && (Boolean.class!=obj.getClass() || Boolean.TRUE.equals(obj)));
-        }, false).setContainingComposer(getComposer());
+        }, null, false).setContainingComposer(getComposer());
         customRef.set(customAction);
         customAction.run();
 

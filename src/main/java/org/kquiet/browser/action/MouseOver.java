@@ -52,7 +52,8 @@ public class MouseOver extends MultiPhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                switchToInnerFrame(this.frameBySequence);
+                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+                actionComposer.switchToInnerFrame(this.frameBySequence);
                 WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 new Actions(actionComposer.getWebDriver()).moveToElement(element).perform();
                 noNextPhase();

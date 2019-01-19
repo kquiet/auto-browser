@@ -33,6 +33,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.UnhandledAlertException;
+import org.openqa.selenium.By;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -432,7 +434,36 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             getWebDriver().switchTo().window(windowIdentity);
             return true;
         }catch(Exception ex){
-            LOGGER.warn("{} switchToWindow error", getName(), ex);
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{} switchToWindow error", getName(), ex);
+            return false;
+        }
+    }
+    
+    /**
+     * Switch to send future commands to a frame.
+     * 
+     * @param frameBySequence the sequence of the frame locating mechanism
+     */
+    public void switchToInnerFrame(List<By> frameBySequence){
+        if (frameBySequence!=null){
+            WebDriver driver = getWebDriver();
+            for (By frameBy: frameBySequence){
+                driver.switchTo().frame(driver.findElement(frameBy));
+            }
+        }
+    }
+    
+    /**
+     * Switch the focus of future commands for this driver to either the first frame on the page, or the main document when a page contains iframes.
+     * 
+     * @return {@code true} if switch success; {@code false} otherwise
+     */
+    public boolean switchToTop(){
+        try{
+            getWebDriver().switchTo().defaultContent();
+            return true;
+        }catch(UnhandledAlertException ex){//firefox raises an UnhandledAlertException when an alert box is presented, but chrome doesn't
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{} switchToTop error", getName(), ex);
             return false;
         }
     }

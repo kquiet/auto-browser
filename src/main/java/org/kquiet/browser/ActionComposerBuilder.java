@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -497,7 +496,7 @@ public class ActionComposerBuilder{
              * @return invoking {@link WaitUntilBuilder}
              */
             public WaitUntilBuilder<V> withIgnoredException(Set<Class<? extends Throwable>> ignoreExceptions){
-                if (ignoreExceptions==null || ignoreExceptions.isEmpty()) throw new IllegalArgumentException("Illegal ignore exception list to build");
+                if (ignoreExceptions==null) throw new IllegalArgumentException("Illegal ignore exception list to build");
                 this.ignoreExceptions = ignoreExceptions;
                 return this;
             }
@@ -954,7 +953,7 @@ public class ActionComposerBuilder{
              * @return invoking {@link ExtractBuilder}
              */
             public ExtractBuilder withTextAsVariable(String textVariableName){
-                if (textVariableName==null || textVariableName.isEmpty())  throw new IllegalArgumentException("Illegal text variable name to build");
+                if (textVariableName==null)  throw new IllegalArgumentException("Illegal text variable name to build");
                 this.textVariableName = textVariableName;
                 return this;
             }
@@ -967,7 +966,7 @@ public class ActionComposerBuilder{
              * @see Extract#Extract(org.openqa.selenium.By, java.util.List, java.lang.String, java.util.Map) 
              */
             public ExtractBuilder withAttributeAsVariable(Map<String, String> attrVariableNames){
-                if (attrVariableNames==null || attrVariableNames.isEmpty())  throw new IllegalArgumentException("Illegal attribute variable names to build");
+                if (attrVariableNames==null)  throw new IllegalArgumentException("Illegal attribute variable names to build");
                 this.attrVariableNames = attrVariableNames;
                 return this;
             }
@@ -1132,6 +1131,8 @@ public class ActionComposerBuilder{
          */
         public class CustomBuilder extends InnerBuilderBase{
             private final Consumer<ActionComposer> customAction;
+            private boolean actAsSinglePhase = true;
+            private List<By> frameBySequence;
 
             /**
              * Create a new {@link CustomBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -1144,14 +1145,36 @@ public class ActionComposerBuilder{
                 if (customAction==null) throw new IllegalArgumentException("No composer consumer specified to build");
                 this.customAction = customAction;
             }
+            
+            /**
+             * Make building {@link Custom} act as a {@link MultiPhaseAction}.
+             * 
+             * @return invoking {@link CustomBuilder}
+             */
+            public CustomBuilder withMultiPhase(){
+                this.actAsSinglePhase = false;
+                return this;
+            }
 
+            /**
+             * Set the frame locating mechanism for the frame where the custom action to be performed against.
+             * 
+             * @param frameBySequence the sequence of the frame locating mechanism
+             * @return invoking {@link CustomBuilder}
+             */
+            public CustomBuilder withInFrame(List<By> frameBySequence){
+                if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
+                this.frameBySequence = frameBySequence;
+                return this;
+            }
+            
             /**
              * Finish building {@link Custom} and add it to parent builder.
              * 
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Custom(customAction, true);
+                MultiPhaseAction action = new Custom(customAction, frameBySequence, actAsSinglePhase);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1339,7 +1362,7 @@ public class ActionComposerBuilder{
              * @return invoking {@link ReplyAlertBuilder}
              */
             public ReplyAlertBuilder withTextAsVariable(String textVariableName){
-                if (textVariableName==null || textVariableName.isEmpty())  throw new IllegalArgumentException("Illegal text variable name to build");
+                if (textVariableName==null)  throw new IllegalArgumentException("Illegal text variable name to build");
                 this.textVariableName = textVariableName;
                 return this;
             }
@@ -1351,7 +1374,7 @@ public class ActionComposerBuilder{
              * @return invoking {@link ReplyAlertBuilder}
              */
             public ReplyAlertBuilder withKeysToSend(String keysToSend){
-                if (keysToSend==null || keysToSend.isEmpty())  throw new IllegalArgumentException("Illegal keys-to-send to build");
+                if (keysToSend==null)  throw new IllegalArgumentException("Illegal keys-to-send to build");
                 this.keysToSend = keysToSend;
                 return this;
             }

@@ -15,7 +15,10 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.List;
 import java.util.function.Consumer;
+
+import org.openqa.selenium.By;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
@@ -32,26 +35,31 @@ import org.kquiet.browser.action.exception.ActionException;
 public class Custom extends MultiPhaseAction {
     private final Consumer<ActionComposer> customFunc;
     private final boolean actAsSinglePhase;
+    private final List<By> frameBySequence;
     
     /**
      *
      * @param customAction custom action
+     * @param frameBySequence the sequence of the frame locating mechanism for the frame where the custom action to be performed against
      * @param actAsSinglePhase flags whether acts as a {@link SinglePhaseAction}
      */
-    public Custom(Consumer<ActionComposer> customAction, boolean actAsSinglePhase){
+    public Custom(Consumer<ActionComposer> customAction, List<By> frameBySequence, boolean actAsSinglePhase){
         super(null);
         this.customFunc = customAction;
+        this.frameBySequence = frameBySequence;
         this.actAsSinglePhase = actAsSinglePhase;
         super.setInternalAction(()->{
+            ActionComposer actionComposer = this.getComposer();
             try{
-                ActionComposer actionComposer = this.getComposer();
+                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+                actionComposer.switchToInnerFrame(this.frameBySequence);
                 this.customFunc.accept(actionComposer);
-            }catch(Exception e){
-                throw new ActionException(e);
-            }finally{
                 if(this.actAsSinglePhase){
                     noNextPhase();
                 }
+            }catch(Exception e){
+                noNextPhase();
+                throw new ActionException(e);
             }
         });
     }

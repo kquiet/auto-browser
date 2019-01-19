@@ -64,11 +64,17 @@ public class Upload extends MultiPhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                switchToInnerFrame(this.frameBySequence);
+                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+                actionComposer.switchToInnerFrame(this.frameBySequence);
                 WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
-                element.sendKeys(this.pathOfFile);
-                noNextPhase();
+                if (element.isDisplayed() && element.isEnabled()){
+                    element.sendKeys(this.pathOfFile);
+                    noNextPhase();
+                }
+                else{
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): continue to wait upload element to be clickable:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString());
+                }
             }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
                 if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
             }catch(Exception e){

@@ -55,7 +55,8 @@ public class ScrollToView extends MultiPhaseAction {
         super.setInternalAction(()->{
             ActionComposer actionComposer = this.getComposer();
             try{
-                switchToInnerFrame(this.frameBySequence);
+                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+                actionComposer.switchToInnerFrame(this.frameBySequence);
                 WebElement element = actionComposer.getWebDriver().findElement(this.by);
                 ((JavascriptExecutor) actionComposer.getWebDriver()).executeScript("arguments[0].scrollIntoView(arguments[1]);", element, this.toTop);
                 noNextPhase();

@@ -98,6 +98,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
             
             V result=null;
             try{
+                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
                 result = wait.until(conditionFunc);
             }
             catch(TimeoutException e){
@@ -124,7 +125,10 @@ public class WaitUntil<V> extends MultiPhaseAction {
         this.noNextPhase();
         if (timeoutCallback!=null){
             ActionComposer actionComposer = this.getComposer();
-            actionComposer.switchToFocusWindow();
+            if (!actionComposer.switchToFocusWindow()){
+                throw new ActionException("can't switch to focus window");
+            }
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
             timeoutCallback.accept(actionComposer);
         }
         else{

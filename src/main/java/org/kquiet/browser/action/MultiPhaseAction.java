@@ -24,8 +24,9 @@ import java.util.concurrent.Future;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 import org.kquiet.utility.Stopwatch;
 import org.kquiet.browser.ActionComposer;
@@ -86,11 +87,13 @@ public abstract class MultiPhaseAction implements Runnable{
                     getInternalAction().run();
                 }
                 else{
+                    
                     Future<Exception> future= getComposer().callBrowser(()->{
                         //switch to focus window before execute internal action
                         if (!getComposer().switchToFocusWindow()){
                             throw new ActionException("can't switch to focus window");
                         }
+
                         getInternalAction().run();
                     });
                     Exception actionException = future.get();
@@ -200,15 +203,16 @@ public abstract class MultiPhaseAction implements Runnable{
     }
     
     /**
-     * Switch to send future commands to a frame
-     * 
-     * @param frameBySequence the sequence of the frame locating mechanism
+     * Switch to top for firefox. Firefox doesn't switch focus to top after switching to a window, so this method is required for firefox.
      */
-    protected void switchToInnerFrame(List<By> frameBySequence){
-        WebDriver driver = this.getComposer().getWebDriver();
-        if (frameBySequence!=null){
-            for (By frameBy: frameBySequence){
-                driver.switchTo().frame(driver.findElement(frameBy));
+    protected void switchToTopForFirefox(){
+        WebDriver driver = getComposer().getWebDriver();
+        if (driver instanceof FirefoxDriver){
+            //if alert box exists, don't switch to top because this will dismiss the alert box(firefox only) which is not expected.
+            try {
+                driver.switchTo().alert();
+            } catch (NoAlertPresentException e) {
+                getComposer().switchToTop();
             }
         }
     }
