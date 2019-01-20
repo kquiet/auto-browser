@@ -17,7 +17,6 @@ package org.kquiet.browser.action;
 
 import java.util.Arrays;
 
-import org.kquiet.browser.ActionState;
 
 /**
  * {@link SinglePhaseAction} is a subclass of {@link MultiPhaseAction} which has only one phase.

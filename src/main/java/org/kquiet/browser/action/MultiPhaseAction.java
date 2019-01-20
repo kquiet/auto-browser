@@ -30,7 +30,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 
 import org.kquiet.utility.Stopwatch;
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.ActionState;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
