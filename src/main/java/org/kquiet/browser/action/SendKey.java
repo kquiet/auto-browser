@@ -50,26 +50,10 @@ public class SendKey extends MultiPhaseAction {
      * @param keysToSend character sequence to send to the element
      */
     public SendKey(By by, List<By> frameBySequence, boolean clearBeforeSend, CharSequence... keysToSend){
-        super(null);
         this.by = by;
         this.frameBySequence = frameBySequence;
         this.clearBeforeSend = clearBeforeSend;
         this.keysToSend = purifyCharSequences(keysToSend);
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-                actionComposer.switchToInnerFrame(this.frameBySequence);
-                WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                clickToSendKeys(element, this.clearBeforeSend, this.keysToSend);
-                noNextPhase();
-            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-            }catch(Exception e){
-                noNextPhase();
-                throw new ActionException(toString(), e);
-            }
-        });
     }
     
     private CharSequence[] purifyCharSequences(CharSequence... sequence){
@@ -102,6 +86,23 @@ public class SendKey extends MultiPhaseAction {
         }
         else element.sendKeys(Keys.END);
         element.sendKeys(keysToSend);
+    }
+
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+            actionComposer.switchToInnerFrame(this.frameBySequence);
+            WebElement element = actionComposer.getWebDriver().findElement(this.by);
+            clickToSendKeys(element, this.clearBeforeSend, this.keysToSend);
+            noNextPhase();
+        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(toString(), e);
+        }
     }
     
     @Override

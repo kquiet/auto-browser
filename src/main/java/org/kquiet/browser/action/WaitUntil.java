@@ -69,7 +69,6 @@ public class WaitUntil<V> extends MultiPhaseAction {
      * @param timeoutCallback the callback function to be called when total timeout expires
      */
     public WaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout, int phaseTimeout, int pollInterval, Set<Class<? extends Throwable>> ignoreExceptions, Consumer<ActionComposer> timeoutCallback){
-        super(null);
         this.totalTimeout = totalTimeout;
         this.phaseTimeout = phaseTimeout;
         this.pollInterval = pollInterval;
@@ -78,47 +77,6 @@ public class WaitUntil<V> extends MultiPhaseAction {
         this.ignoreExceptions.add(NoSuchElementException.class);
         if (ignoreExceptions!=null) this.ignoreExceptions.addAll(ignoreExceptions);
         this.timeoutCallback = timeoutCallback;
-        super.setInternalAction(multiPhaseWaitUntil());
-    }
-    
-    private Runnable multiPhaseWaitUntil(){
-        return ()->{
-            costWatch.start();
-            
-            if (isTimeout()){
-                timeoutToDo();
-                return;
-            }
-
-            ActionComposer actionComposer = this.getComposer();
-            FluentWait<WebDriver> wait = new FluentWait<>(actionComposer.getWebDriver())
-            .withTimeout(Duration.ofMillis(phaseTimeout))
-            .pollingEvery(Duration.ofMillis(pollInterval))
-            .ignoreAll(ignoreExceptions);
-            
-            V result=null;
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-                result = wait.until(conditionFunc);
-            }
-            catch(TimeoutException e){
-                if (isTimeout()){
-                    timeoutToDo();
-                    return;
-                }
-            }
-            
-            //condition not met
-            if (result==null || (Boolean.class==result.getClass() && Boolean.FALSE.equals(result))){
-                if (isTimeout()){
-                    timeoutToDo();
-                }
-            }
-            else{
-                //condition met => no next phase
-                this.noNextPhase();
-            }
-        };
     }
     
     private void timeoutToDo(){
@@ -138,6 +96,45 @@ public class WaitUntil<V> extends MultiPhaseAction {
     
     private boolean isTimeout(){
         return costWatch.getElapsedMilliSecond()>=totalTimeout;
+    }
+    
+    @Override
+    protected void perform() {
+        costWatch.start();
+            
+        if (isTimeout()){
+            timeoutToDo();
+            return;
+        }
+
+        ActionComposer actionComposer = this.getComposer();
+        FluentWait<WebDriver> wait = new FluentWait<>(actionComposer.getWebDriver())
+        .withTimeout(Duration.ofMillis(phaseTimeout))
+        .pollingEvery(Duration.ofMillis(pollInterval))
+        .ignoreAll(ignoreExceptions);
+
+        V result=null;
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+            result = wait.until(conditionFunc);
+        }
+        catch(TimeoutException e){
+            if (isTimeout()){
+                timeoutToDo();
+                return;
+            }
+        }
+
+        //condition not met
+        if (result==null || (Boolean.class==result.getClass() && Boolean.FALSE.equals(result))){
+            if (isTimeout()){
+                timeoutToDo();
+            }
+        }
+        else{
+            //condition met => no next phase
+            this.noNextPhase();
+        }
     }
     
     @Override

@@ -15,9 +15,6 @@
  */
 package org.kquiet.browser.action;
 
-import java.util.Arrays;
-
-
 /**
  * {@link SinglePhaseAction} is a subclass of {@link MultiPhaseAction} which has only one phase.
  * 
@@ -25,48 +22,17 @@ import java.util.Arrays;
  */
 public abstract class SinglePhaseAction extends MultiPhaseAction{
     
-    /**
-     *
-     * @param internalAction the internal action to perform against the browser
-     */
-    public SinglePhaseAction(Runnable internalAction){
-        super(null);
-        super.setInternalAction(makeSinglePhaseRunnable(internalAction));
-    }
-    
-    private Runnable makeSinglePhaseRunnable(Runnable action){
-        return ()->{
-            try{
-                action.run();
-            }finally{
-                noNextPhase();
-            }
-        };
-    }
-    
-    /**
-     * Set the internal action.
-     * 
-     * @param action the internal action
-     * @return invoking {@link SinglePhaseAction}
-     */
     @Override
-    protected SinglePhaseAction setInternalAction(Runnable action) {
-        super.setInternalAction(makeSinglePhaseRunnable(action));
-        return this;
+    protected void perform() {
+        try{
+            performSingle();
+        }finally{
+            noNextPhase();
+        }
     }
     
     /**
-     * When the state of action is one of the following, then it's called <i>done</i>:
-     * <ul>
-     * <li>{@link ActionState#COMPLETE}</li>
-     * <li>{@link ActionState#COMPLETE_WITH_ERROR}</li>
-     * </ul>
-     * 
-     * @return {@code true} if the action is done; {@code false} otherwise
+     * Perform single-phased browser action.
      */
-    @Override
-    public boolean isDone(){
-        return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE).contains(getActionState());
-    }
+    protected abstract void performSingle();
 }

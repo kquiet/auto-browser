@@ -40,9 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kquiet.utility.Stopwatch;
-import org.kquiet.browser.action.MultiPhaseAction;
-import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.concurrent.Prioritized;
+import org.kquiet.browser.action.Composable;
+import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.IfThenElse;
 
@@ -65,9 +65,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     
     private ActionRunner actionRunner = null;
 
-    private final MultiPhaseAction initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null).setContainingComposer(this);
-    private final MultiPhaseAction finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null).setContainingComposer(this);
-    private final Deque<MultiPhaseAction> mainActionList = new LinkedList<>();
+    private final Composable initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null).setComposer(this);
+    private final Composable finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null).setComposer(this);
+    private final Deque<Composable> mainActionList = new LinkedList<>();
     
     private Consumer<ActionComposer> onFailFunc = (bac)->{};
     private Consumer<ActionComposer> onSuccessFunc = (bac)->{};
@@ -168,9 +168,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             //run other action
             if (!isFail() && !anyActionFail){
                 int index=0;
-                List<MultiPhaseAction> actionList = new ArrayList<>(mainActionList);
+                List<Composable> actionList = new ArrayList<>(mainActionList);
                 while(index<actionList.size() && !isFail() && !isSkipAction()){
-                    MultiPhaseAction action = actionList.get(index);
+                    Composable action = actionList.get(index);
                     try{
                         action.run();
                         anyActionFail = anyActionFail || action.isFail();
@@ -649,11 +649,11 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * 
      * @param action action to add
      */
-    public void addActionToLast(MultiPhaseAction action){
+    public void addActionToLast(Composable action){
         if (action==null) return;
         synchronized(this){
             mainActionList.addLast(action);
-            action.setContainingComposer(this);
+            action.setComposer(this);
         }
     }
     
@@ -662,11 +662,11 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      *
      * @param action action to add
      */
-    public void addActionToFirst(MultiPhaseAction action){
+    public void addActionToFirst(Composable action){
         if (action==null) return;
         synchronized(this){
             mainActionList.addFirst(action);
-            action.setContainingComposer(this);
+            action.setComposer(this);
         }
     }
     
@@ -676,11 +676,11 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @param action action to add
      * @param position the position(zero-based) to add action
      */
-    public void addActionToIndex(MultiPhaseAction action, int position){
+    public void addActionToIndex(Composable action, int position){
         if (action==null || position<0 || position>mainActionList.size()) return;
         synchronized(this){
-            final Deque<MultiPhaseAction> temp = new LinkedList<>(mainActionList);
-            final Deque<MultiPhaseAction> stack = new LinkedList<>();
+            final Deque<Composable> temp = new LinkedList<>(mainActionList);
+            final Deque<Composable> stack = new LinkedList<>();
             for (int i=0;i<position;i++){
                 stack.addFirst(temp.removeFirst());
             }
@@ -690,12 +690,12 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             }
             mainActionList.clear();
             mainActionList.addAll(temp);
-            action.setContainingComposer(this);
+            action.setComposer(this);
         }
     }
     
-    private List<MultiPhaseAction> getAllActionInSequence(){
-        List<MultiPhaseAction> actionList = new ArrayList<>();
+    private List<Composable> getAllActionInSequence(){
+        List<Composable> actionList = new ArrayList<>();
         if (initAction!=null) actionList.add(initAction);
         synchronized(this){
             actionList.addAll(mainActionList);
@@ -730,9 +730,9 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @return exception list from executed actions
      */
     public List<Exception> getErrors(){
-        List<MultiPhaseAction> actionList = getAllActionInSequence();
+        List<Composable> actionList = getAllActionInSequence();
         List<Exception> result = new ArrayList<>();
-        for(MultiPhaseAction action:actionList){
+        for(Composable action:actionList){
             if (action.isFail()&&action.getErrors()!=null){
                 result.addAll(action.getErrors());
             }

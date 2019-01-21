@@ -30,7 +30,7 @@ import org.kquiet.browser.action.exception.ActionException;
  * <p>There are two constructors of {@link Custom}:
  * <ol>
  * <li>{@link Custom#Custom(java.util.function.Function, java.util.List) } is used to make {@link Custom} act as a {@link MultiPhaseAction},
- * therefore {@link PhaseStoppable#noNextPhase()} must be called explicitly before ending custom action.</li>
+ * therefore {@link MultiPhased#noNextPhase()} must be called explicitly before ending custom action.</li>
  * <li>{@link Custom#Custom(java.util.function.Consumer, java.util.List) } is used to make {@link Custom} act as a {@link SinglePhaseAction}.</li>
  * </ol>
  *
@@ -44,15 +44,13 @@ public class Custom extends MultiPhaseAction {
     /**
      * Create a {@link Custom} acting like a {@link MultiPhaseAction}.
      * 
-     * @param customAction phase-stoppable custom action
+     * @param customAction multiple-phased custom action
      * @param frameBySequence the sequence of the frame locating mechanism for the frame where the custom action to be performed against
      */    
-    public Custom(Function<PhaseStoppable, Consumer<ActionComposer>> customAction, List<By> frameBySequence){
-        super(null);
-        this.customFunc = customAction.apply((PhaseStoppable)this);
+    public Custom(Function<MultiPhased, Consumer<ActionComposer>> customAction, List<By> frameBySequence){
+        this.customFunc = customAction.apply((MultiPhased)this);
         this.frameBySequence = frameBySequence;
         this.actAsSinglePhase = false;
-        super.setInternalAction(multiPhaseCustom());
     }
     
     /**
@@ -62,28 +60,25 @@ public class Custom extends MultiPhaseAction {
      * @param frameBySequence the sequence of the frame locating mechanism for the frame where the custom action to be performed against
      */
     public Custom(Consumer<ActionComposer> customAction, List<By> frameBySequence){
-        super(null);
         this.customFunc = customAction;
         this.frameBySequence = frameBySequence;
         this.actAsSinglePhase = true;
-        super.setInternalAction(multiPhaseCustom());
     }
-    
-    private Runnable multiPhaseCustom(){
-        return ()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-                actionComposer.switchToInnerFrame(this.frameBySequence);
-                this.customFunc.accept(actionComposer);
-                if(this.actAsSinglePhase){
-                    noNextPhase();
-                }
-            }catch(Exception e){
+
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+            actionComposer.switchToInnerFrame(this.frameBySequence);
+            this.customFunc.accept(actionComposer);
+            if(this.actAsSinglePhase){
                 noNextPhase();
-                throw new ActionException(e);
             }
-        };
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(e);
+        }
     }
     
     @Override

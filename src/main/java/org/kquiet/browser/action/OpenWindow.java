@@ -44,47 +44,48 @@ public class OpenWindow extends SinglePhaseAction {
      * @param registerName name to register
      */
     public OpenWindow(boolean asComposerFocusWindow, String registerName){
-        super(null);
         this.asComposerFocusWindow = asComposerFocusWindow;
         this.registerName = Optional.ofNullable(registerName).orElse("");
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            WebDriver brsDriver = actionComposer.getWebDriver();
-            //find existing windows before open new one
-            LinkedHashSet<String> beforeWindowSet = new LinkedHashSet<>();
-            for(String winHandle: brsDriver.getWindowHandles()){
-                beforeWindowSet.add(winHandle);
-            }
-            final String rootWindow = actionComposer.getRootWindow();
-            try{
-                ((JavascriptExecutor)actionComposer.getWebDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
-            }catch(Exception ex){
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): open new window script error!", ActionComposer.class.getSimpleName(), actionComposer.getName(), ex);
-            }
+    }
 
-            String actualHandle=null;
-            LinkedHashSet<String> afterWindowSet = new LinkedHashSet<>();
-            for(String winHandle: brsDriver.getWindowHandles()){
-                afterWindowSet.add(winHandle);
-            }
-            for(String winHandle: afterWindowSet){
-                //got new window
-                if (!winHandle.equals(rootWindow) && !beforeWindowSet.contains(winHandle)){
-                    actualHandle=winHandle;
-                    if (this.asComposerFocusWindow){
-                        actionComposer.setFocusWindow(actualHandle);
-                    }
-                    if (!actionComposer.registerWindow(this.registerName, actualHandle)){
-                        throw new ActionException(String.format("can't register new window:%s", this.registerName));
-                    }
-                    break;
+    @Override
+    protected void performSingle() {
+        ActionComposer actionComposer = this.getComposer();
+        WebDriver brsDriver = actionComposer.getWebDriver();
+        //find existing windows before open new one
+        LinkedHashSet<String> beforeWindowSet = new LinkedHashSet<>();
+        for(String winHandle: brsDriver.getWindowHandles()){
+            beforeWindowSet.add(winHandle);
+        }
+        final String rootWindow = actionComposer.getRootWindow();
+        try{
+            ((JavascriptExecutor)actionComposer.getWebDriver().switchTo().window(rootWindow)).executeScript("window.open('about:blank','_blank');");
+        }catch(Exception ex){
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): open new window script error!", ActionComposer.class.getSimpleName(), actionComposer.getName(), ex);
+        }
+
+        String actualHandle=null;
+        LinkedHashSet<String> afterWindowSet = new LinkedHashSet<>();
+        for(String winHandle: brsDriver.getWindowHandles()){
+            afterWindowSet.add(winHandle);
+        }
+        for(String winHandle: afterWindowSet){
+            //got new window
+            if (!winHandle.equals(rootWindow) && !beforeWindowSet.contains(winHandle)){
+                actualHandle=winHandle;
+                if (this.asComposerFocusWindow){
+                    actionComposer.setFocusWindow(actualHandle);
                 }
+                if (!actionComposer.registerWindow(this.registerName, actualHandle)){
+                    throw new ActionException(String.format("can't register new window:%s", this.registerName));
+                }
+                break;
             }
+        }
 
-            if (actualHandle==null){
-                throw new ActionException("can't find new window!");
-            }
-        });
+        if (actualHandle==null){
+            throw new ActionException("can't find new window!");
+        }
     }
     
     @Override

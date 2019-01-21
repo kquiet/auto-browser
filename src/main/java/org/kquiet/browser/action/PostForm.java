@@ -48,40 +48,40 @@ public class PostForm extends SinglePhaseAction {
      * @param acceptCharset the charset used in the submitted form
      */
     public PostForm(String url, List<SimpleImmutableEntry<String,String>> formData, String acceptCharset){
-        super(null);
         this.url = url;
         this.formData = formData;
         this.acceptCharset = acceptCharset;
+    }
+
+    @Override
+    protected void performSingle() {
         String formId = UUID.randomUUID().toString();
-        
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                String scriptStr = String.format("var formE = document.createElement('form');formE.setAttribute('id','%s');formE.setAttribute('name','%s');formE.setAttribute('method','post');formE.setAttribute('enctype','application/x-www-form-urlencoded');formE.setAttribute('action','%s');", formId.replaceAll("'", "\'"), formId.replaceAll("'", "\'"), this.url);
-                if (this.acceptCharset!=null && !this.acceptCharset.isEmpty()){
-                    scriptStr+="formE.setAttribute('accept-charset','"+this.acceptCharset.replaceAll("'", "\'")+"');";
-                }
-                
-                if (this.formData!=null){
-                    List<SimpleImmutableEntry<String,String>> formDataList = (List<SimpleImmutableEntry<String,String>>) this.formData;
-                    if (!formDataList.isEmpty()){
-                        scriptStr+="var customE;";
-                        for(SimpleImmutableEntry<String, String> input:formDataList){
-                            scriptStr+=String.format("customE = document.createElement('input');customE.setAttribute('type','hidden');customE.setAttribute('name','%s');customE.setAttribute('value','%s');formE.appendChild(customE);", input.getKey().replaceAll("'", "\'"), input.getValue().replaceAll("'", "\'"));
-                        }
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            String scriptStr = String.format("var formE = document.createElement('form');formE.setAttribute('id','%s');formE.setAttribute('name','%s');formE.setAttribute('method','post');formE.setAttribute('enctype','application/x-www-form-urlencoded');formE.setAttribute('action','%s');", formId.replaceAll("'", "\'"), formId.replaceAll("'", "\'"), this.url);
+            if (this.acceptCharset!=null && !this.acceptCharset.isEmpty()){
+                scriptStr+="formE.setAttribute('accept-charset','"+this.acceptCharset.replaceAll("'", "\'")+"');";
+            }
+
+            if (this.formData!=null){
+                List<SimpleImmutableEntry<String,String>> formDataList = (List<SimpleImmutableEntry<String,String>>) this.formData;
+                if (!formDataList.isEmpty()){
+                    scriptStr+="var customE;";
+                    for(SimpleImmutableEntry<String, String> input:formDataList){
+                        scriptStr+=String.format("customE = document.createElement('input');customE.setAttribute('type','hidden');customE.setAttribute('name','%s');customE.setAttribute('value','%s');formE.appendChild(customE);", input.getKey().replaceAll("'", "\'"), input.getValue().replaceAll("'", "\'"));
                     }
                 }
-                scriptStr+=String.format("document.body.appendChild(formE);document.getElementById('%s').submit();", formId.replaceAll("'", "\'"));
-                try{
-                    ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript(scriptStr);
-                }catch(Exception ex){
-                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): Execute javascript error:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ex);
-                }
             }
-            catch(Exception e){
-                throw new ActionException(e);
+            scriptStr+=String.format("document.body.appendChild(formE);document.getElementById('%s').submit();", formId.replaceAll("'", "\'"));
+            try{
+                ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript(scriptStr);
+            }catch(Exception ex){
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): Execute javascript error:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ex);
             }
-        });
+        }
+        catch(Exception e){
+            throw new ActionException(e);
+        }
     }
     
     @Override

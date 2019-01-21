@@ -45,24 +45,25 @@ public class Click extends MultiPhaseAction {
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      */
     public Click(By by, List<By> frameBySequence){
-        super(null);
         this.by = by;
         this.frameBySequence = frameBySequence;
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required                
-                actionComposer.switchToInnerFrame(this.frameBySequence);
-                WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                element.click();
-                noNextPhase();
-            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-            }catch(Exception e){
-                noNextPhase();
-                throw new ActionException(e);
-            }
-        });
+    }
+
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required                
+            actionComposer.switchToInnerFrame(this.frameBySequence);
+            WebElement element = actionComposer.getWebDriver().findElement(this.by);
+            element.click();
+            noNextPhase();
+        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(e);
+        }
     }
     
     @Override

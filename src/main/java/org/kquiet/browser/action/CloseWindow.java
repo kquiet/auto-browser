@@ -40,34 +40,35 @@ public class CloseWindow extends SinglePhaseAction {
      * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
      */
     public CloseWindow(boolean closeAllRegistered){
-        super(null);
         this.closeAllRegistered = closeAllRegistered;
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = getComposer();
-            //root window should never be closed
-            String rootWindow = actionComposer.getRootWindow();
-            if (this.closeAllRegistered){
-                List<String> windowList = actionComposer.getRegisteredWindows().values().stream().distinct().collect(Collectors.toList());
-                List<String> failList = new ArrayList<>();
-                for (String window: windowList){
-                    if (!window.equals(rootWindow)){
-                        if (actionComposer.switchToWindow(window)){
-                            actionComposer.getWebDriver().close();
-                        }
-                        else failList.add(window);
+    }
+
+    @Override
+    protected void performSingle() {
+        ActionComposer actionComposer = getComposer();
+        //root window should never be closed
+        String rootWindow = actionComposer.getRootWindow();
+        if (this.closeAllRegistered){
+            List<String> windowList = actionComposer.getRegisteredWindows().values().stream().distinct().collect(Collectors.toList());
+            List<String> failList = new ArrayList<>();
+            for (String window: windowList){
+                if (!window.equals(rootWindow)){
+                    if (actionComposer.switchToWindow(window)){
+                        actionComposer.getWebDriver().close();
                     }
-                    else{
-                        if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): root window({}) can't be closed:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), window);
-                    }
+                    else failList.add(window);
                 }
-                if (!failList.isEmpty()) throw new ActionException(String.format("close registered windows(%s) fail; it may have been closed or equal to the root window", String.join(",", failList)));
+                else{
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): root window({}) can't be closed:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), window);
+                }
             }
-            else{
-                String focusWindow = actionComposer.getFocusWindow();
-                if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getWebDriver().close();
-                else throw new ActionException(String.format("close focus window(%s) fail; it may have been closed or is the root window", focusWindow));
-            }
-        });
+            if (!failList.isEmpty()) throw new ActionException(String.format("close registered windows(%s) fail; it may have been closed or equal to the root window", String.join(",", failList)));
+        }
+        else{
+            String focusWindow = actionComposer.getFocusWindow();
+            if (!focusWindow.equals(rootWindow) && actionComposer.switchToWindow(focusWindow)) actionComposer.getWebDriver().close();
+            else throw new ActionException(String.format("close focus window(%s) fail; it may have been closed or is the root window", focusWindow));
+        }
     }
     
     @Override

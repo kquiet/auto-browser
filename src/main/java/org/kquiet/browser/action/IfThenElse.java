@@ -45,8 +45,8 @@ import org.kquiet.browser.action.exception.ActionException;
 public class IfThenElse extends SinglePhaseAction{
     private static final Logger LOGGER = LoggerFactory.getLogger(IfThenElse.class);
     
-    private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
-    private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
+    private final List<Composable> positiveActionList = new ArrayList<>();
+    private final List<Composable> negativeActionList = new ArrayList<>();
     private final Function<ActionComposer, ?> evalFunction;
     private volatile boolean evaluationResult=true;
     
@@ -56,29 +56,10 @@ public class IfThenElse extends SinglePhaseAction{
      * @param positiveActionList the actions to perform if the result is true
      * @param negativeActionList the actions to perform if the result is false
      */
-    public IfThenElse(Function<ActionComposer, ?> evalFunction, List<MultiPhaseAction> positiveActionList, List<MultiPhaseAction> negativeActionList){
-        super(null);
+    public IfThenElse(Function<ActionComposer, ?> evalFunction, List<Composable> positiveActionList, List<Composable> negativeActionList){
         this.evalFunction = evalFunction;
         if (positiveActionList!=null) this.positiveActionList.addAll(positiveActionList);
         if (negativeActionList!=null) this.negativeActionList.addAll(negativeActionList);
-        
-        super.setInternalAction(()->{
-            try{
-                evaluationResult = evaluate();
-                if (evaluationResult){
-                    this.positiveActionList.forEach((action) -> {
-                        action.run();
-                    });
-                }
-                else{
-                    this.negativeActionList.forEach((action) -> {
-                        action.run();
-                    });
-                }
-            }catch(Exception e){
-                throw new ActionException(e);
-            }
-        });
     }
     
     private boolean evaluate() throws Exception{
@@ -96,13 +77,32 @@ public class IfThenElse extends SinglePhaseAction{
                 throw new ActionException(e);
             }
             evalResult.set(obj!=null && (Boolean.class!=obj.getClass() || Boolean.TRUE.equals(obj)));
-        }, null).setContainingComposer(getComposer());
+        }, null).setComposer(getComposer());
         customRef.set(customAction);
         customAction.run();
 
         List<Exception> errors = customAction.getErrors();
         if (!errors.isEmpty()) throw errors.get(errors.size()-1);
         return evalResult.get();
+    }
+    
+    @Override
+    protected void performSingle() {
+        try{
+            evaluationResult = evaluate();
+            if (evaluationResult){
+                this.positiveActionList.forEach((action) -> {
+                    action.run();
+                });
+            }
+            else{
+                this.negativeActionList.forEach((action) -> {
+                    action.run();
+                });
+            }
+        }catch(Exception e){
+            throw new ActionException(e);
+        }
     }
     
     @Override
@@ -113,15 +113,15 @@ public class IfThenElse extends SinglePhaseAction{
     @Override
     public boolean isDone(){
         boolean isDoneFlag = super.isDone();
-        List<MultiPhaseAction> actionList;
+        List<Composable> actionList;
         if (evaluationResult){
             actionList = positiveActionList;
         }
         else {
             actionList = negativeActionList;
         }
-        for (MultiPhaseAction action: actionList){
-            isDoneFlag = isDoneFlag && action.isDone() && !action.hasNextPhase();
+        for (Composable action: actionList){
+            isDoneFlag = isDoneFlag && action.isDone();
             if (!isDoneFlag) break;
         }
         return isDoneFlag;
@@ -145,13 +145,13 @@ public class IfThenElse extends SinglePhaseAction{
     }
     
     @Override
-    public IfThenElse setContainingComposer(ActionComposer containingComposer) {
-        super.setContainingComposer(containingComposer);
+    public IfThenElse setComposer(ActionComposer containingComposer) {
+        super.setComposer(containingComposer);
         positiveActionList.forEach(action->{
-            action.setContainingComposer(containingComposer);
+            action.setComposer(containingComposer);
         });
         negativeActionList.forEach(action->{
-            action.setContainingComposer(containingComposer);
+            action.setComposer(containingComposer);
         });
         return this;
     }

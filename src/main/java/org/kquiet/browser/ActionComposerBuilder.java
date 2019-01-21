@@ -27,7 +27,6 @@ import java.util.Set;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.By;
 
-import org.kquiet.browser.action.MultiPhaseAction;
 import org.kquiet.browser.action.Click;
 import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.Custom;
@@ -42,11 +41,12 @@ import org.kquiet.browser.action.WaitUntil;
 import org.kquiet.browser.action.Select.SelectBy;
 import org.kquiet.browser.action.IfThenElse;
 import org.kquiet.browser.action.MouseOver;
-import org.kquiet.browser.action.PhaseStoppable;
 import org.kquiet.browser.action.ReplyAlert;
 import org.kquiet.browser.action.ReplyAlert.Decision;
 import org.kquiet.browser.action.ScrollToView;
 import org.kquiet.browser.action.Upload;
+import org.kquiet.browser.action.Composable;
+import org.kquiet.browser.action.MultiPhased;
 
 /**
  * A builder to build {@link ActionComposer} in a fluent way.
@@ -94,7 +94,7 @@ public class ActionComposerBuilder{
      * @param action action to add
      * @return this {@link ActionComposerBuilder}
      */
-    public ActionComposerBuilder addToFirst(MultiPhaseAction action){
+    public ActionComposerBuilder addToFirst(Composable action){
         prepareNextActionComposer();
         actionComposer.addActionToFirst(action);
         return this;
@@ -106,7 +106,7 @@ public class ActionComposerBuilder{
      * @param action action to add
      * @return this {@link ActionComposerBuilder}
      */
-    public ActionComposerBuilder addToLast(MultiPhaseAction action){
+    public ActionComposerBuilder addToLast(Composable action){
         prepareNextActionComposer();
         actionComposer.addActionToLast(action);
         return this;
@@ -119,7 +119,7 @@ public class ActionComposerBuilder{
      * @param position the position(zero-based) to add action
      * @return this {@link ActionComposerBuilder}
      */
-    public ActionComposerBuilder addToIndex(MultiPhaseAction action, int position){
+    public ActionComposerBuilder addToIndex(Composable action, int position){
         prepareNextActionComposer();
         actionComposer.addActionToIndex(action, position);
         return this;
@@ -230,7 +230,7 @@ public class ActionComposerBuilder{
     public class ActionSequenceBuilder{
         private final ActionComposerBuilder parentComposerBuilder;
         private final IfThenElseBuilder parentIfThenElseBuilder;
-        private final List<MultiPhaseAction> actionList = new ArrayList<>();
+        private final List<Composable> actionList = new ArrayList<>();
         
         /**
          * Create a new {@link ActionSequenceBuilder} with an {@link ActionComposerBuilder} as its parent builder.
@@ -260,7 +260,7 @@ public class ActionComposerBuilder{
          * @param action action to add
          * @return invoking {@link ActionSequenceBuilder}
          */
-        public ActionSequenceBuilder add(MultiPhaseAction action){
+        public ActionSequenceBuilder add(Composable action){
             if (action!=null) actionList.add(action);
             return this;
         }
@@ -342,7 +342,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new CloseWindow(closeAllRegistered);
+                Composable action = new CloseWindow(closeAllRegistered);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -408,7 +408,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new OpenWindow(asComposerFocusWindow, registerName);
+                Composable action = new OpenWindow(asComposerFocusWindow, registerName);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -520,7 +520,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new WaitUntil<>(conditionFunc, totalTimeout, phaseTimeout, pollInterval, ignoreExceptions, timeoutCallback);
+                Composable action = new WaitUntil<>(conditionFunc, totalTimeout, phaseTimeout, pollInterval, ignoreExceptions, timeoutCallback);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -582,7 +582,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new JustWait(totalTimeout, phaseTimeout);
+                Composable action = new JustWait(totalTimeout, phaseTimeout);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -648,7 +648,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new PostForm(url, formData, acceptCharset);
+                Composable action = new PostForm(url, formData, acceptCharset);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -697,7 +697,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new GetUrl(url);
+                Composable action = new GetUrl(url);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -820,7 +820,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Select(by, frameBySequence, selectBy, options);
+                Composable action = new Select(by, frameBySequence, selectBy, options);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -899,7 +899,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new SendKey(by, frameBySequence, clearBeforeSend, keysToSend);
+                Composable action = new SendKey(by, frameBySequence, clearBeforeSend, keysToSend);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -978,7 +978,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Extract(by, frameBySequence, textVariableName, attrVariableNames);
+                Composable action = new Extract(by, frameBySequence, textVariableName, attrVariableNames);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1040,7 +1040,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Click(by, frameBySequence);
+                Composable action = new Click(by, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1102,7 +1102,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new MouseOver(by, frameBySequence);
+                Composable action = new MouseOver(by, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1120,11 +1120,11 @@ public class ActionComposerBuilder{
         /**
          * Add a multiple-phased {@link Custom} to the sequence of actions.
          * 
-         * @param phaseStoppableCustomAction phase-stoppable custom action
+         * @param multiPhasedCustomAction multiple-phased custom action
          * @return invoking {@link ActionSequenceBuilder}
          */
-        public ActionSequenceBuilder customMultiPhase(Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
-            return new CustomBuilder(this, phaseStoppableCustomAction).done();
+        public ActionSequenceBuilder customMultiPhase(Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction){
+            return new CustomBuilder(this, multiPhasedCustomAction).done();
         }
 
         /**
@@ -1140,11 +1140,11 @@ public class ActionComposerBuilder{
         /**
          * Start building a multiple-phased {@link Custom}.
          * 
-         * @param phaseStoppableCustomAction phase-stoppable custom action
+         * @param multiPhasedCustomAction multiple-phased custom action
          * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public CustomBuilder prepareCustomMultiPhase(Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
-            return new CustomBuilder(this, phaseStoppableCustomAction);
+        public CustomBuilder prepareCustomMultiPhase(Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction){
+            return new CustomBuilder(this, multiPhasedCustomAction);
         }
 
         /**
@@ -1152,7 +1152,7 @@ public class ActionComposerBuilder{
          */
         public class CustomBuilder extends InnerBuilderBase{
             private Consumer<ActionComposer> customAction;
-            private Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction;
+            private Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction;
             private List<By> frameBySequence;
 
             /**
@@ -1173,12 +1173,12 @@ public class ActionComposerBuilder{
              * This is used to construct a multiple-phased {@link Custom}.
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
-             * @param phaseStoppableCustomAction phase-stoppable custom action
+             * @param multiPhasedCustomAction multiple-phased custom action
              */
-            public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Function<PhaseStoppable,Consumer<ActionComposer>> phaseStoppableCustomAction){
+            public CustomBuilder(ActionSequenceBuilder parentActionSequenceBuilder, Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction){
                 super(parentActionSequenceBuilder);
-                if (phaseStoppableCustomAction==null) throw new IllegalArgumentException("No phase-stoppable composer consumer specified to build");
-                this.phaseStoppableCustomAction = phaseStoppableCustomAction;
+                if (multiPhasedCustomAction==null) throw new IllegalArgumentException("No multiple-phase custom action specified to build");
+                this.multiPhasedCustomAction = multiPhasedCustomAction;
             }
 
             /**
@@ -1199,9 +1199,9 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action;
+                Composable action;
                 if (customAction!=null) action = new Custom(customAction, frameBySequence);
-                else action = new Custom(phaseStoppableCustomAction, frameBySequence);
+                else action = new Custom(multiPhasedCustomAction, frameBySequence);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1269,7 +1269,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new ScrollToView(by, frameBySequence, toTop);
+                Composable action = new ScrollToView(by, frameBySequence, toTop);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1337,7 +1337,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new Upload(by, frameBySequence, pathOfFile);
+                Composable action = new Upload(by, frameBySequence, pathOfFile);
                 return parentActionSequenceBuilder.add(action);
             }
         }        
@@ -1412,7 +1412,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                MultiPhaseAction action = new ReplyAlert(decision, textVariableName, keysToSend);
+                Composable action = new ReplyAlert(decision, textVariableName, keysToSend);
                 return parentActionSequenceBuilder.add(action);
             }
         }
@@ -1434,8 +1434,8 @@ public class ActionComposerBuilder{
         public class IfThenElseBuilder extends InnerBuilderBase{
             private final Function<ActionComposer, ?> evalFunction;
             private boolean isPrepareThenAction = true;
-            private final List<MultiPhaseAction> positiveActionList = new ArrayList<>();
-            private final List<MultiPhaseAction> negativeActionList = new ArrayList<>();
+            private final List<Composable> positiveActionList = new ArrayList<>();
+            private final List<Composable> negativeActionList = new ArrayList<>();
 
             /**
              * Create a new {@link IfThenElseBuilder} with specified {@link ActionSequenceBuilder} as parent builder.
@@ -1455,7 +1455,7 @@ public class ActionComposerBuilder{
              * @param action the action to add
              * @return invoking {@link IfThenElseBuilder}
              */
-            public IfThenElseBuilder add(MultiPhaseAction action){
+            public IfThenElseBuilder add(Composable action){
                 if (action==null) throw new IllegalArgumentException("No action to add");
                 if (isPrepareThenAction) positiveActionList.add(action);
                 else negativeActionList.add(action);

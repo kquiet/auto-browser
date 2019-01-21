@@ -34,37 +34,34 @@ public class JustWait extends MultiPhaseAction {
      * @param phaseTimeout the maximum amount of time to wait for each execution phase
      */
     public JustWait(int totalTimeout, int phaseTimeout){
-        super(null);
         this.totalTimeout = totalTimeout;
         this.phaseTimeout = phaseTimeout;
-        super.setInternalAction(multiPhasePureWait());
-    }
-    
-    private Runnable multiPhasePureWait(){
-        return ()->{
-            costWatch.start();
-            
-            if (isTimeout()){
-                noNextPhase();
-                return ;
-            }
-
-            try{
-                Thread.sleep(phaseTimeout);
-            }
-            catch(Exception e){
-                throw new ActionException(e);
-            }
-            
-            //add sub-action to wait until element is found or timeout
-            if (isTimeout()){
-                noNextPhase();
-            }
-        };
     }
     
     private boolean isTimeout(){
         return costWatch.getElapsedMilliSecond()>=totalTimeout;
+    }
+
+    @Override
+    protected void perform() {
+        costWatch.start();
+        
+        if (isTimeout()){
+            noNextPhase();
+            return ;
+        }
+
+        try{
+            Thread.sleep(phaseTimeout);
+        }
+        catch(Exception e){
+            throw new ActionException(e);
+        }
+
+        //add sub-action to wait until element is found or timeout
+        if (isTimeout()){
+            noNextPhase();
+        }
     }
     
     @Override

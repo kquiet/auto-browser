@@ -36,7 +36,7 @@ public enum ActionState {
     /**
      * Indicate the browser action has finished an execution phase with no error and is waiting for the execution of next phase.
      */
-    COMPLETE_WITH_NEXT_PHASE
+    WAIT_FOR_NEXT_PHASE
     ,
 
     /**

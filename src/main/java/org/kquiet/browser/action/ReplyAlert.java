@@ -34,7 +34,7 @@ import org.kquiet.browser.action.exception.ActionException;
  */
 public class ReplyAlert extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplyAlert.class);
-    
+
     /**
      * The way to deal with alert box.
      */
@@ -67,40 +67,41 @@ public class ReplyAlert extends MultiPhaseAction {
      * @param keysToSend characters to send to alert box
      */
     public ReplyAlert(Decision decision, String textVariableName, String keysToSend){
-        super(null);
         this.decision = decision;
         this.textVariableName = Optional.ofNullable(textVariableName).orElse("");
         this.keysToSend = Optional.ofNullable(keysToSend).orElse("");
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                Alert alertBox = actionComposer.getWebDriver().switchTo().alert();
+    }
 
-                //get text when necessary
-                if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, alertBox.getText());
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            Alert alertBox = actionComposer.getWebDriver().switchTo().alert();
 
-                //send keys when necessary
-                if (!this.keysToSend.isEmpty()) alertBox.sendKeys(this.keysToSend);
+            //get text when necessary
+            if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, alertBox.getText());
 
-                //deal with alert box
-                switch(this.decision){
-                    case Accept:
-                        alertBox.accept();
-                        break;
-                    case Dismiss:
-                        alertBox.dismiss();
-                        break;
-                    default:
-                        break;
-                }
-                noNextPhase();
-            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-            }catch(Exception e){
-                noNextPhase();
-                throw new ActionException(e);
+            //send keys when necessary
+            if (!this.keysToSend.isEmpty()) alertBox.sendKeys(this.keysToSend);
+
+            //deal with alert box
+            switch(this.decision){
+                case Accept:
+                    alertBox.accept();
+                    break;
+                case Dismiss:
+                    alertBox.dismiss();
+                    break;
+                default:
+                    break;
             }
-        });
+            noNextPhase();
+        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(e);
+        }
     }
     
     @Override

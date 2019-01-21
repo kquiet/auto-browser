@@ -52,33 +52,34 @@ public class Extract extends MultiPhaseAction {
      * @param attrVariableNames (attribute name, variable name) pairs to set as variables. For each pair, {@link Extract} sets the property value of the element as a variable of {@link ActionComposer} if the property exists. If property doesn't exists, {@link Extract} sets the attribute value of the element as a variable of {@link ActionComposer}. If neither exists, null-value variable is set.
      */
     public Extract(By by, List<By> frameBySequence, String textVariableName, Map<String, String> attrVariableNames){
-        super(null);
         this.by = by;
         if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.textVariableName = Optional.ofNullable(textVariableName).orElse("");
         if (attrVariableNames!=null) this.attrVariableNames.putAll(attrVariableNames);
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-                actionComposer.switchToInnerFrame(this.frameBySequence);
-                WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                
-                //get text when necessary
-                if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, element.getText());
-                
-                //get attribute when necessary
-                for (Map.Entry<String, String> entry: this.attrVariableNames.entrySet()){
-                    actionComposer.setVariable(entry.getValue(), element.getAttribute(entry.getKey()));
-                }
-                noNextPhase();
-            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-            }catch(Exception e){
-                noNextPhase();
-                throw new ActionException(e);
+    }
+
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+            actionComposer.switchToInnerFrame(this.frameBySequence);
+            WebElement element = actionComposer.getWebDriver().findElement(this.by);
+
+            //get text when necessary
+            if (!this.textVariableName.isEmpty()) actionComposer.setVariable(this.textVariableName, element.getText());
+
+            //get attribute when necessary
+            for (Map.Entry<String, String> entry: this.attrVariableNames.entrySet()){
+                actionComposer.setVariable(entry.getValue(), element.getAttribute(entry.getKey()));
             }
-        });
+            noNextPhase();
+        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(e);
+        }
     }
     
     @Override

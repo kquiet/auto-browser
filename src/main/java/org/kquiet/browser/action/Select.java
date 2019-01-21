@@ -72,26 +72,10 @@ public class Select extends MultiPhaseAction {
      * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
      */
     public Select(By by, List<By> frameBySequence, SelectBy selectBy, Object... options){
-        super(null);
         this.by = by;
         this.frameBySequence = frameBySequence;
         this.selectBy = selectBy;
         this.options = options;
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-                actionComposer.switchToInnerFrame(this.frameBySequence);
-                WebElement element = actionComposer.getWebDriver().findElement(this.by);
-                clickToSelect(element, this.selectBy, this.options);
-                noNextPhase();
-            }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-            }catch(Exception e){
-                noNextPhase();
-                throw new ActionException(toString(), e);
-            }
-        });
     }
     
     /**
@@ -126,6 +110,23 @@ public class Select extends MultiPhaseAction {
                     }
                     break;
             }
+        }
+    }
+
+    @Override
+    protected void perform() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
+            actionComposer.switchToInnerFrame(this.frameBySequence);
+            WebElement element = actionComposer.getWebDriver().findElement(this.by);
+            clickToSelect(element, this.selectBy, this.options);
+            noNextPhase();
+        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
+            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
+        }catch(Exception e){
+            noNextPhase();
+            throw new ActionException(toString(), e);
         }
     }
     

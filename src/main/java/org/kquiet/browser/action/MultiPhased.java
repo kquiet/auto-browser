@@ -16,14 +16,14 @@
 package org.kquiet.browser.action;
 
 /**
- * An interface which should be implemented by any subclass of {@link MultiPhaseAction} whose execution needs to be stopped explicitly.
+ * An interface which should be implemented by any browser action whose execution spans multiple phases.
  * 
  * @author Kimberly
  */
-public interface PhaseStoppable {
+public interface MultiPhased extends Composable {
 
     /**
-     * Signals that no more phase to execute
+     * Signals that no more phases to execute
      */
     public void noNextPhase();
     

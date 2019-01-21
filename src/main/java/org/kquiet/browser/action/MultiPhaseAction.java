@@ -33,7 +33,7 @@ import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
- * {@link MultiPhaseAction} models a browser action with multiple phases which is executed through {@link ActionComposer} or {@link org.kquiet.browser.ActionRunner}. Multi-phase means {@link MultiPhaseAction} will be executed multiple times, and it works just like a loop.
+ * {@link MultiPhaseAction} models a browser action with multiple phases which is executed through {@link ActionComposer} or {@link org.kquiet.browser.ActionRunner}. It will be executed for multiple times and works just like a loop.
  * {@link #noNextPhase()} needs to be invoked to signal that there is no more phase to execute.
  * 
  * <p>Why multi-phase is required is because <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">WebDriver is not thread-safe</a>.
@@ -41,24 +41,15 @@ import org.kquiet.browser.action.exception.ActionException;
  * 
  * @author Kimberly
  */
-public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
+public abstract class MultiPhaseAction implements Composable, MultiPhased{
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiPhaseAction.class);
     
     private ActionComposer containingComposer;
-    private Runnable internalAction;
     private volatile ActionState actionState = ActionState.CREATED;
     private final List<Exception> errorList = new ArrayList<>();
     private final Stopwatch stopWatch = new Stopwatch();
     private volatile boolean hasNextPhase = true; //flags whether has next phase or not
 
-    /**
-     *
-     * @param internalAction the internal action to perform against the browser
-     */
-    public MultiPhaseAction(Runnable internalAction){
-        this.internalAction = internalAction;
-    }
-    
     @Override
     public void noNextPhase(){
         this.hasNextPhase = false;
@@ -78,23 +69,22 @@ public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
 
                 //only browserable action is gonna run at browser to avoid blocking browser unnecessarily
                 if (this.getClass().isAnnotationPresent(Nonbrowserable.class)){
-                    getInternalAction().run();
+                    perform();
                 }
                 else{
-                    
                     Future<Exception> future= getComposer().callBrowser(()->{
                         //switch to focus window before execute internal action
                         if (!getComposer().switchToFocusWindow()){
                             throw new ActionException("can't switch to focus window");
                         }
 
-                        getInternalAction().run();
+                        perform();
                     });
                     Exception actionException = future.get();
                     if (actionException!=null) throw actionException;
                 }
 
-                if (hasNextPhase()) setActionState(ActionState.COMPLETE_WITH_NEXT_PHASE);
+                if (hasNextPhase()) setActionState(ActionState.WAIT_FOR_NEXT_PHASE);
                 else setActionState(ActionState.COMPLETE);
             }catch(Exception e){
                 noNextPhase();
@@ -108,17 +98,23 @@ public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
     }
     
     /**
+     * Perform multiple-phased browser action. {@link #noNextPhase()} needs to be invoked to signal that there is no more phase to execute.
+     */
+    protected abstract void perform();
+    
+    
+    /**
      * When the state of action is one of the following, then it's called <i>done</i>:
      * <ul>
      * <li>{@link ActionState#COMPLETE}</li>
      * <li>{@link ActionState#COMPLETE_WITH_ERROR}</li>
-     * <li>{@link ActionState#COMPLETE_WITH_NEXT_PHASE}</li>
      * </ul>
      * 
      * @return {@code true} if the action is done; {@code false} otherwise
      */
+    @Override
     public boolean isDone(){
-        return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE, ActionState.COMPLETE_WITH_NEXT_PHASE).contains(getActionState());
+        return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE).contains(getActionState());
     }
     
     /**
@@ -126,29 +122,12 @@ public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
      * 
      * @return {@code true} if the action is failed; {@code false} otherwise
      */
+    @Override
     public boolean isFail(){
         return getActionState()==ActionState.COMPLETE_WITH_ERROR;
     }
-
-    private Runnable getInternalAction() {
-        return internalAction;
-    }
-
-    /**
-     * Set the internal action.
-     * 
-     * @param action the internal action
-     * @return invoking {@link MultiPhaseAction}
-     */
-    protected MultiPhaseAction setInternalAction(Runnable action) {
-        this.internalAction = action;
-        return this;
-    }
     
-    /**
-     *
-     * @return the errors occurred during execution
-     */
+    @Override
     public List<Exception> getErrors() {
         return errorList;
     }
@@ -166,18 +145,13 @@ public abstract class MultiPhaseAction implements Runnable, PhaseStoppable{
         return stopWatch.getDuration();
     }
 
-    /**
-     * @return containing composer
-     */
-    protected ActionComposer getComposer() {
+    @Override
+    public ActionComposer getComposer() {
         return containingComposer;
     }
 
-    /**
-     * @param containingComposer the containing composer to set
-     * @return invoking {@link MultiPhaseAction}
-     */
-    public MultiPhaseAction setContainingComposer(ActionComposer containingComposer) {
+    @Override
+    public MultiPhaseAction setComposer(ActionComposer containingComposer) {
         this.containingComposer = containingComposer;
         return this;
     }

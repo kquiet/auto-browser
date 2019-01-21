@@ -31,17 +31,18 @@ public class GetUrl extends SinglePhaseAction {
      * @param url the url of web page
      */
     public GetUrl(String url){
-        super(null);
         this.url = url;
-        super.setInternalAction(()->{
-            ActionComposer actionComposer = this.getComposer();
-            try{
-                actionComposer.getWebDriver().get(this.url);
-            }
-            catch(Exception e){
-                throw new ActionException(e);
-            }
-        });
+    }
+
+    @Override
+    protected void performSingle() {
+        ActionComposer actionComposer = this.getComposer();
+        try{
+            actionComposer.getWebDriver().get(this.url);
+        }
+        catch(Exception e){
+            throw new ActionException(e);
+        }
     }
     
     @Override
