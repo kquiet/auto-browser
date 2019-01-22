@@ -25,11 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import org.openqa.selenium.WebDriver;
@@ -60,7 +56,7 @@ import org.kquiet.browser.action.IfThenElse;
  *
  * @author Kimberly
  */
-public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritized {
+public class ActionComposer extends CompletableFuture<Void> implements Runnable,Prioritized {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionComposer.class);
     
     private ActionRunner actionRunner = null;
@@ -73,19 +69,15 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     private Consumer<ActionComposer> onSuccessFunc = (bac)->{};
     private Consumer<ActionComposer> onDoneFunc = (bac)->{};
     
-    private final CountDownLatch checkDoneLatch = new CountDownLatch(1);
-    
     private final Map<String, Object> variableMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
     private String name = null;
     private int priority = Integer.MIN_VALUE;
     private final Stopwatch totalCostWatch = new Stopwatch();
-    
+
+    private volatile boolean runOnce = false;
     private volatile boolean isFail = false;
-    private volatile boolean isDone = false;
-    private volatile boolean isCancelled = false;
     private volatile boolean skipAction = false;
-    private volatile boolean skipResultFunction = false;
     private volatile boolean keepFailInfo = true;
     private String failUrl = null;
     private String failPage = null;
@@ -105,53 +97,16 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     }
     
     @Override
-    public boolean isCancelled() {
-        return isCancelled;
-    }
-    
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning){
-        if (isCancelled) return false;
-        
-        if (mayInterruptIfRunning){
-            skipAll();
-            isCancelled = true;
-            return true;
-        }
-        
-        return false;
-    }
-    
-    @Override
-    public boolean isDone() {
-        return isDone;
-    }
-    
-    @Override
-    public ActionComposer get(){
-        try{
-            checkDoneLatch.await();
-        }catch(InterruptedException ex){
-            LOGGER.warn("{} interrupted", getClass().getSimpleName(), ex);
-        }
-        return this;
-    }
-    
-    @Override
-    public ActionComposer get(long timeout, TimeUnit unit)throws TimeoutException{
-        try{
-            boolean result = checkDoneLatch.await(timeout, unit);
-            if (!result){
-                throw new TimeoutException(getName()+" get() timeout!");
-            }
-        }catch(InterruptedException ex){
-            LOGGER.warn("{} interrupted", getClass().getSimpleName(), ex);
-        }
-        return this;
-    }
-    
-    @Override
     public void run(){
+        //ensure run at most once
+        if (!runOnce){
+            synchronized(this){
+                if (runOnce) return;
+                else runOnce = true;
+            }
+        }
+        
+        boolean successful = true;
         try{
             totalCostWatch.start();
             boolean anyActionFail = false;
@@ -165,7 +120,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
                 anyActionFail = true;
             }
             
-            //run other action
+            //run main actions
             if (!isFail() && !anyActionFail){
                 int index=0;
                 List<Composable> actionList = new ArrayList<>(mainActionList);
@@ -185,13 +140,21 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
                 }
             }
             
-            if (isFail() || anyActionFail) runFail();
-            else runSuccess();
+            if (isFail() || anyActionFail) successful = false;
         }catch(Exception ex){
+            successful = false;
             LOGGER.warn("{}({}) run error", ActionComposer.class.getSimpleName(), getName(), ex);
-            runFail();
-        }finally{
+        }
+        
+        //run final action & result functions
+        try{
+            if (successful) runSuccess();
+            else runFail();
             runDone();
+            complete(null);
+        }catch(Exception ex){
+            completeExceptionally(ex);
+            LOGGER.warn("{}({}) run error", ActionComposer.class.getSimpleName(), getName(), ex);
         }
     }
     
@@ -214,7 +177,6 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
 
-        if (isSkipResultFunction()) return;
         try{
             onFailFunc.accept(this);
         }catch(Exception e){
@@ -229,7 +191,6 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
             LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
                 
-        if (isSkipResultFunction()) return;
         try{
             onSuccessFunc.accept(this);
         }catch(Exception e){
@@ -243,9 +204,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         }catch(Exception e){
             LOGGER.warn("{}({}) done function error", ActionComposer.class.getSimpleName(), getName(), e);
         }
-
-        setDone();
-        checkDoneLatch.countDown();
+        totalCostWatch.stop();
         if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}) costs {} milliseconds", ActionComposer.class.getSimpleName(), getName(), getCostTime().toMillis());
         
         //continue with child composer
@@ -338,7 +297,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link java.lang.Runnable runnable}.
      * {@link java.util.concurrent.Future#get() Future's get methods} returns {@code null} if no exception occurred.
      */
-    public Future<Exception> callBrowser(Runnable runnable){
+    public CompletableFuture<Void> callBrowser(Runnable runnable){
         return actionRunner.executeAction(runnable, getPriority());
     }
     
@@ -549,10 +508,6 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
         return skipAction;
     }
     
-    private boolean isSkipResultFunction(){
-        return skipResultFunction;
-    }
-    
     /**
      *
      * @return {@code true} if invoking {@link ActionComposer} has been marked as failed; {@code false} otherwise
@@ -566,12 +521,7 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
      * @return {@code true} if invoking {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
      */
     public boolean isSuccessfulDone(){
-        return isDone && !isFail;
-    }
-
-    private void setDone() {
-        isDone = true;
-        totalCostWatch.stop();
+        return isDone() && !isFail;
     }
 
     /**
@@ -718,11 +668,6 @@ public class ActionComposer implements RunnableFuture<ActionComposer>, Prioritiz
     public void skipToSuccess(){
         isFail = false;
         skipAction = true;
-    }
-    
-    private void skipAll(){
-        skipAction = true;
-        skipResultFunction = true;
     }
     
     /**

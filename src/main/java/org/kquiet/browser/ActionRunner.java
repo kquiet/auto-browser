@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.Optional;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +38,8 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.PageLoadStrategy;
 
-import org.kquiet.concurrent.PriorityCallable;
 import org.kquiet.concurrent.PausablePriorityThreadPoolExecutor;
+import org.kquiet.concurrent.PriorityRunnable;
 
 /**
  * {@link ActionRunner} is resposible to run a browser through <a href="https://github.com/SeleniumHQ/selenium" target="_blank">Selenium</a> and execute actions against it.
@@ -187,16 +187,18 @@ public class ActionRunner implements Closeable,AutoCloseable {
      * @param priority priority of action
      * @return a {@link java.util.concurrent.Future Future} representing pending completion of given browser action
      */
-    public Future<Exception> executeAction(Runnable browserAction, int priority){
-        PriorityCallable<Exception> callable = new PriorityCallable<>(()->{
+    public CompletableFuture<Void> executeAction(Runnable browserAction, int priority){
+        CompletableFuture<Void> cFuture = new CompletableFuture<>();
+        PriorityRunnable runnable = new PriorityRunnable(()->{
             try{
                 browserAction.run();
-                return null;
+                cFuture.complete(null);
             }catch(Exception ex){
-                return ex;
+                cFuture.completeExceptionally(ex);
             }
         }, priority);
-        return browserActionExecutor.submit(callable);
+        browserActionExecutor.submit(runnable);
+        return cFuture;
     }
     
     /**
@@ -204,9 +206,19 @@ public class ActionRunner implements Closeable,AutoCloseable {
      * @param actionComposer {@link ActionComposer} to execute
      * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link ActionComposer}
      */
-    public Future<?> executeComposer(ActionComposer actionComposer){
+    public CompletableFuture<Void> executeComposer(ActionComposer actionComposer){
         actionComposer.setActionRunner(this);
-        return composerExecutor.submit(actionComposer);
+        CompletableFuture<Void> cFuture = new CompletableFuture<>();
+        PriorityRunnable runnable = new PriorityRunnable(()->{
+            try{
+                actionComposer.run();
+                cFuture.complete(null);
+            }catch(Exception ex){
+                cFuture.completeExceptionally(ex);
+            }
+        }, actionComposer.getPriority());
+        composerExecutor.submit(runnable);
+        return cFuture;
     }
     
     /**

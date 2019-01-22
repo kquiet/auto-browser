@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -142,11 +142,11 @@ public class CompositeTest {
             .build("singleComposeredRunner-higherPriority")
             .setPriority(1);
         
-        Future<?> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
-        Future<?> higherPriorityFuture = browserRunnerOne.executeComposer(higherPriorityComposer);
+        CompletableFuture<Void> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
+        CompletableFuture<Void> higherPriorityFuture = browserRunnerOne.executeComposer(higherPriorityComposer);
         
         assertAll(
-            ()->assertDoesNotThrow(()->{higherPriorityFuture.get(1000, TimeUnit.MILLISECONDS);lowerPriorityFuture.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
+            ()->assertDoesNotThrow(()->{CompletableFuture.allOf(higherPriorityFuture, lowerPriorityFuture).get(3000, TimeUnit.MILLISECONDS);}, "not complete in time"),
             ()->assertTrue(sb.toString().matches("(L+H+)|(H+L+)"), "expected:(L+H+)|(H+L+), actual:"+sb.toString()),
             ()->assertTrue(lowerPriorityComposer.isSuccessfulDone(), "lower priority composer fail"),
             ()->assertTrue(higherPriorityComposer.isSuccessfulDone(), "higher priority composer fail"));
@@ -185,11 +185,10 @@ public class CompositeTest {
             .build("interleave-2")
             .setPriority(1);
         
-        Future<?> future1 = browserRunnerTwo.executeComposer(composer1);
-        Future<?> future2 = browserRunnerTwo.executeComposer(composer2);
-        future2.get(1000, TimeUnit.MILLISECONDS);future1.get(1000, TimeUnit.MILLISECONDS);
+        CompletableFuture<Void> future1 = browserRunnerTwo.executeComposer(composer1);
+        CompletableFuture<Void> future2 = browserRunnerTwo.executeComposer(composer2);
         assertAll(
-            ()->assertDoesNotThrow(()->{future2.get(1000, TimeUnit.MILLISECONDS);future1.get(1000, TimeUnit.MILLISECONDS);}, "not complete in time"),
+            ()->assertDoesNotThrow(()->CompletableFuture.allOf(future2, future1).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
             ()->assertTrue(composer1.isSuccessfulDone(), "composer1 fail"),
             ()->assertTrue(composer2.isSuccessfulDone(), "composer2 fail"));
     }

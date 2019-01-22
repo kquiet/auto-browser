@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -72,7 +72,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
                     perform();
                 }
                 else{
-                    Future<Exception> future= getComposer().callBrowser(()->{
+                    CompletableFuture<Void> future= getComposer().callBrowser(()->{
                         //switch to focus window before execute internal action
                         if (!getComposer().switchToFocusWindow()){
                             throw new ActionException("can't switch to focus window");
@@ -80,8 +80,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
 
                         perform();
                     });
-                    Exception actionException = future.get();
-                    if (actionException!=null) throw actionException;
+                    future.get();
                 }
 
                 if (hasNextPhase()) setActionState(ActionState.WAIT_FOR_NEXT_PHASE);

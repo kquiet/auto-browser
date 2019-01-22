@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 kquiet.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,32 @@
  */
 package org.kquiet.concurrent;
 
-import java.util.concurrent.Callable;
-
 /**
- * Prioritized {@link Callable}. This class is for internal use.
+ * Prioritized {@link Runnable}. This class is for internal use.
  * 
  * @author Kimberly
- * @param <T> the expected return type of {@link Callable}
  */
-public class PriorityCallable<T> implements Prioritized, Callable<T>{
-    private final Callable<T> callable;
+public class PriorityRunnable implements Prioritized, Runnable{
+    private final Runnable runnable;
     private final int priority;
     
     /**
      *
-     * @param callable wrapped {@link Callable}
+     * @param runnable wrapped {@link Runnable}
      * @param priority priority
      */
-    public PriorityCallable(Callable<T> callable, int priority){
-        this.callable = callable;
+    public PriorityRunnable(Runnable runnable, int priority){
+        this.runnable = runnable;
         this.priority = priority;
-    }
-
-    @Override
-    public T call() throws Exception {
-        return callable.call();
     }
     
     @Override
     public int getPriority(){
         return priority;
+    }
+
+    @Override
+    public void run() {
+        runnable.run();
     }
 }
