@@ -294,8 +294,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with invoking {@link ActionComposer}'s priority
      * 
      * @param runnable the object whose run method will be invoked
-     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link java.lang.Runnable runnable}.
-     * {@link java.util.concurrent.Future#get() Future's get methods} returns {@code null} if no exception occurred.
+     * @return a {@link CompletableFuture} representing pending completion of given {@link java.lang.Runnable runnable}
      */
     public CompletableFuture<Void> callBrowser(Runnable runnable){
         return actionRunner.executeAction(runnable, getPriority());

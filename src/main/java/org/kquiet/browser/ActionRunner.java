@@ -185,7 +185,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
      *
      * @param browserAction browser action to execute
      * @param priority priority of action
-     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given browser action
+     * @return a {@link CompletableFuture} representing pending completion of given browser action
      */
     public CompletableFuture<Void> executeAction(Runnable browserAction, int priority){
         CompletableFuture<Void> cFuture = new CompletableFuture<>();
@@ -204,7 +204,7 @@ public class ActionRunner implements Closeable,AutoCloseable {
     /**
      *
      * @param actionComposer {@link ActionComposer} to execute
-     * @return a {@link java.util.concurrent.Future Future} representing pending completion of given {@link ActionComposer}
+     * @return a {@link CompletableFuture} representing pending completion of given {@link ActionComposer}
      */
     public CompletableFuture<Void> executeComposer(ActionComposer actionComposer){
         actionComposer.setActionRunner(this);
