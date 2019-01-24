@@ -19,6 +19,9 @@ limitations under the License.
         <title>ActionTest</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+        #flUpload    {display: none;}
+        </style>
     </head>
     <body>
         <iframe id="frame-level1-01" src="ActionTest_frameset.html"></iframe>
@@ -39,7 +42,7 @@ limitations under the License.
             4. scroll
         </div>
         <div>
-            5. upload<input type="file" id="flUpload" style="display:none" />
+            5. upload<input type="file" id="flUpload" />
         </div>
         <div id="divMouseOver" onmouseover="document.getElementById('spMouseOver').style.display='';" onmouseout="document.getElementById('spMouseOver').style.display='none';">
             6. mouseover<span id="spMouseOver" style="display:none">hovered</span>

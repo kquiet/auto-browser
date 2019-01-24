@@ -69,7 +69,7 @@ public class Upload extends MultiPhaseAction {
             switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
             actionComposer.switchToInnerFrame(this.frameBySequence);
             WebElement element = actionComposer.getWebDriver().findElement(this.by);
-            ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = ''; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+            ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = 'inline-block'; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
             if (element.isDisplayed() && element.isEnabled()){
                 element.sendKeys(this.pathOfFile);
                 noNextPhase();
