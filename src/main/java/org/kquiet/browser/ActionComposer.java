@@ -281,6 +281,15 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
+     * remove specified variable.
+     * 
+     * @param variableName variable name
+     */
+    public void removeVariable(String variableName){
+        variableMap.remove(variableName);
+    }
+    
+    /**
      * Set variable value.
      * 
      * @param variableName variable name
