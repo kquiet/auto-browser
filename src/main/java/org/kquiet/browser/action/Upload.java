@@ -15,7 +15,10 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -34,7 +37,7 @@ import org.kquiet.browser.action.exception.ActionException;
  * 
  * <p>{@link Upload} needs to make the file upload element visible first, so below javascript will be executed before typing into it:</p>
  * <pre>
- * fileUploadElement.style.display = '';
+ * fileUploadElement.style.display = 'inline-block';
  * fileUploadElement.style.visibility = 'visible';
  * fileUploadElement.style.height = '1px';
  * fileUploadElement.style.width = '1px';
@@ -47,19 +50,19 @@ public class Upload extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
     
     private final By by;
-    private final List<By> frameBySequence;
-    private final String pathOfFile;
+    private final List<By> frameBySequence = new ArrayList<>();
+    private final List<String> pathOfFileList = new ArrayList<>();
 
     /**
      *
      * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
-     * @param pathOfFile the path of file to upload
+     * @param pathOfFiles the paths of files to upload
      */
-    public Upload(By by, List<By> frameBySequence, String pathOfFile){
+    public Upload(By by, List<By> frameBySequence, String... pathOfFiles){
         this.by = by;
-        this.frameBySequence = frameBySequence;
-        this.pathOfFile = pathOfFile;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
+        if (pathOfFiles!=null) this.pathOfFileList.addAll(Arrays.asList(pathOfFiles));
     }
 
     @Override
@@ -71,7 +74,9 @@ public class Upload extends MultiPhaseAction {
             WebElement element = actionComposer.getWebDriver().findElement(this.by);
             ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = 'inline-block'; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
             if (element.isDisplayed() && element.isEnabled()){
-                element.sendKeys(this.pathOfFile);
+                for (String pathOfFile: pathOfFileList){
+                    element.sendKeys(pathOfFile);
+                }
                 noNextPhase();
             }
             else{
@@ -88,6 +93,7 @@ public class Upload extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s:%s/%s/%s", Upload.class.getSimpleName(), by.toString()
-                , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), pathOfFile);
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList()))
+                , String.join(",", pathOfFileList));
     }
 }

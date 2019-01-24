@@ -15,6 +15,7 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class Select extends MultiPhaseAction {
     }
     
     private final By by;
-    private final List<By> frameBySequence;
+    private final List<By> frameBySequence = new ArrayList<>();
     private final SelectBy selectBy;
     private final Object[] options;
     
@@ -73,7 +74,7 @@ public class Select extends MultiPhaseAction {
      */
     public Select(By by, List<By> frameBySequence, SelectBy selectBy, Object... options){
         this.by = by;
-        this.frameBySequence = frameBySequence;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.selectBy = selectBy;
         this.options = options;
     }
@@ -133,6 +134,8 @@ public class Select extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s:%s/%s/%s/%s"
-                , Select.class.getSimpleName(), by.toString(), selectBy.toString(), String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList())), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
+                , Select.class.getSimpleName(), by.toString(), selectBy.toString()
+                , String.join(",", Arrays.asList(options).stream().map(s->s.toString()).collect(Collectors.toList()))
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())));
     }
 }

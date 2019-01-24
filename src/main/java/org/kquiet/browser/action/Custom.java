@@ -15,9 +15,11 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 
@@ -39,7 +41,7 @@ import org.kquiet.browser.action.exception.ActionException;
 public class Custom extends MultiPhaseAction {
     private final Consumer<ActionComposer> customFunc;
     private final boolean actAsSinglePhase;
-    private final List<By> frameBySequence;
+    private final List<By> frameBySequence = new ArrayList<>();
     
     /**
      * Create a {@link Custom} acting like a {@link MultiPhaseAction}.
@@ -49,7 +51,7 @@ public class Custom extends MultiPhaseAction {
      */    
     public Custom(Function<MultiPhased, Consumer<ActionComposer>> customAction, List<By> frameBySequence){
         this.customFunc = customAction.apply((MultiPhased)this);
-        this.frameBySequence = frameBySequence;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.actAsSinglePhase = false;
     }
     
@@ -61,7 +63,7 @@ public class Custom extends MultiPhaseAction {
      */
     public Custom(Consumer<ActionComposer> customAction, List<By> frameBySequence){
         this.customFunc = customAction;
-        this.frameBySequence = frameBySequence;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.actAsSinglePhase = true;
     }
 
@@ -83,6 +85,7 @@ public class Custom extends MultiPhaseAction {
     
     @Override
     public String toString(){
-        return String.format("%s(%s):%s", Custom.class.getSimpleName(), String.valueOf(actAsSinglePhase), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""));
+        return String.format("%s(%s):%s", Custom.class.getSimpleName(), String.valueOf(actAsSinglePhase)
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())));
     }
 }

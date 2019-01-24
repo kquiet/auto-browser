@@ -15,7 +15,9 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -38,7 +40,7 @@ public class ScrollToView extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScrollToView.class);
     
     private final By by;
-    private final List<By> frameBySequence;
+    private final List<By> frameBySequence = new ArrayList<>();
     private final boolean toTop;
 
     /**
@@ -49,7 +51,7 @@ public class ScrollToView extends MultiPhaseAction {
      */
     public ScrollToView(By by, List<By> frameBySequence, boolean toTop){
         this.by = by;
-        this.frameBySequence = frameBySequence;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.toTop = toTop;
     }
 
@@ -73,6 +75,6 @@ public class ScrollToView extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s:%s/%s/%s", ScrollToView.class.getSimpleName(), by.toString()
-                , (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), String.valueOf(toTop));
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())), String.valueOf(toTop));
     }
 }

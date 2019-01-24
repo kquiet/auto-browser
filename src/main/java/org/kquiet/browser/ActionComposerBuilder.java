@@ -1278,22 +1278,22 @@ public class ActionComposerBuilder{
          * Add a {@link Upload} to the sequence of actions.
          * 
          * @param by the element locating mechanism
-         * @param pathOfFile the path of file to upload
+         * @param pathOfFiles the paths of files to upload
          * @return invoking {@link ActionSequenceBuilder}
          */
-        public ActionSequenceBuilder upload(By by, String pathOfFile){
-            return new UploadBuilder(this, by, pathOfFile).done();
+        public ActionSequenceBuilder upload(By by, String... pathOfFiles){
+            return new UploadBuilder(this, by, pathOfFiles).done();
         }
 
         /**
          * Start building a {@link Upload}.
          * 
          * @param by the element locating mechanism
-         * @param pathOfFile the path of file to upload
+         * @param pathOfFiles the paths of files to upload
          * @return a new {@link UploadBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
          */
-        public UploadBuilder prepareUpload(By by, String pathOfFile){
-            return new UploadBuilder(this, by, pathOfFile);
+        public UploadBuilder prepareUpload(By by, String... pathOfFiles){
+            return new UploadBuilder(this, by, pathOfFiles);
         }
 
         /**
@@ -1301,7 +1301,7 @@ public class ActionComposerBuilder{
          */
         public class UploadBuilder extends InnerBuilderBase{
             private final By by;
-            private final String pathOfFile;
+            private final String[] pathOfFiles;
             private List<By> frameBySequence;
             
 
@@ -1310,13 +1310,13 @@ public class ActionComposerBuilder{
              * 
              * @param parentActionSequenceBuilder parent builder({@link ActionSequenceBuilder})
              * @param by the element locating mechanism
-             * @param pathOfFile the path of file to upload
+             * @param pathOfFiles the paths of files to upload
              */
-            public UploadBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by, String pathOfFile){
+            public UploadBuilder(ActionSequenceBuilder parentActionSequenceBuilder, By by, String... pathOfFiles){
                 super(parentActionSequenceBuilder);
                 if (by==null) throw new IllegalArgumentException("No locator specified to build");
                 this.by = by;
-                this.pathOfFile = pathOfFile;
+                this.pathOfFiles = pathOfFiles;
             }
 
             /**
@@ -1337,7 +1337,7 @@ public class ActionComposerBuilder{
              * @return parent builder({@link ActionSequenceBuilder})
              */
             public ActionSequenceBuilder done(){
-                Composable action = new Upload(by, frameBySequence, pathOfFile);
+                Composable action = new Upload(by, frameBySequence, pathOfFiles);
                 return parentActionSequenceBuilder.add(action);
             }
         }        

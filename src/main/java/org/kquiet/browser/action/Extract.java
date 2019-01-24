@@ -85,7 +85,7 @@ public class Extract extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s:%s/%s/%s/%s", Extract.class.getSimpleName(), by.toString()
-                , String.join(",",frameBySequence.toString()), textVariableName
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())), textVariableName
                 , String.join(",", attrVariableNames.entrySet().stream().map(s->s.getKey()+":"+s.getValue()).collect(Collectors.toList())));
     }
 }

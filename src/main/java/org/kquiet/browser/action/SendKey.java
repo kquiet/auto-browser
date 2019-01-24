@@ -15,7 +15,9 @@
  */
 package org.kquiet.browser.action;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -38,7 +40,7 @@ public class SendKey extends MultiPhaseAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(SendKey.class);
     
     private final By by;
-    private final List<By> frameBySequence;
+    private final List<By> frameBySequence = new ArrayList<>();
     private final CharSequence[] keysToSend;
     private final boolean clearBeforeSend;
     
@@ -51,7 +53,7 @@ public class SendKey extends MultiPhaseAction {
      */
     public SendKey(By by, List<By> frameBySequence, boolean clearBeforeSend, CharSequence... keysToSend){
         this.by = by;
-        this.frameBySequence = frameBySequence;
+        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.clearBeforeSend = clearBeforeSend;
         this.keysToSend = purifyCharSequences(keysToSend);
     }
@@ -108,6 +110,7 @@ public class SendKey extends MultiPhaseAction {
     @Override
     public String toString(){
         return String.format("%s:%s/%s/%s/%s"
-                , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend), (frameBySequence!=null?String.join(",",frameBySequence.toString()):""), String.valueOf(clearBeforeSend));
+                , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend)
+                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())));
     }
 }
