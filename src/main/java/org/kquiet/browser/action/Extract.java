@@ -59,7 +59,7 @@ public class Extract extends MultiPhaseAction {
     }
 
     @Override
-    protected void perform() {
+    protected void performMultiPhase() {
         ActionComposer actionComposer = this.getComposer();
         try{
             switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required

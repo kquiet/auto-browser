@@ -20,18 +20,18 @@ import java.util.List;
 import org.kquiet.browser.ActionComposer;
 
 /**
- * An interface which should be implemented by any browser action which delegates its execution to {@link ActionComposer}.
+ * An interface which should be implemented by any action which delegates its execution to {@link ActionComposer}.
  * 
  * @author Kimberly
  */
-public interface Composable extends Runnable {
+public interface Composable {
     
     /**
      * Get containing composer.
      * 
      * @return containing composer
      */
-    public ActionComposer getComposer();
+    ActionComposer getComposer();
 
     /**
      * Set containing composer.
@@ -39,24 +39,29 @@ public interface Composable extends Runnable {
      * @param composer the containing composer to set
      * @return invoking {@link Composable}
      */
-    public Composable setComposer(ActionComposer composer);
+    Composable setComposer(ActionComposer composer);
+    
+    /**
+     * Perform action.
+     */
+    void perform();
 
     /**
      *
      * @return the errors occurred during execution
      */
-    public List<Exception> getErrors();
+    List<Exception> getErrors();
 
     /**
      *
      * @return {@code true} if the action is done; {@code false} otherwise
      */
-    public boolean isDone();
+    boolean isDone();
 
 
     /**
      * 
      * @return {@code true} if the action is failed; {@code false} otherwise
      */
-    public boolean isFail();
+    boolean isFail();
 }

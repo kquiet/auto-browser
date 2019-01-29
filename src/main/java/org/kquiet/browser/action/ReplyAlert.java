@@ -73,7 +73,7 @@ public class ReplyAlert extends MultiPhaseAction {
     }
 
     @Override
-    protected void perform() {
+    protected void performMultiPhase() {
         ActionComposer actionComposer = this.getComposer();
         try{
             Alert alertBox = actionComposer.getWebDriver().switchTo().alert();

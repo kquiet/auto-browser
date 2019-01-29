@@ -99,7 +99,7 @@ public class WaitUntil<V> extends MultiPhaseAction {
     }
     
     @Override
-    protected void perform() {
+    protected void performMultiPhase() {
         costWatch.start();
             
         if (isTimeout()){

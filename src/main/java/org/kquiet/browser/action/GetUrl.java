@@ -35,7 +35,7 @@ public class GetUrl extends SinglePhaseAction {
     }
 
     @Override
-    protected void performSingle() {
+    protected void performSinglePhase() {
         ActionComposer actionComposer = this.getComposer();
         try{
             actionComposer.getWebDriver().get(this.url);

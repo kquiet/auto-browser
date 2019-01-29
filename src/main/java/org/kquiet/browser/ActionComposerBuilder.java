@@ -87,41 +87,16 @@ public class ActionComposerBuilder{
     private void clearActionComposer(){
         this.actionComposer = null;
     }
-    
+
     /**
-     * Add action to the first position of the actoin list in {@link ActionComposer}.
+     * Add action to the tail of building {@link ActionComposer}.
      * 
      * @param action action to add
-     * @return this {@link ActionComposerBuilder}
-     */
-    public ActionComposerBuilder addToFirst(Composable action){
+     * @return self reference
+     */    
+    private ActionComposerBuilder add(Composable action){
         prepareNextActionComposer();
-        actionComposer.addActionToFirst(action);
-        return this;
-    }
-    
-    /**
-     * Add action to the last position of the actoin list in {@link ActionComposer}.
-     * 
-     * @param action action to add
-     * @return this {@link ActionComposerBuilder}
-     */
-    public ActionComposerBuilder addToLast(Composable action){
-        prepareNextActionComposer();
-        actionComposer.addActionToLast(action);
-        return this;
-    }
-    
-    /**
-     * Add action to the specified position of the actoin list in {@link ActionComposer}.
-     * 
-     * @param action action to add
-     * @param position the position(zero-based) to add action
-     * @return this {@link ActionComposerBuilder}
-     */
-    public ActionComposerBuilder addToIndex(Composable action, int position){
-        prepareNextActionComposer();
-        actionComposer.addActionToIndex(action, position);
+        actionComposer.addToTail(action);
         return this;
     }
     
@@ -255,12 +230,12 @@ public class ActionComposerBuilder{
         }
         
         /**
-         * Add an action to sequence.
+         * Add an action to the tail of building action sequence.
          * 
          * @param action action to add
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
-        public ActionSequenceBuilder add(Composable action){
+        private ActionSequenceBuilder add(Composable action){
             if (action!=null) actionList.add(action);
             return this;
         }
@@ -279,7 +254,7 @@ public class ActionComposerBuilder{
             }
             else{
                 actionList.forEach(action->{
-                    parentComposerBuilder.addToLast(action);
+                    parentComposerBuilder.add(action);
                 });
                 return parentComposerBuilder;
             }
@@ -303,7 +278,7 @@ public class ActionComposerBuilder{
          * Add a {@link CloseWindow} to the sequence of actions.
          * 
          * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder closeWindow(boolean closeAllRegistered){
             return new CloseWindowBuilder(this, closeAllRegistered).done();
@@ -313,7 +288,7 @@ public class ActionComposerBuilder{
          * Start building a {@link CloseWindow}.
          * 
          * @param closeAllRegistered {@code true}: close all regisetered windows; {@code false}: close only the focus window
-         * @return a new {@link CloseWindowBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link CloseWindowBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public CloseWindowBuilder prepareCloseWindow(boolean closeAllRegistered){
             return new CloseWindowBuilder(this, closeAllRegistered);
@@ -350,7 +325,7 @@ public class ActionComposerBuilder{
         /**
          * Add a {@link OpenWindow} to the sequence of actions.
          * 
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder openWindow(){
             return new OpenWindowBuilder(this).done();
@@ -359,7 +334,7 @@ public class ActionComposerBuilder{
         /**
          * Start building a {@link OpenWindow}.
          * 
-         * @return a new {@link OpenWindowBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link OpenWindowBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public OpenWindowBuilder prepareOpenWindow(){
             return new OpenWindowBuilder(this);
@@ -384,7 +359,7 @@ public class ActionComposerBuilder{
             /**
              * Set opened window as focus window.
              * 
-             * @return invoking {@link OpenWindowBuilder}
+             * @return self reference
              */
             public OpenWindowBuilder withComposerFocus(){
                 this.asComposerFocusWindow = true;
@@ -395,7 +370,7 @@ public class ActionComposerBuilder{
              * Register opened window with name.
              * 
              * @param registerName name to register
-             * @return invoking {@link OpenWindowBuilder}
+             * @return self reference
              */
             public OpenWindowBuilder registerAs(String registerName){
                 this.registerName = registerName;
@@ -419,7 +394,7 @@ public class ActionComposerBuilder{
          * @param <V> the expected return type of condition function
          * @param conditionFunc the condition function for evaluation by phases
          * @param totalTimeout the maximum amount of time to wait totally
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public <V> ActionSequenceBuilder waitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout){
             return new WaitUntilBuilder<>(this, conditionFunc, totalTimeout).done();
@@ -431,7 +406,7 @@ public class ActionComposerBuilder{
          * @param <V> the expected return type of condition function
          * @param conditionFunc the condition function for evaluation by phases
          * @param totalTimeout the maximum amount of time to wait totally
-         * @return a new {@link WaitUntilBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link WaitUntilBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public <V> WaitUntilBuilder<V> prepareWaitUntil(Function<WebDriver,V> conditionFunc, int totalTimeout){
             return new WaitUntilBuilder<>(this, conditionFunc, totalTimeout);
@@ -470,7 +445,7 @@ public class ActionComposerBuilder{
              * Set the maximum amount of time to wait for each execution phase.
              * 
              * @param phaseTimeout phase timeout
-             * @return invoking {@link WaitUntilBuilder}
+             * @return self reference
              */
             public WaitUntilBuilder<V> withPhaseTimeout(int phaseTimeout){
                 if (phaseTimeout<=0) throw new IllegalArgumentException("Illegal phase timeout to build");
@@ -482,7 +457,7 @@ public class ActionComposerBuilder{
              * Set how often the condition function should be evaluated.
              * 
              * @param pollInterval evaluation interval
-             * @return invoking {@link WaitUntilBuilder}
+             * @return self reference
              */
             public WaitUntilBuilder<V> withPollInterval(int pollInterval){
                 if (pollInterval<=0) throw new IllegalArgumentException("Illegal poll interval to build");
@@ -494,7 +469,7 @@ public class ActionComposerBuilder{
              * Set the types of exceptions to ignore when evaluating condition function.
              * 
              * @param ignoreExceptions exception list
-             * @return invoking {@link WaitUntilBuilder}
+             * @return self reference
              */
             public WaitUntilBuilder<V> withIgnoredException(Set<Class<? extends Throwable>> ignoreExceptions){
                 if (ignoreExceptions==null) throw new IllegalArgumentException("Illegal ignore exception list to build");
@@ -506,7 +481,7 @@ public class ActionComposerBuilder{
              * Set the callback function to be called when total timeout expires.
              * 
              * @param timeoutCallback timeout callback function
-             * @return invoking {@link WaitUntilBuilder}
+             * @return self reference
              */
             public WaitUntilBuilder<V> withTimeoutCallback(Consumer<ActionComposer> timeoutCallback){
                 if (timeoutCallback==null) throw new IllegalArgumentException("Illegal timeout callback to build");
@@ -529,7 +504,7 @@ public class ActionComposerBuilder{
          * Add a {@link JustWait} to the sequence of actions.
          * 
          * @param totalTimeout the maximum amount of time to wait totally
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder justWait(int totalTimeout){
             return new JustWaitBuilder(this, totalTimeout).done();
@@ -539,7 +514,7 @@ public class ActionComposerBuilder{
          * Start building a {@link JustWait}.
          * 
          * @param totalTimeout the maximum amount of time to wait totally
-         * @return a new {@link JustWaitBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link JustWaitBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public JustWaitBuilder prepareJustWait(int totalTimeout){
             return new JustWaitBuilder(this, totalTimeout);
@@ -568,7 +543,7 @@ public class ActionComposerBuilder{
              * Set the maximum amount of time to wait for each execution phase.
              * 
              * @param phaseTimeout phase timeout
-             * @return invoking {@link JustWaitBuilder}
+             * @return self reference
              */
             public JustWaitBuilder withPhaseTimeout(int phaseTimeout){
                 if (phaseTimeout<=0) throw new IllegalArgumentException("Illegal phase timeout to build");
@@ -592,7 +567,7 @@ public class ActionComposerBuilder{
          * 
          * @param url the address where to submit the form
          * @param formData the form data to submit
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder postForm(String url, List<SimpleImmutableEntry<String,String>> formData){
             return new PostFormBuilder(this, url, formData).done();
@@ -603,7 +578,7 @@ public class ActionComposerBuilder{
          * 
          * @param url the address where to submit the form
          * @param formData the form data to submit
-         * @return a new {@link PostFormBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link PostFormBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public PostFormBuilder preparePostForm(String url, List<SimpleImmutableEntry<String,String>> formData){
             return new PostFormBuilder(this, url, formData);
@@ -634,7 +609,7 @@ public class ActionComposerBuilder{
             /**
              *
              * @param acceptCharset the charset used in the submitted form
-             * @return invoking {@link PostFormBuilder}
+             * @return self reference
              */
             public PostFormBuilder withAcceptCharset(String acceptCharset){
                 if (acceptCharset==null || acceptCharset.isEmpty()) throw new IllegalArgumentException("Illegal accept charset to build");
@@ -657,7 +632,7 @@ public class ActionComposerBuilder{
          * Add a {@link GetUrl} to the sequence of actions.
          * 
          * @param url the url of web page
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder getUrl(String url){
             return new GetUrlBuilder(this, url).done();
@@ -667,7 +642,7 @@ public class ActionComposerBuilder{
          * Start building a {@link GetUrl}.
          * 
          * @param url the url of web page
-         * @return a new {@link GetUrlBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link GetUrlBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public GetUrlBuilder prepareGetUrl(String url){
             return new GetUrlBuilder(this, url);
@@ -707,7 +682,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder selectByIndex(By by, Integer... options){
             return new SelectBuilder(this, by).selectByIndex(options).done();
@@ -718,7 +693,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder selectByText(By by, String... options){
             return new SelectBuilder(this, by).selectByText(options).done();
@@ -729,7 +704,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder selectByValue(By by, String... options){
             return new SelectBuilder(this, by).selectByValue(options).done();
@@ -739,7 +714,7 @@ public class ActionComposerBuilder{
          * Start building a {@link Select}.
          * 
          * @param by the element locating mechanism
-         * @return a new {@link SelectBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link SelectBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public SelectBuilder prepareSelect(By by){
             return new SelectBuilder(this, by);
@@ -770,7 +745,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link SelectBuilder}
+             * @return self reference
              */
             public SelectBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -788,7 +763,7 @@ public class ActionComposerBuilder{
              * Select by index.
              * 
              * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-             * @return invoking {@link SelectBuilder}
+             * @return self reference
              */
             public SelectBuilder selectByIndex(Integer... options){
                 return selectBy(SelectBy.Index, (Object[]) options);
@@ -798,7 +773,7 @@ public class ActionComposerBuilder{
              * Select By text.
              * 
              * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-             * @return invoking {@link SelectBuilder}
+             * @return self reference
              */
             public SelectBuilder selectByText(String... options){
                 return selectBy(SelectBy.Text, (Object[]) options);
@@ -808,7 +783,7 @@ public class ActionComposerBuilder{
              * Select by value.
              * 
              * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
-             * @return invoking {@link SelectBuilder}
+             * @return self reference
              */
             public SelectBuilder selectByValue(String... options){
                 return selectBy(SelectBy.Value, (Object[]) options);
@@ -830,7 +805,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param keysToSend character sequence to send to the element
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder sendKey(By by, CharSequence... keysToSend){
             return new SendKeyBuilder(this, by, keysToSend).done();
@@ -841,7 +816,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param keysToSend character sequence to send to the element
-         * @return a new {@link SendKeyBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link SendKeyBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public SendKeyBuilder prepareSendKey(By by, CharSequence... keysToSend){
             return new SendKeyBuilder(this, by, keysToSend);
@@ -875,7 +850,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link SendKeyBuilder}
+             * @return self reference
              */
             public SendKeyBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -886,7 +861,7 @@ public class ActionComposerBuilder{
             /**
              * Clear before sending keys.
              * 
-             * @return invoking {@link SendKeyBuilder}
+             * @return self reference
              */
             public SendKeyBuilder withClearBeforeSend(){
                 this.clearBeforeSend = true;
@@ -908,7 +883,7 @@ public class ActionComposerBuilder{
          * Start building a {@link Extract}.
          * 
          * @param by the element locating mechanism
-         * @return a new {@link ExtractBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link ExtractBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public ExtractBuilder prepareExtract(By by){
             return new ExtractBuilder(this, by);
@@ -939,7 +914,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link ExtractBuilder}
+             * @return self reference
              */
             public ExtractBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -951,7 +926,7 @@ public class ActionComposerBuilder{
              * Set the text of the element as a variable of building {@link ActionComposer}.
              * 
              * @param textVariableName text variable name
-             * @return invoking {@link ExtractBuilder}
+             * @return self reference
              */
             public ExtractBuilder withTextAsVariable(String textVariableName){
                 if (textVariableName==null)  throw new IllegalArgumentException("Illegal text variable name to build");
@@ -963,7 +938,7 @@ public class ActionComposerBuilder{
              * Set the value of properties/attributes of the element as variables of building {@link ActionComposer}.
              * 
              * @param attrVariableNames (attribute name, variable name) pairs to set as variables
-             * @return invoking {@link ExtractBuilder}
+             * @return self reference
              * @see Extract#Extract(org.openqa.selenium.By, java.util.List, java.lang.String, java.util.Map) 
              */
             public ExtractBuilder withAttributeAsVariable(Map<String, String> attrVariableNames){
@@ -987,7 +962,7 @@ public class ActionComposerBuilder{
          * Add a {@link Click} to the sequence of actions.
          * 
          * @param by the element locating mechanism
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder click(By by){
             return new ClickBuilder(this, by).done();
@@ -997,7 +972,7 @@ public class ActionComposerBuilder{
          * Start building a {@link Click}.
          * 
          * @param by the element locating mechanism
-         * @return a new {@link ClickBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link ClickBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public ClickBuilder prepareClick(By by){
             return new ClickBuilder(this, by);
@@ -1026,7 +1001,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link ClickBuilder}
+             * @return self reference
              */
             public ClickBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -1049,7 +1024,7 @@ public class ActionComposerBuilder{
          * Add a {@link MouseOver} to the sequence of actions.
          * 
          * @param by the element locating mechanism
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder mouseOver(By by){
             return new MouseOverBuilder(this, by).done();
@@ -1059,7 +1034,7 @@ public class ActionComposerBuilder{
          * Start building a {@link MouseOver}.
          * 
          * @param by the element locating mechanism
-         * @return a new {@link MouseOverBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link MouseOverBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public MouseOverBuilder prepareMouseOver(By by){
             return new MouseOverBuilder(this, by);
@@ -1088,7 +1063,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link MouseOverBuilder}
+             * @return self reference
              */
             public MouseOverBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -1111,7 +1086,7 @@ public class ActionComposerBuilder{
          * Add a single-phased {@link Custom} to the sequence of actions.
          * 
          * @param customAction custom action
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder custom(Consumer<ActionComposer> customAction){
             return new CustomBuilder(this, customAction).done();
@@ -1121,7 +1096,7 @@ public class ActionComposerBuilder{
          * Add a multiple-phased {@link Custom} to the sequence of actions.
          * 
          * @param multiPhasedCustomAction multiple-phased custom action
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder customMultiPhase(Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction){
             return new CustomBuilder(this, multiPhasedCustomAction).done();
@@ -1131,7 +1106,7 @@ public class ActionComposerBuilder{
          * Start building a single-phased {@link Custom}.
          * 
          * @param customAction custom action
-         * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link CustomBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public CustomBuilder prepareCustom(Consumer<ActionComposer> customAction){
             return new CustomBuilder(this, customAction);
@@ -1141,7 +1116,7 @@ public class ActionComposerBuilder{
          * Start building a multiple-phased {@link Custom}.
          * 
          * @param multiPhasedCustomAction multiple-phased custom action
-         * @return a new {@link CustomBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link CustomBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public CustomBuilder prepareCustomMultiPhase(Function<MultiPhased,Consumer<ActionComposer>> multiPhasedCustomAction){
             return new CustomBuilder(this, multiPhasedCustomAction);
@@ -1185,7 +1160,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the frame where the custom action to be performed against.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link CustomBuilder}
+             * @return self reference
              */
             public CustomBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -1211,7 +1186,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder scrollToView(By by, boolean toTop){
             return new ScrollToViewBuilder(this, by, toTop).done();
@@ -1222,7 +1197,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
-         * @return a new {@link ScrollToViewBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link ScrollToViewBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public ScrollToViewBuilder prepareScrollToView(By by, boolean toTop){
             return new ScrollToViewBuilder(this, by, toTop);
@@ -1255,7 +1230,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link ScrollToViewBuilder}
+             * @return self reference
              */
             public ScrollToViewBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -1279,7 +1254,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param pathOfFiles the paths of files to upload
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder upload(By by, String... pathOfFiles){
             return new UploadBuilder(this, by, pathOfFiles).done();
@@ -1290,7 +1265,7 @@ public class ActionComposerBuilder{
          * 
          * @param by the element locating mechanism
          * @param pathOfFiles the paths of files to upload
-         * @return a new {@link UploadBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link UploadBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public UploadBuilder prepareUpload(By by, String... pathOfFiles){
             return new UploadBuilder(this, by, pathOfFiles);
@@ -1323,7 +1298,7 @@ public class ActionComposerBuilder{
              * Set the frame locating mechanism for the element resides in a frame.
              * 
              * @param frameBySequence the sequence of the frame locating mechanism
-             * @return invoking {@link UploadBuilder}
+             * @return self reference
              */
             public UploadBuilder withInFrame(List<By> frameBySequence){
                 if (frameBySequence==null)  throw new IllegalArgumentException("Illegal frame locator to build");
@@ -1346,7 +1321,7 @@ public class ActionComposerBuilder{
          * Add a {@link ReplyAlert} to the sequence of actions.
          * 
          * @param decision the way to deal with alert box
-         * @return invoking {@link ActionSequenceBuilder}
+         * @return self reference
          */
         public ActionSequenceBuilder replyAlert(Decision decision){
             return new ReplyAlertBuilder(this, decision).done();
@@ -1356,7 +1331,7 @@ public class ActionComposerBuilder{
          * Start building a {@link ReplyAlert}.
          * 
          * @param decision the way to deal with alert box
-         * @return a new {@link ReplyAlertBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link ReplyAlertBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public ReplyAlertBuilder prepareReplyAlert(Decision decision){
             return new ReplyAlertBuilder(this, decision);
@@ -1386,7 +1361,7 @@ public class ActionComposerBuilder{
              * Set the text of alert box as a variable of building {@link ActionComposer}.
              * 
              * @param textVariableName text variable name
-             * @return invoking {@link ReplyAlertBuilder}
+             * @return self reference
              */
             public ReplyAlertBuilder withTextAsVariable(String textVariableName){
                 if (textVariableName==null)  throw new IllegalArgumentException("Illegal text variable name to build");
@@ -1398,7 +1373,7 @@ public class ActionComposerBuilder{
              * Send characters to alert box.
              * 
              * @param keysToSend characters to send to alert box
-             * @return invoking {@link ReplyAlertBuilder}
+             * @return self reference
              */
             public ReplyAlertBuilder withKeysToSend(String keysToSend){
                 if (keysToSend==null)  throw new IllegalArgumentException("Illegal keys-to-send to build");
@@ -1422,7 +1397,7 @@ public class ActionComposerBuilder{
          * Start building an {@link IfThenElse}.
          * 
          * @param evalFunction the function to evaluate
-         * @return a new {@link IfThenElseBuilder} with invoking {@link ActionSequenceBuilder} as parent builder
+         * @return a new {@link IfThenElseBuilder} with this {@link ActionSequenceBuilder} as parent builder
          */
         public IfThenElseBuilder prepareIfThenElse(Function<ActionComposer, ?> evalFunction){
             return new IfThenElseBuilder(this, evalFunction);
@@ -1453,12 +1428,13 @@ public class ActionComposerBuilder{
              * Add action to the building {@link IfThenElseBuilder}.It depends on the building progress to add to positive or negative action list.
              * 
              * @param action the action to add
-             * @return invoking {@link IfThenElseBuilder}
+             * @return self reference
              */
-            public IfThenElseBuilder add(Composable action){
-                if (action==null) throw new IllegalArgumentException("No action to add");
-                if (isPrepareThenAction) positiveActionList.add(action);
-                else negativeActionList.add(action);
+            private IfThenElseBuilder add(Composable action){
+                if (action!=null){
+                    if (isPrepareThenAction) positiveActionList.add(action);
+                    else negativeActionList.add(action);
+                }
                 return this;
             }
             
@@ -1475,7 +1451,7 @@ public class ActionComposerBuilder{
             /**
              * Start building the action list for the positive result of predicate.
              * 
-             * @return a new {@link ActionSequenceBuilder} with invoking {@link IfThenElseBuilder} as parent builder
+             * @return a new {@link ActionSequenceBuilder} with this {@link IfThenElseBuilder} as parent builder
              */
             public ActionSequenceBuilder then(){
                 isPrepareThenAction = true;
@@ -1485,7 +1461,7 @@ public class ActionComposerBuilder{
             /**
              * Start building the action list for the negative result of predicate.
              * 
-             * @return a new {@link ActionSequenceBuilder} with invoking {@link IfThenElseBuilder} as parent builder
+             * @return a new {@link ActionSequenceBuilder} with this {@link IfThenElseBuilder} as parent builder
              */
             public ActionSequenceBuilder otherwise(){
                 isPrepareThenAction = false;

@@ -61,7 +61,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
     }
     
     @Override
-    public void run(){
+    public void perform(){
         while(hasNextPhase()){
             try{
                 stopWatch.start();
@@ -69,7 +69,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
 
                 //only browserable action is gonna run at browser to avoid blocking browser unnecessarily
                 if (this.getClass().isAnnotationPresent(Nonbrowserable.class)){
-                    perform();
+                    performMultiPhase();
                 }
                 else{
                     CompletableFuture<Void> future= getComposer().callBrowser(()->{
@@ -78,7 +78,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
                             throw new ActionException("can't switch to focus window");
                         }
 
-                        perform();
+                        performMultiPhase();
                     });
                     future.get();
                 }
@@ -99,7 +99,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased{
     /**
      * Perform multiple-phased browser action. {@link #noNextPhase()} needs to be invoked to signal that there is no more phase to execute.
      */
-    protected abstract void perform();
+    protected abstract void performMultiPhase();
     
     
     /**

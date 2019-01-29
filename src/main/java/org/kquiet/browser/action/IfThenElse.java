@@ -17,6 +17,8 @@ package org.kquiet.browser.action;
 
 import java.util.function.Function;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
+import org.kquiet.browser.ActionSequenceContainer;
 import org.kquiet.browser.action.exception.ActionException;
 
 /**
@@ -42,13 +45,13 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 @Nonbrowserable
-public class IfThenElse extends SinglePhaseAction{
+public class IfThenElse extends SinglePhaseAction implements ActionSequenceContainer{
     private static final Logger LOGGER = LoggerFactory.getLogger(IfThenElse.class);
     
-    private final List<Composable> positiveActionList = new ArrayList<>();
-    private final List<Composable> negativeActionList = new ArrayList<>();
+    private final Deque<Composable> positiveActionList = new LinkedList<>();
+    private final Deque<Composable> negativeActionList = new LinkedList<>();
     private final Function<ActionComposer, ?> evalFunction;
-    private volatile boolean evaluationResult=true;
+    private volatile Boolean evaluationResult=null;
     
     /**
      * 
@@ -77,9 +80,9 @@ public class IfThenElse extends SinglePhaseAction{
                 throw new ActionException(e);
             }
             evalResult.set(obj!=null && (Boolean.class!=obj.getClass() || Boolean.TRUE.equals(obj)));
-        }, null).setComposer(getComposer());
+        }, null);
         customRef.set(customAction);
-        customAction.run();
+        getComposer().perform(customAction);
 
         List<Exception> errors = customAction.getErrors();
         if (!errors.isEmpty()) throw errors.get(errors.size()-1);
@@ -87,18 +90,20 @@ public class IfThenElse extends SinglePhaseAction{
     }
     
     @Override
-    protected void performSingle() {
+    protected void performSinglePhase() {
         try{
             evaluationResult = evaluate();
-            if (evaluationResult){
-                this.positiveActionList.forEach((action) -> {
-                    action.run();
-                });
-            }
-            else{
-                this.negativeActionList.forEach((action) -> {
-                    action.run();
-                });
+            Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
+            List<Composable> temp = new ArrayList<>(actualActionList);
+            boolean anyActionFail = false;
+            int index=0;
+            while(index<temp.size()){
+                Composable action = temp.get(index);
+                getComposer().perform(action);
+                anyActionFail = anyActionFail || action.isFail();
+                if (anyActionFail) break;
+                temp = new ArrayList<>(actualActionList);
+                index++;
             }
         }catch(Exception e){
             throw new ActionException(e);
@@ -108,23 +113,6 @@ public class IfThenElse extends SinglePhaseAction{
     @Override
     public String toString(){
         return IfThenElse.class.getSimpleName();
-    }
-    
-    @Override
-    public boolean isDone(){
-        boolean isDoneFlag = super.isDone();
-        List<Composable> actionList;
-        if (evaluationResult){
-            actionList = positiveActionList;
-        }
-        else {
-            actionList = negativeActionList;
-        }
-        for (Composable action: actionList){
-            isDoneFlag = isDoneFlag && action.isDone();
-            if (!isDoneFlag) break;
-        }
-        return isDoneFlag;
     }
     
     @Override
@@ -143,16 +131,49 @@ public class IfThenElse extends SinglePhaseAction{
         });
         return errList;
     }
-    
+
+    /**
+     * Add action to the head of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
+     */
     @Override
-    public IfThenElse setComposer(ActionComposer containingComposer) {
-        super.setComposer(containingComposer);
-        positiveActionList.forEach(action->{
-            action.setComposer(containingComposer);
-        });
-        negativeActionList.forEach(action->{
-            action.setComposer(containingComposer);
-        });
+    public ActionSequenceContainer addToHead(Composable action) {
+        if (action!=null && evaluationResult!=null){
+            Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
+            synchronized(actualActionList){
+                actualActionList.addFirst(action);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Add action to the tail of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
+     */
+    @Override
+    public ActionSequenceContainer addToTail(Composable action) {
+        if (action!=null && evaluationResult!=null){
+            Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
+            synchronized(actualActionList){
+                actualActionList.addLast(action);
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Add action to the the specified position of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
+     */
+    @Override
+    public ActionSequenceContainer addToPosition(Composable action, int position) {
+        if (action!=null && evaluationResult!=null){
+            Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
+            synchronized(actualActionList){
+                List<Composable> temp = new ArrayList<>(actualActionList);
+                temp.add(position, action);
+                actualActionList.clear();
+                actualActionList.addAll(temp);
+            }
+        }
         return this;
     }
 }

@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CountDownLatch;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -61,7 +60,6 @@ public class ActionRunner implements Closeable,AutoCloseable {
     private final String rootWindowIdentity;
     
     private volatile boolean isPaused = false;
-    private volatile CountDownLatch pauseLatch = new CountDownLatch(1);
     
     private final PausablePriorityThreadPoolExecutor browserActionExecutor;
     private final PausablePriorityThreadPoolExecutor composerExecutor;
@@ -250,27 +248,23 @@ public class ActionRunner implements Closeable,AutoCloseable {
     /**
      * Stop executing any queued {@link ActionComposer} or browser action.
      */
-    public synchronized void pause() {
-        try{
-            browserActionExecutor.pause();
-            composerExecutor.pause();
-        }finally{
-            isPaused = true;
-        }
+    public void pause() {
+        if (isPaused) return;
+        
+        isPaused = true;
+        browserActionExecutor.pause();
+        composerExecutor.pause();
     }
     
     /**
      * Resume to execute queued {@link ActionComposer} or browser action (if any).
      */
-    public synchronized void resume() {
-        try{
-            browserActionExecutor.resume();
-            composerExecutor.resume();
-        }finally{
-            pauseLatch.countDown();
-            pauseLatch = new CountDownLatch(1);
-            isPaused = false;
-        }
+    public void resume() {
+        if (!isPaused) return;
+        
+        isPaused = false;
+        browserActionExecutor.resume();
+        composerExecutor.resume();
     }
     
     /**

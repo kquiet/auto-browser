@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +67,7 @@ import org.takes.rs.RsWithType;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.action.Custom;
 import org.kquiet.browser.action.ReplyAlert;
 
 /**
@@ -292,7 +294,11 @@ public class ActionTest {
             .prepareActionSequence()
                 .prepareIfThenElse(s->true)
                     .then()
-                        .custom(ac->sb.append("1"))
+                        .custom(ac->{
+                            sb.append("1");
+                            ac.addToTailByContext(new Custom((Consumer<ActionComposer>)iac->sb.append("A"), null));
+                            ac.addToTail(new Custom((Consumer<ActionComposer>)iac->sb.append("D"), null));
+                        })
                         .prepareIfThenElse(s->false)
                             .then()
                                 .custom(ac->sb.append("2"))
@@ -300,7 +306,12 @@ public class ActionTest {
                             .otherwise()
                                 .prepareIfThenElse(s->true)
                                     .then()
-                                        .custom(ac->sb.append("3"))
+                                        .custom(ac->{
+                                            sb.append("3");
+                                            ac.addToPositionByContext(new Custom((Consumer<ActionComposer>)iac->sb.append("B"), null), 1);
+                                            ac.addToPosition(new Custom((Consumer<ActionComposer>)iac->sb.append("E"), null), 1);
+                                        })
+                                        .custom(ac->sb.append("C"))
                                         .endActionSequence()
                                     .endIf()
                                 .custom(ac->sb.append("4"))
@@ -324,7 +335,7 @@ public class ActionTest {
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertEquals("134", sb.toString(), "condition sequence not match"),
+            ()->assertEquals("13BC4AED", sb.toString(), "condition sequence not match"),
             ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
     }
 

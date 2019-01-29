@@ -23,9 +23,9 @@ package org.kquiet.browser.action;
 public abstract class SinglePhaseAction extends MultiPhaseAction{
     
     @Override
-    protected void perform() {
+    protected void performMultiPhase() {
         try{
-            performSingle();
+            performSinglePhase();
         }finally{
             noNextPhase();
         }
@@ -34,5 +34,5 @@ public abstract class SinglePhaseAction extends MultiPhaseAction{
     /**
      * Perform single-phased browser action.
      */
-    protected abstract void performSingle();
+    protected abstract void performSinglePhase();
 }

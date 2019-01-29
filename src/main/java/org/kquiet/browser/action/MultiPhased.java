@@ -25,11 +25,11 @@ public interface MultiPhased extends Composable {
     /**
      * Signals that no more phases to execute
      */
-    public void noNextPhase();
+    void noNextPhase();
     
     /**
      * 
      * @return {@code true} if has next phase to execute; {@code false} otherwise
      */
-    public boolean hasNextPhase();
+    boolean hasNextPhase();
 }

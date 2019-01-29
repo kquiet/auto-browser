@@ -44,7 +44,7 @@ public class CloseWindow extends SinglePhaseAction {
     }
 
     @Override
-    protected void performSingle() {
+    protected void performSinglePhase() {
         ActionComposer actionComposer = getComposer();
         //root window should never be closed
         String rootWindow = actionComposer.getRootWindow();

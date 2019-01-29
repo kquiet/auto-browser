@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -43,7 +44,7 @@ import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.IfThenElse;
 
 /**
- * {@link ActionComposer} is responsible to maintain a list of actions, arrange them to be executed through associated {@link ActionRunner} and track their execution result.
+ * {@link ActionComposer} is responsible to maintain a list of actions, arrange them to be executed and track their execution result.
  * If any executed action fails, {@link ActionComposer} marks itself failed as well.
  * 
  * <p>In addition to the actions added by add*() methods, {@link ActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:</p>
@@ -56,13 +57,13 @@ import org.kquiet.browser.action.IfThenElse;
  *
  * @author Kimberly
  */
-public class ActionComposer extends CompletableFuture<Void> implements Runnable,Prioritized {
+public class ActionComposer extends CompletableFuture<Void> implements Runnable,Prioritized,ActionSequenceContainer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionComposer.class);
     
     private ActionRunner actionRunner = null;
 
-    private final Composable initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null).setComposer(this);
-    private final Composable finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null).setComposer(this);
+    private final Composable initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null);
+    private final Composable finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null);
     private final Deque<Composable> mainActionList = new LinkedList<>();
     
     private Consumer<ActionComposer> onFailFunc = (bac)->{};
@@ -89,6 +90,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     private ActionComposer parent = null;
     private ActionComposer child = null;
+    private final Stack<ActionSequenceContainer> executionContextStack = new Stack<>();
     
     /**
      * Create an {@link ActionComposer}
@@ -102,7 +104,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
         if (!runOnce){
             synchronized(this){
                 if (runOnce) return;
-                else runOnce = true;
+                else{
+                    executionContextStack.push(this);
+                    runOnce = true;
+                }
             }
         }
         
@@ -113,7 +118,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
             
             //run init action first
             try{
-                initAction.run();
+                perform(initAction);
                 anyActionFail = anyActionFail || initAction.isFail();
             }catch(Exception ex){
                 LOGGER.warn("{}({}) init action error:{}", ActionComposer.class.getSimpleName(), getName(), initAction.toString(), ex);
@@ -127,7 +132,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
                 while(index<actionList.size() && !isFail() && !isSkipAction()){
                     Composable action = actionList.get(index);
                     try{
-                        action.run();
+                        perform(action);
                         anyActionFail = anyActionFail || action.isFail();
                     }catch(Exception ex){
                         LOGGER.warn("{}({}) action error:{}", ActionComposer.class.getSimpleName(), getName(), action.toString(), ex);
@@ -172,7 +177,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
         
         //run final action after keeping fail info
         try{
-            finalAction.run();
+            perform(finalAction);
         }catch(Exception ex){
             LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
@@ -186,7 +191,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     private void runSuccess(){
         try{
-            finalAction.run();
+            perform(finalAction);
         }catch(Exception ex){
             LOGGER.warn("{}({}) final action error:{}", ActionComposer.class.getSimpleName(), getName(), finalAction.toString(), ex);
         }
@@ -300,7 +305,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with invoking {@link ActionComposer}'s priority
+     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with this {@link ActionComposer}'s priority
      * 
      * @param runnable the object whose run method will be invoked
      * @return a {@link CompletableFuture} representing pending completion of given {@link java.lang.Runnable runnable}
@@ -310,9 +315,27 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after invoking {@link ActionComposer} is done.
+     * Perform action.
+     * 
+     * @param action action to perform
+     */
+    public void perform(Composable action){
+        if (action==null) return;
+        
+        boolean isSequenceContainer = action instanceof ActionSequenceContainer;
+        try{
+            if (isSequenceContainer) executionContextStack.push((ActionSequenceContainer)action);
+            action.setComposer(this);
+            action.perform();
+        }finally{
+            if (isSequenceContainer) executionContextStack.pop();
+        }
+    }
+    
+    /**
+     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after this {@link ActionComposer} is done.
      * Every {@link ActionComposer} has at most one parent/child {@link ActionComposer}.
-     * If invoking {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
+     * If this {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
      * 
      * <p>For example, before calling this method: ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
      * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
@@ -343,7 +366,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return {@code true} if invoking {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if this {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasChild(){
         return child!=null;
@@ -363,7 +386,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return {@code true} if invoking {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if this {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
      */
     public boolean hasParent(){
         return parent!=null;
@@ -382,7 +405,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Switch browser's focus window to invoking {@link ActionComposer}'s focus window.
+     * Switch browser's focus window to this {@link ActionComposer}'s focus window.
      * 
      * @return {@code true} if switch success; {@code false} otherwise
      */
@@ -436,10 +459,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
 
     /**
-     * Set the callback function to be executed when invoking {@link ActionComposer} is marked as failed.
+     * Set the callback function to be executed when this {@link ActionComposer} is marked as failed.
      * 
      * @param onFailFunc the callback function to be executed
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setOnFailFunction(Consumer<ActionComposer> onFailFunc) {
         if (onFailFunc != null) this.onFailFunc = onFailFunc;
@@ -447,10 +470,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Set the callback function to be executed when invoking {@link ActionComposer} is finished without being marked as failed.
+     * Set the callback function to be executed when this {@link ActionComposer} is finished without being marked as failed.
      * 
      * @param onSuccessFunc the callback function to be executed
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setOnSuccessFunction(Consumer<ActionComposer> onSuccessFunc) {
         if (onSuccessFunc != null) this.onSuccessFunc = onSuccessFunc;
@@ -458,11 +481,11 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Set the callback function to be executed when invoking {@link ActionComposer} is done.
+     * Set the callback function to be executed when this {@link ActionComposer} is done.
      * This callback function is executed after <i>fail function</i> and <i>success function</i>.
      * 
      * @param onDoneFunc the callback function to be executed
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setOnDoneFunction(Consumer<ActionComposer> onDoneFunc) {
         if (onDoneFunc != null) this.onDoneFunc = onDoneFunc;
@@ -471,17 +494,17 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return the name of invoking {@link ActionComposer}
+     * @return the name of this {@link ActionComposer}
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set the name of invoking {@link ActionComposer}.
+     * Set the name of this {@link ActionComposer}.
      * 
      * @param name name
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setName(String name) {
         this.name = name;
@@ -494,10 +517,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
 
     /**
-     * Set the priority of invoking {@link ActionComposer}.
+     * Set the priority of this {@link ActionComposer}.
      * 
      * @param priority priority
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setPriority(int priority) {
         this.priority = priority;
@@ -506,7 +529,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return total execution time of invoking {@link ActionComposer}
+     * @return total execution time of this {@link ActionComposer}
      */
     public Duration getCostTime() {
         return totalCostWatch.getDuration();
@@ -518,7 +541,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return {@code true} if invoking {@link ActionComposer} has been marked as failed; {@code false} otherwise
+     * @return {@code true} if this {@link ActionComposer} has been marked as failed; {@code false} otherwise
      */
     public boolean isFail(){
         return isFail;
@@ -526,7 +549,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     /**
      *
-     * @return {@code true} if invoking {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
+     * @return {@code true} if this {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
      */
     public boolean isSuccessfulDone(){
         return isDone() && !isFail;
@@ -534,7 +557,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
 
     /**
      *
-     * @return the url of the last page when invoking {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailUrl() {
         return failUrl;
@@ -542,7 +565,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
 
     /**
      *
-     * @return the content of the last page when invoking {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailPage() {
         return failPage;
@@ -555,12 +578,12 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Enable/Disable the function of keeping fail information when invoking {@link ActionComposer} is marked as failed.
+     * Enable/Disable the function of keeping fail information when this {@link ActionComposer} is marked as failed.
      * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
      * hence this method can be used to determine keep or not.
      * 
      * @param flag {@code true} to enable; {@code false} to disable
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer keepFailInfo(boolean flag){
         this.keepFailInfo = flag;
@@ -595,61 +618,75 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
 
     /**
      * @param windowIdentity the window identity to set as the focus window
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setFocusWindow(String windowIdentity) {
         this.focusWindowIdentity = windowIdentity;
         return this;
     }
     
-    /**
-     * Add action to the last position of list.
-     * 
-     * @param action action to add
-     */
-    public void addActionToLast(Composable action){
-        if (action==null) return;
-        synchronized(this){
-            mainActionList.addLast(action);
-            action.setComposer(this);
-        }
-    }
-    
-    /**
-     * Add action to the first position of list.
-     *
-     * @param action action to add
-     */
-    public void addActionToFirst(Composable action){
-        if (action==null) return;
+    @Override
+    public ActionComposer addToHead(Composable action){
+        if (action==null) return this;
         synchronized(this){
             mainActionList.addFirst(action);
-            action.setComposer(this);
         }
+        return this;
+    }
+    
+    @Override
+    public ActionComposer addToTail(Composable action){
+        if (action==null) return this;
+        synchronized(this){
+            mainActionList.addLast(action);
+        }
+        return this;
+    }
+
+    @Override
+    public ActionComposer addToPosition(Composable action, int position){
+        if (action==null) return this;
+        synchronized(this){
+            final List<Composable> temp = new ArrayList<>(mainActionList);
+            temp.add(position, action);
+            mainActionList.clear();
+            mainActionList.addAll(temp);
+        }
+        return this;
+    }
+
+    /**
+     * Add action to the head of the action sequence of execution context.
+     * 
+     * @param action action to add
+     * @return execution context represented by {@link ActionSequenceContainer}
+     */
+    public ActionSequenceContainer addToHeadByContext(Composable action){
+        ActionSequenceContainer context = executionContextStack.peek();
+        return context.addToHead(action);
+    }
+
+    /**
+     * Add action to the tail of the action sequence of execution context.
+     * 
+     * @param action action to add
+     * @return execution context represented by {@link ActionSequenceContainer}
+     */
+    public ActionSequenceContainer addToTailByContext(Composable action){
+        ActionSequenceContainer context = executionContextStack.peek();
+        return context.addToTail(action);
     }
     
     /**
-     * Add action to the specified position of list.
+     * Add action to specified position of the action sequence of execution context.
      * 
      * @param action action to add
-     * @param position the position(zero-based) to add action
+     * @param position the position(zero-based) to add given action
+     * @return execution context represented by {@link ActionSequenceContainer}
      */
-    public void addActionToIndex(Composable action, int position){
-        if (action==null || position<0 || position>mainActionList.size()) return;
-        synchronized(this){
-            final Deque<Composable> temp = new LinkedList<>(mainActionList);
-            final Deque<Composable> stack = new LinkedList<>();
-            for (int i=0;i<position;i++){
-                stack.addFirst(temp.removeFirst());
-            }
-            temp.addFirst(action);
-            for (int i=0;i<position;i++){
-                temp.addFirst(stack.removeFirst());
-            }
-            mainActionList.clear();
-            mainActionList.addAll(temp);
-            action.setComposer(this);
-        }
+    public ActionSequenceContainer addToPositionByContext(Composable action, int position){
+        ActionSequenceContainer context = executionContextStack.peek();
+        return context.addToPosition(action, position);
     }
     
     private List<Composable> getAllActionInSequence(){
@@ -663,7 +700,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Skip the execution of remaining actions and mark invoking {@link ActionComposer} as failed.
+     * Skip the execution of remaining actions and mark this {@link ActionComposer} as failed.
      */
     public void skipToFail(){
         isFail = true;
@@ -701,7 +738,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * Determine whether open a window as focus window at the begining.
      * 
      * @param openWindowFlag {@code true}: open; {@code false}: not open
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setOpenWindow(boolean openWindowFlag) {
         this.openWindowFlag = openWindowFlag;
@@ -716,7 +753,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * Determine whether close all registered windows at the end.
      * 
      * @param closeWindowFlag {@code true}: close; {@code false}: not close
-     * @return invoking {@link ActionComposer}
+     * @return self reference
      */
     public ActionComposer setCloseWindow(boolean closeWindowFlag) {
         this.closeWindowFlag = closeWindowFlag;

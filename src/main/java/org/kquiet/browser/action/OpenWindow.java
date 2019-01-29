@@ -49,7 +49,7 @@ public class OpenWindow extends SinglePhaseAction {
     }
 
     @Override
-    protected void performSingle() {
+    protected void performSinglePhase() {
         ActionComposer actionComposer = this.getComposer();
         WebDriver brsDriver = actionComposer.getWebDriver();
         //find existing windows before open new one

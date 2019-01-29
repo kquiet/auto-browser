@@ -54,7 +54,7 @@ public class PostForm extends SinglePhaseAction {
     }
 
     @Override
-    protected void performSingle() {
+    protected void performSinglePhase() {
         String formId = UUID.randomUUID().toString();
         ActionComposer actionComposer = this.getComposer();
         try{
