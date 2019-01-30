@@ -15,8 +15,8 @@
  */
 package org.kquiet.concurrent;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor{
     private static final Logger LOGGER = LoggerFactory.getLogger(PausableThreadPoolExecutor.class);
     private volatile boolean isPaused = false;
-    private volatile CountDownLatch pauseLatch = new CountDownLatch(1);
+    private final Semaphore pauseSemaphore = new Semaphore(0);
     private final String poolPrefix;
     private final Consumer<Runnable> afterExecuteFunc;
 
@@ -68,7 +68,8 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
         try {
             while (isPaused){
                 LOGGER.info("{} is pending...", this.poolPrefix);
-                pauseLatch.await();
+                pauseSemaphore.acquire();
+                pauseSemaphore.drainPermits();
                 LOGGER.info("{} comes back to service.", this.poolPrefix);
             }
         } catch (InterruptedException ie) {
@@ -93,6 +94,7 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
      */
     public synchronized void pause() {
         isPaused = true;
+        pauseSemaphore.drainPermits();
     }
 
     /**
@@ -100,8 +102,7 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
      */
     public synchronized void resume() {
         isPaused = false;
-        pauseLatch.countDown();
-        pauseLatch = new CountDownLatch(1);// renew for next pause to use
+        pauseSemaphore.release();
     }
     
     /**

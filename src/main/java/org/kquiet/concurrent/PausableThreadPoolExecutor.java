@@ -18,8 +18,8 @@ package org.kquiet.concurrent;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
     private static final Logger LOGGER = LoggerFactory.getLogger(PausableThreadPoolExecutor.class);
     private volatile boolean isPaused = false;
-    private volatile CountDownLatch pauseLatch = new CountDownLatch(1);
+    private final Semaphore pauseSemaphore = new Semaphore(0);
     private final String poolPrefix;
     private final Consumer<Runnable> afterExecuteFunc;
 
@@ -127,7 +127,8 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
         try {
             while (isPaused){
                 LOGGER.info("{} is pending...", this.poolPrefix);
-                pauseLatch.await();
+                pauseSemaphore.acquire();
+                pauseSemaphore.drainPermits();
                 LOGGER.info("{} comes back to service.", this.poolPrefix);
             }
         } catch (InterruptedException ie) {
@@ -152,6 +153,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
      */
     public synchronized void pause() {
         isPaused = true;
+        pauseSemaphore.drainPermits();
     }
 
     /**
@@ -159,8 +161,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
      */
     public synchronized void resume() {
         isPaused = false;
-        pauseLatch.countDown();
-        pauseLatch = new CountDownLatch(1);// renew for next pause to use
+        pauseSemaphore.release();
     }
     
     /**
