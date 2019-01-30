@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,10 @@ public class IfThenElse extends SinglePhaseAction implements ActionSequenceConta
                 ps.noNextPhase();
             }catch(StaleElementReferenceException ignoreE){
                 if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), ac.getName(), ps, ignoreE);
+            }catch(NoSuchElementException skipE){
+                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): no such element:{}", ActionComposer.class.getSimpleName(), ac.getName(), ps, skipE);
+                obj = null;
+                ps.noNextPhase();
             }catch(Exception e){
                 ps.noNextPhase();
                 throw new ActionException(e);
