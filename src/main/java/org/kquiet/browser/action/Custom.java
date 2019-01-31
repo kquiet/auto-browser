@@ -42,6 +42,15 @@ public class Custom extends MultiPhaseAction {
     private final Consumer<ActionComposer> customFunc;
     private final boolean actAsSinglePhase;
     private final List<By> frameBySequence = new ArrayList<>();
+
+    /**
+     * Create a {@link Custom} acting like a {@link MultiPhaseAction}.
+     * 
+     * @param customAction multiple-phased custom action
+     */    
+    public Custom(Function<MultiPhased, Consumer<ActionComposer>> customAction){
+        this(customAction, null);
+    }
     
     /**
      * Create a {@link Custom} acting like a {@link MultiPhaseAction}.
@@ -53,6 +62,15 @@ public class Custom extends MultiPhaseAction {
         this.customFunc = customAction.apply((MultiPhased)this);
         if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
         this.actAsSinglePhase = false;
+    }
+
+    /**
+     * Create a {@link Custom} acting like a {@link SinglePhaseAction}.
+     * 
+     * @param customAction custom action
+     */
+    public Custom(Consumer<ActionComposer> customAction){
+        this(customAction, null);
     }
     
     /**

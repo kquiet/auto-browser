@@ -247,11 +247,12 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * 
      * @param name register name
      * @param windowIdentity window identity
-     * @return {@code true} if register name and window identity are not empty and the register name isn't registered; {@code false} otherwise
+     * @return {@code true} if register name is not null and window identity are not empty and the register name isn't registered; {@code false} otherwise
      */
     public boolean registerWindow(String name, String windowIdentity){
-        name = Optional.ofNullable(name).orElse("");
-        if (windowIdentity==null || windowIdentity.isEmpty() || registeredWindows.containsKey(name)) return false;
+        if (name==null || windowIdentity==null || windowIdentity.isEmpty()) return false;
+        
+        if (registeredWindows.containsKey(name)) return false;
         else{
             registeredWindows.put(name, windowIdentity);
             return true;
@@ -315,7 +316,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     }
     
     /**
-     * Perform action.
+     * Perform action. Any {@link Composable} should be performed by this method.
      * 
      * @param action action to perform
      */

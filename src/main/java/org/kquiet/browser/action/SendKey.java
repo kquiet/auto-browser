@@ -43,6 +43,16 @@ public class SendKey extends MultiPhaseAction {
     private final List<By> frameBySequence = new ArrayList<>();
     private final CharSequence[] keysToSend;
     private final boolean clearBeforeSend;
+
+    /**
+     *
+     * @param by the element locating mechanism
+     * @param clearBeforeSend {@code true}: clear before sending; {@code false}: send without clearing first
+     * @param keysToSend character sequence to send to the element
+     */
+    public SendKey(By by, boolean clearBeforeSend, CharSequence... keysToSend){
+        this(by, null, clearBeforeSend, keysToSend);
+    }
     
     /**
      *

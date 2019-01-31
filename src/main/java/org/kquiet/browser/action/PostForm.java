@@ -45,6 +45,15 @@ public class PostForm extends SinglePhaseAction {
      * 
      * @param url the address where to submit the form
      * @param formData the form data to submit
+     */
+    public PostForm(String url, List<SimpleImmutableEntry<String,String>> formData){
+        this(url, formData, null);
+    }
+    
+    /**
+     * 
+     * @param url the address where to submit the form
+     * @param formData the form data to submit
      * @param acceptCharset the charset used in the submitted form
      */
     public PostForm(String url, List<SimpleImmutableEntry<String,String>> formData, String acceptCharset){

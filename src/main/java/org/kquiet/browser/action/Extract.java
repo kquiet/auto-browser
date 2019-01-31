@@ -44,6 +44,49 @@ public class Extract extends MultiPhaseAction {
     private final List<By> frameBySequence = new ArrayList<>();
     private final String textVariableName;
     private final Map<String, String> attrVariableNames = new LinkedHashMap<>();
+
+    /**
+     * @param by the element locating mechanism
+     * @param textVariableName text variable name; non-empty name means to get the visible (i.e. not hidden by CSS) text of the element(including sub-elements) as a variable of {@link ActionComposer}
+     */
+    public Extract(By by, String textVariableName){
+        this(by, null, textVariableName, null);
+    }
+    
+    /**
+     * @param by the element locating mechanism
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
+     * @param textVariableName text variable name; non-empty name means to get the visible (i.e. not hidden by CSS) text of the element(including sub-elements) as a variable of {@link ActionComposer}
+     */
+    public Extract(By by, List<By> frameBySequence, String textVariableName){
+        this(by, frameBySequence, textVariableName, null);
+    }
+    
+    /**
+     * @param by the element locating mechanism
+     * @param attrVariableNames (attribute name, variable name) pairs to set as variables. For each pair, {@link Extract} sets the property value of the element as a variable of {@link ActionComposer} if the property exists. If property doesn't exists, {@link Extract} sets the attribute value of the element as a variable of {@link ActionComposer}. If neither exists, null-value variable is set.
+     */
+    public Extract(By by, Map<String, String> attrVariableNames){
+        this(by, null, null, attrVariableNames);
+    }
+
+    /**
+     * @param by the element locating mechanism
+     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
+     * @param attrVariableNames (attribute name, variable name) pairs to set as variables. For each pair, {@link Extract} sets the property value of the element as a variable of {@link ActionComposer} if the property exists. If property doesn't exists, {@link Extract} sets the attribute value of the element as a variable of {@link ActionComposer}. If neither exists, null-value variable is set.
+     */
+    public Extract(By by, List<By> frameBySequence, Map<String, String> attrVariableNames){
+        this(by, frameBySequence, null, attrVariableNames);
+    }
+    
+    /**
+     * @param by the element locating mechanism
+     * @param textVariableName text variable name; non-empty name means to get the visible (i.e. not hidden by CSS) text of the element(including sub-elements) as a variable of {@link ActionComposer}
+     * @param attrVariableNames (attribute name, variable name) pairs to set as variables. For each pair, {@link Extract} sets the property value of the element as a variable of {@link ActionComposer} if the property exists. If property doesn't exists, {@link Extract} sets the attribute value of the element as a variable of {@link ActionComposer}. If neither exists, null-value variable is set.
+     */
+    public Extract(By by, String textVariableName, Map<String, String> attrVariableNames){
+        this(by, null, textVariableName, attrVariableNames);
+    }
     
     /**
      * @param by the element locating mechanism

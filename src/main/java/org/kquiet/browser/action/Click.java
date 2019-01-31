@@ -44,6 +44,14 @@ public class Click extends MultiPhaseAction {
     /**
      *
      * @param by the element locating mechanism
+     */
+    public Click(By by){
+        this(by, null);
+    }
+    
+    /**
+     *
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      */
     public Click(By by, List<By> frameBySequence){

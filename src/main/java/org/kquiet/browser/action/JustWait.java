@@ -27,6 +27,15 @@ public class JustWait extends MultiPhaseAction {
     
     private final int totalTimeout;
     private final int phaseTimeout;
+
+    /**
+     * With phase timeout defaulted to 10.
+     * 
+     * @param totalTimeout the maximum amount of time to wait totally
+     */
+    public JustWait(int totalTimeout){
+        this(totalTimeout, 10);
+    }
     
     /**
      *

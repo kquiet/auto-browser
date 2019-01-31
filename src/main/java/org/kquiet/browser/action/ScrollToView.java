@@ -46,6 +46,15 @@ public class ScrollToView extends MultiPhaseAction {
     /**
      *
      * @param by the element locating mechanism
+     * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
+     */
+    public ScrollToView(By by, boolean toTop){
+        this(by, null, toTop);
+    }
+    
+    /**
+     *
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param toTop {@code true}: scroll to top;{@code false}: scroll to bottom
      */

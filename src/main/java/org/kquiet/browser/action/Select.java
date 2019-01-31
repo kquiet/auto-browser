@@ -68,6 +68,16 @@ public class Select extends MultiPhaseAction {
     /**
      *
      * @param by the element locating mechanism
+     * @param selectBy the way to perform the selecting
+     * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options
+     */
+    public Select(By by, SelectBy selectBy, Object... options){
+        this(by, null, selectBy, options);
+    }
+    
+    /**
+     *
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param selectBy the way to perform the selecting
      * @param options the option to select; all options are deselected when no option is supplied and the SELECT element supports selecting multiple options

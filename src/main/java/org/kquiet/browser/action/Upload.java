@@ -56,6 +56,15 @@ public class Upload extends MultiPhaseAction {
     /**
      *
      * @param by the element locating mechanism
+     * @param pathOfFiles the paths of files to upload
+     */
+    public Upload(By by, String... pathOfFiles){
+        this(by, null, pathOfFiles);
+    }
+    
+    /**
+     *
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      * @param pathOfFiles the paths of files to upload
      */

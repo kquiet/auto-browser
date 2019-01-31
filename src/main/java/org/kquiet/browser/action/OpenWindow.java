@@ -39,13 +39,31 @@ public class OpenWindow extends SinglePhaseAction {
     private final String registerName;
     
     /**
+     * Open window with an option to set it as focus window.
+     * 
+     * @param asComposerFocusWindow {@code true}: set opened window as focus window; {@code false}: don't set opened window as focus window
+     */
+    public OpenWindow(boolean asComposerFocusWindow){
+        this(asComposerFocusWindow, null);
+    }
+    
+    /**
+     * Open window and register it.
+     * 
+     * @param registerName name to register
+     */
+    public OpenWindow(String registerName){
+        this(false, registerName);
+    }
+    
+    /**
      *
      * @param asComposerFocusWindow {@code true}: set opened window as focus window; {@code false}: don't set opened window as focus window
      * @param registerName name to register
      */
     public OpenWindow(boolean asComposerFocusWindow, String registerName){
         this.asComposerFocusWindow = asComposerFocusWindow;
-        this.registerName = Optional.ofNullable(registerName).orElse("");
+        this.registerName = registerName;
     }
 
     @Override
@@ -73,11 +91,11 @@ public class OpenWindow extends SinglePhaseAction {
             //got new window
             if (!winHandle.equals(rootWindow) && !beforeWindowSet.contains(winHandle)){
                 actualHandle=winHandle;
-                if (this.asComposerFocusWindow){
+                if (asComposerFocusWindow){
                     actionComposer.setFocusWindow(actualHandle);
                 }
-                if (!actionComposer.registerWindow(this.registerName, actualHandle)){
-                    throw new ActionException(String.format("can't register new window:%s", this.registerName));
+                if (registerName!=null && !actionComposer.registerWindow(registerName, actualHandle)){
+                    throw new ActionException(String.format("can't register new window:%s", registerName));
                 }
                 break;
             }

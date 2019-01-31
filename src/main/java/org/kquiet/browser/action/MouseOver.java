@@ -45,6 +45,14 @@ public class MouseOver extends MultiPhaseAction {
     /**
      *
      * @param by the element locating mechanism
+     */
+    public MouseOver(By by){
+        this(by, null);
+    }
+    
+    /**
+     *
+     * @param by the element locating mechanism
      * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
      */
     public MouseOver(By by, List<By> frameBySequence){
