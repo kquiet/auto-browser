@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.ActionSequenceContainer;
 import org.kquiet.browser.action.exception.ActionException;
+import org.kquiet.browser.AddableActionSequence;
 
 /**
  * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according to the evaluation result of specified function.
@@ -46,7 +46,7 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 @Nonbrowserable
-public class IfThenElse extends SinglePhaseAction implements ActionSequenceContainer{
+public class IfThenElse extends SinglePhaseAction implements AddableActionSequence{
     private static final Logger LOGGER = LoggerFactory.getLogger(IfThenElse.class);
     
     private final Deque<Composable> positiveActionList = new LinkedList<>();
@@ -141,7 +141,7 @@ public class IfThenElse extends SinglePhaseAction implements ActionSequenceConta
      * Add action to the head of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
      */
     @Override
-    public ActionSequenceContainer addToHead(Composable action) {
+    public AddableActionSequence addToHead(Composable action) {
         if (action!=null && evaluationResult!=null){
             Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
             synchronized(actualActionList){
@@ -155,7 +155,7 @@ public class IfThenElse extends SinglePhaseAction implements ActionSequenceConta
      * Add action to the tail of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
      */
     @Override
-    public ActionSequenceContainer addToTail(Composable action) {
+    public AddableActionSequence addToTail(Composable action) {
         if (action!=null && evaluationResult!=null){
             Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
             synchronized(actualActionList){
@@ -169,7 +169,7 @@ public class IfThenElse extends SinglePhaseAction implements ActionSequenceConta
      * Add action to the the specified position of positive or negative list. It depends on the evaluation result and does nothing before evaulation.
      */
     @Override
-    public ActionSequenceContainer addToPosition(Composable action, int position) {
+    public AddableActionSequence addToPosition(Composable action, int position) {
         if (action!=null && evaluationResult!=null){
             Deque<Composable> actualActionList = evaluationResult?positiveActionList:negativeActionList;
             synchronized(actualActionList){

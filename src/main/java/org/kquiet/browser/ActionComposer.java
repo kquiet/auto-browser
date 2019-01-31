@@ -57,7 +57,7 @@ import org.kquiet.browser.action.IfThenElse;
  *
  * @author Kimberly
  */
-public class ActionComposer extends CompletableFuture<Void> implements Runnable,Prioritized,ActionSequenceContainer {
+public class ActionComposer extends CompletableFuture<Void> implements Runnable,Prioritized,AddableActionSequence {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionComposer.class);
     
     private ActionRunner actionRunner = null;
@@ -90,7 +90,7 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     
     private ActionComposer parent = null;
     private ActionComposer child = null;
-    private final Stack<ActionSequenceContainer> executionContextStack = new Stack<>();
+    private final Stack<AddableActionSequence> executionContextStack = new Stack<>();
     
     /**
      * Create an {@link ActionComposer}
@@ -322,9 +322,9 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
     public void perform(Composable action){
         if (action==null) return;
         
-        boolean isSequenceContainer = action instanceof ActionSequenceContainer;
+        boolean isSequenceContainer = action instanceof AddableActionSequence;
         try{
-            if (isSequenceContainer) executionContextStack.push((ActionSequenceContainer)action);
+            if (isSequenceContainer) executionContextStack.push((AddableActionSequence)action);
             action.setComposer(this);
             action.perform();
         }finally{
@@ -659,10 +659,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * Add action to the head of the action sequence of execution context.
      * 
      * @param action action to add
-     * @return execution context represented by {@link ActionSequenceContainer}
+     * @return execution context represented by {@link AddableActionSequence}
      */
-    public ActionSequenceContainer addToHeadByContext(Composable action){
-        ActionSequenceContainer context = executionContextStack.peek();
+    public AddableActionSequence addToHeadByContext(Composable action){
+        AddableActionSequence context = executionContextStack.peek();
         return context.addToHead(action);
     }
 
@@ -670,10 +670,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * Add action to the tail of the action sequence of execution context.
      * 
      * @param action action to add
-     * @return execution context represented by {@link ActionSequenceContainer}
+     * @return execution context represented by {@link AddableActionSequence}
      */
-    public ActionSequenceContainer addToTailByContext(Composable action){
-        ActionSequenceContainer context = executionContextStack.peek();
+    public AddableActionSequence addToTailByContext(Composable action){
+        AddableActionSequence context = executionContextStack.peek();
         return context.addToTail(action);
     }
     
@@ -682,10 +682,10 @@ public class ActionComposer extends CompletableFuture<Void> implements Runnable,
      * 
      * @param action action to add
      * @param position the position(zero-based) to add given action
-     * @return execution context represented by {@link ActionSequenceContainer}
+     * @return execution context represented by {@link AddableActionSequence}
      */
-    public ActionSequenceContainer addToPositionByContext(Composable action, int position){
-        ActionSequenceContainer context = executionContextStack.peek();
+    public AddableActionSequence addToPositionByContext(Composable action, int position){
+        AddableActionSequence context = executionContextStack.peek();
         return context.addToPosition(action, position);
     }
     

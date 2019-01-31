@@ -18,17 +18,18 @@ package org.kquiet.browser;
 import org.kquiet.browser.action.Composable;
 
 /**
+ * An {@link AddableActionSequence} is a sequence of actions which supports add operations.
  * 
  * @author Kimberly
  */
-public interface ActionSequenceContainer {
+public interface AddableActionSequence {
     /**
      * Add action to the head of the action sequence.
      * 
      * @param action action to add
      * @return self reference
      */
-    ActionSequenceContainer addToHead(Composable action);
+    AddableActionSequence addToHead(Composable action);
     
     /**
      * Add action to the tail of the action sequence.
@@ -36,7 +37,7 @@ public interface ActionSequenceContainer {
      * @param action action to add
      * @return self reference
      */
-    ActionSequenceContainer addToTail(Composable action);
+    AddableActionSequence addToTail(Composable action);
     
     /**
      * Add action to the specified position of the action sequence.
@@ -45,15 +46,15 @@ public interface ActionSequenceContainer {
      * @param position the position(zero-based) to add given action
      * @return self reference
      */
-    ActionSequenceContainer addToPosition(Composable action, int position);
+    AddableActionSequence addToPosition(Composable action, int position);
     
     /**
-     * Add action to the tail of the action sequence.
+     * Add action to the tail of the action sequence. This method is a short cut of {@link #addToTail(org.kquiet.browser.action.Composable) }
      * 
      * @param action action to add
      * @return self reference
      */
-    default ActionSequenceContainer add(Composable action){
+    default AddableActionSequence add(Composable action){
         return addToTail(action);
     }
 }
