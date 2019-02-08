@@ -15,7 +15,6 @@
  */
 package org.kquiet.test;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -67,7 +66,6 @@ import org.takes.rs.RsWithType;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
-import org.kquiet.browser.BasicActionComposer;
 import org.kquiet.browser.action.Custom;
 import org.kquiet.browser.action.ReplyAlert;
 

@@ -38,16 +38,8 @@ import org.kquiet.utility.Stopwatch;
 import org.kquiet.browser.action.Composable;
 
 /**
- * {@link ActionComposer} is responsible to maintain a list of actions, arrange them to be executed and track their execution result.
- * If any executed action fails, {@link ActionComposer} marks itself failed as well.
- * 
- * <p>In addition to the actions added by add*() methods, {@link ActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:</p>
- * <ul>
- * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i> with an empty register name.
- * All actions should be executed against this focus window to be isolated from other {@link ActionComposer}, however it could be changed by actions if necessary.
- * If no focus window is specified, it will use the root window of {@link ActionRunner} as its focus window.</li>
- * <li>The action executed at the end is called as <i>Final Action</i>, which closes all registered windows. </li>
- * </ul>
+ * {@link AbstractActionComposer} implements most methods of {@link ActionComposer} to lay ground works for possible subclasses.
+ * {@link AbstractActionComposer} itself is a subclass of {@link CompletableFuture<Void>}, so any subclass of {@link AbstractActionComposer} should complete itself explictly in {@link #run()}.
  *
  * @author Kimberly
  */
@@ -82,7 +74,6 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void> imp
      */
     public AbstractActionComposer(){
     }
-    
     
     @Override
     public AbstractActionComposer setActionRunner(ActionRunner actionRunner){
@@ -128,11 +119,6 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void> imp
     @Override
     public Object getVariable(String variableName){
         return variableMap.get(variableName);
-    }
-    
-    @Override
-    public void removeVariable(String variableName){
-        variableMap.remove(variableName);
     }
     
     @Override

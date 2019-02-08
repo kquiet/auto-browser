@@ -28,7 +28,9 @@ import org.kquiet.browser.action.Composable;
 
 /**
  * {@link ActionComposer} is responsible to maintain a sequence of actions, arrange them to be executed and track their execution result.
- * If any executed action fails, {@link ActionComposer} marks itself failed as well.
+ * If any executed action fails, {@link ActionComposer} should mark itself failed as well.
+ * 
+ * <p>{@link ActionComposer} also works as a context across actions. It provides some methods to keep information of windows and variables for these actions to use.</p>
  *
  * @author Kimberly
  */
@@ -49,14 +51,15 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     ActionComposer setName(String name);
     
     /**
-     *
+     * Set associated {@link ActionRunner}.
+     * 
      * @param actionRunner action runner to set
      * @return self reference
      */
     ActionComposer setActionRunner(ActionRunner actionRunner);
     
     /**
-     * Register a window.
+     * Register a window to keep window identity.
      * 
      * @param name register name
      * @param windowIdentity window identity
@@ -73,7 +76,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     
     /**
      *
-     * @return all windows(register name and window identity) of registered windows
+     * @return all registered windows(register name and window identity)
      */
     Map<String, String> getRegisteredWindows();
     
@@ -86,13 +89,6 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     Object getVariable(String variableName);
     
     /**
-     * remove specified variable.
-     * 
-     * @param variableName variable name
-     */
-    void removeVariable(String variableName);
-    
-    /**
      * Set variable value.
      * 
      * @param variableName variable name
@@ -102,10 +98,10 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     ActionComposer setVariable(String variableName, Object value);
     
     /**
-     * Delegate the execution of {@link java.lang.Runnable runnable} to associated {@link ActionRunner} with this {@link ActionComposer}'s priority
+     * Delegate the execution of {@link Runnable} to associated {@link ActionRunner} with this {@link ActionComposer}'s priority
      * 
      * @param runnable the object whose run method will be invoked
-     * @return a {@link CompletableFuture} representing pending completion of given {@link java.lang.Runnable runnable}
+     * @return a {@link CompletableFuture} representing pending completion of given {@link Runnable}
      */
     CompletableFuture<Void> callBrowser(Runnable runnable);
     
@@ -217,14 +213,14 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     public ActionComposer onDone(Consumer<ActionComposer> onDoneFunc);
     
     /**
-     * Get {@link org.openqa.selenium.WebDriver WebDriver} from associated {@link ActionRunner}.
-     * Use this with caution because the associated {@link ActionRunner} use the same {@link org.openqa.selenium.WebDriver WebDriver} when executing browser actions,
-     * however {@link org.openqa.selenium.WebDriver WebDriver} is <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">not thread-safe</a>.
+     * Get {@link WebDriver} from associated {@link ActionRunner}.
+     * Use this with caution because the associated {@link ActionRunner} use the same {@link WebDriver} when executing browser actions,
+     * however {@link WebDriver} is <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">not thread-safe</a>.
      * 
-     * <p>A safer way to use this is to encapsulate the process in a {@link java.lang.Runnable Runnable}, or use built-in {@link org.kquiet.browser.action.Custom custom action},
+     * <p>A safer way to use this is to encapsulate the process in a {@link Runnable}, or use built-in {@link Custom custom action},
      * and then execute it through {@link ActionRunner#executeAction(java.lang.Runnable, int)}.</p>
      * 
-     * @return the {@link org.openqa.selenium.WebDriver WebDriver} from associated {@link ActionRunner}.
+     * @return the {@link WebDriver} of associated {@link ActionRunner}.
      */
     WebDriver getWebDriver();
     
@@ -232,7 +228,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * Add action to the head of the action sequence of execution context.
      * 
      * @param action action to add
-     * @return execution context represented by {@link AddableActionSequence}
+     * @return execution context of actions
      */
     AddableActionSequence addToHeadByContext(Composable action);
 
@@ -240,7 +236,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * Add action to the tail of the action sequence of execution context.
      * 
      * @param action action to add
-     * @return execution context represented by {@link AddableActionSequence}
+     * @return execution context of actions
      */
     AddableActionSequence addToTailByContext(Composable action);
     
@@ -249,7 +245,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * 
      * @param action action to add
      * @param position the position(zero-based) to add given action
-     * @return execution context represented by {@link AddableActionSequence}
+     * @return execution context of actions
      */
     AddableActionSequence addToPositionByContext(Composable action, int position);
 }

@@ -29,10 +29,8 @@ import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.IfThenElse;
 
 /**
- * {@link BasicActionComposer} is responsible to maintain a list of actions, arrange them to be executed and track their execution result.
- * If any executed action fails, {@link ActionComposer} marks itself failed as well.
- * 
- * <p>In addition to the actions added by add*() methods, {@link ActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:</p>
+ * {@link BasicActionComposer} provides basic implementation of {@ActionComposer}.
+ * In addition to the actions added by add*() methods, {@link BasicActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:
  * <ul>
  * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i> with an empty register name.
  * All actions should be executed against this focus window to be isolated from other {@link ActionComposer}, however it could be changed by actions if necessary.
@@ -211,15 +209,19 @@ public class BasicActionComposer extends AbstractActionComposer {
     }
    
     /**
-     * Delegate the execution of given child {@link ActionComposer} to associated {@link ActionRunner} after this {@link ActionComposer} is done.
-     * Every {@link ActionComposer} has at most one parent/child {@link ActionComposer}.
-     * If this {@link ActionComposer} already has a child {@link ActionComposer}, the <i>original</i> child {@link ActionComposer} will be postponed.
+     * Delegate the execution of given child {@link BasicActionComposer} to associated {@link ActionRunner} after this {@link BasicActionComposer} is done.
+     * Every {@link BasicActionComposer} has at most one parent/child {@link BasicActionComposer}.
+     * If this {@link BasicActionComposer} already has a child {@link BasicActionComposer}, the <i>original</i> child {@link BasicActionComposer} will be postponed.
      * 
      * <p>For example, before calling this method: ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
      * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
      * 
-     * @param childActionComposer the {@link ActionComposer} to be executed
-     * @return child {@link ActionComposer}
+     * <p>This method works differently as methods of {@CompletableFuture<Void>}.
+     * It just keeps the reference of child {@link BasicActionComposer} and this {@link BasicActionComposer} will hand it to associated {@link ActionRunner} when finished,
+     * and then let the {@link ActionRunner} schedule the execution.</p>
+     * 
+     * @param childActionComposer the {@link BasicActionComposer} to be executed
+     * @return child {@link BasicActionComposer}
      */
     public BasicActionComposer continueWith(BasicActionComposer childActionComposer){
         if (childActionComposer==null) return this;
@@ -244,7 +246,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has child {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if this {@link BasicActionComposer} has child {@link BasicActionComposer}; {@code false} otherwise
      */
     public boolean hasChild(){
         return child!=null;
@@ -252,7 +254,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return child {@link ActionComposer} if exists; {@code null} otherwise
+     * @return child {@link BasicActionComposer} if exists; {@code null} otherwise
      */
     public BasicActionComposer getChild(){
         return child;
@@ -264,7 +266,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has parent {@link ActionComposer}; {@code false} otherwise
+     * @return {@code true} if this {@link BasicActionComposer} has parent {@link BasicActionComposer}; {@code false} otherwise
      */
     public boolean hasParent(){
         return parent!=null;
@@ -272,7 +274,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return parent {@link ActionComposer} if exists; {@code null} otherwise
+     * @return parent {@link BasicActionComposer} if exists; {@code null} otherwise
      */
     public BasicActionComposer getParent(){
         return parent;
@@ -318,7 +320,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} has been marked as failed; {@code false} otherwise
+     * @return {@code true} if this {@link BasicActionComposer} has been marked as failed; {@code false} otherwise
      */
     @Override
     public boolean isFail(){
@@ -327,7 +329,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     
     /**
      *
-     * @return {@code true} if this {@link ActionComposer} is done without being marked as failed; {@code false} otherwise
+     * @return {@code true} if this {@link BasicActionComposer} is done without being marked as failed; {@code false} otherwise
      */
     @Override
     public boolean isSuccessfulDone(){
@@ -336,7 +338,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
     /**
      *
-     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the url of the last page when this {@link BasicActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailUrl() {
         return failUrl;
@@ -344,7 +346,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
     /**
      *
-     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     * @return the content of the last page when this {@link BasicActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
      */
     public String getFailPage() {
         return failPage;
@@ -356,7 +358,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     }
     
     /**
-     * Enable/Disable the function of keeping fail information when this {@link ActionComposer} is marked as failed.
+     * Enable/Disable the function of keeping fail information when this {@link BasicActionComposer} is marked as failed.
      * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
      * hence this method can be used to determine keep or not.
      * 
@@ -402,7 +404,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     }
     
     /**
-     * Skip the execution of remaining actions and mark this {@link ActionComposer} as failed.
+     * Skip the execution of remaining actions and mark this {@link BasicActionComposer} as failed.
      */
     @Override
     public void skipToFail(){
