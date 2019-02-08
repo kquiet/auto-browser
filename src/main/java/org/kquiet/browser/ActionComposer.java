@@ -188,12 +188,40 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     void skipToSuccess();
     
     /**
+     * 
+     * @return error list from executed actions
+     */
+    List<Exception> getErrors();
+    
+    /**
+     *
+     * @return the url of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     */
+    String getFailUrl();
+
+    /**
+     *
+     * @return the content of the last page when this {@link ActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
+     */
+    String getFailPage();
+    
+    /**
+     * Enable/Disable the function of keeping fail information when this {@link ActionComposer} is marked as failed.
+     * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
+     * hence this method can be used to determine keep or not.
+     * 
+     * @param flag {@code true} to enable; {@code false} to disable
+     * @return self reference
+     */
+    ActionComposer keepFailInfo(boolean flag);
+    
+    /**
      * Set the callback function to be executed when this {@link ActionComposer} is marked as failed.
      * 
      * @param onFailFunc the callback function to be executed
      * @return self reference
      */
-    public ActionComposer onFail(Consumer<ActionComposer> onFailFunc);
+    ActionComposer onFail(Consumer<ActionComposer> onFailFunc);
     
     /**
      * Set the callback function to be executed when this {@link ActionComposer} is finished without being marked as failed.
@@ -201,7 +229,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * @param onSuccessFunc the callback function to be executed
      * @return self reference
      */
-    public ActionComposer onSuccess(Consumer<ActionComposer> onSuccessFunc);
+    ActionComposer onSuccess(Consumer<ActionComposer> onSuccessFunc);
     
     /**
      * Set the callback function to be executed when this {@link ActionComposer} is done.
@@ -210,7 +238,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * @param onDoneFunc the callback function to be executed
      * @return self reference
      */
-    public ActionComposer onDone(Consumer<ActionComposer> onDoneFunc);
+    ActionComposer onDone(Consumer<ActionComposer> onDoneFunc);
     
     /**
      * Get {@link WebDriver} from associated {@link ActionRunner}.

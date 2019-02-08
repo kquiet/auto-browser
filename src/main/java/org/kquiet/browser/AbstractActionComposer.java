@@ -343,8 +343,9 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void> imp
     
     /**
      * 
-     * @return exception list from executed actions
+     * @return error list from executed actions
      */
+    @Override
     public List<Exception> getErrors(){
         List<Composable> actionList = getAllActionInSequence();
         List<Exception> result = new ArrayList<>();

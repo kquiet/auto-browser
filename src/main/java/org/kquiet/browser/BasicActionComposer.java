@@ -336,18 +336,12 @@ public class BasicActionComposer extends AbstractActionComposer {
         return isDone() && !isFail;
     }
 
-    /**
-     *
-     * @return the url of the last page when this {@link BasicActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
-     */
+    @Override
     public String getFailUrl() {
         return failUrl;
     }
 
-    /**
-     *
-     * @return the content of the last page when this {@link BasicActionComposer} is marked as failed and {@link #keepFailInfo(boolean) keep fail info} is enabled; {@code null} otherwise
-     */
+    @Override
     public String getFailPage() {
         return failPage;
     }
@@ -357,14 +351,7 @@ public class BasicActionComposer extends AbstractActionComposer {
         this.failPage = failPage;
     }
     
-    /**
-     * Enable/Disable the function of keeping fail information when this {@link BasicActionComposer} is marked as failed.
-     * The function of keeping fail information takes about one second to complete, however this may seem wasteful in many applications,
-     * hence this method can be used to determine keep or not.
-     * 
-     * @param flag {@code true} to enable; {@code false} to disable
-     * @return self reference
-     */
+    @Override
     public BasicActionComposer keepFailInfo(boolean flag){
         this.keepFailInfo = flag;
         return this;

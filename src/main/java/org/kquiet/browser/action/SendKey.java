@@ -119,7 +119,7 @@ public class SendKey extends MultiPhaseAction {
     
     @Override
     public String toString(){
-        return String.format("%s:%s/%s/%s/%s"
+        return String.format("%s:%s/%s/%s"
                 , SendKey.class.getSimpleName(), by.toString(), String.join(",", keysToSend)
                 , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList())));
     }
