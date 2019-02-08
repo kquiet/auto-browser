@@ -20,6 +20,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,23 +71,27 @@ import org.kquiet.browser.action.MultiPhased;
  * @author Kimberly
  */
 public class ActionComposerBuilder{
-    private volatile ActionComposer actionComposer = null;
+    private Deque<Composable> actionList;
+    private Consumer<ActionComposer> failFunc, successFunc, doneFunc;
     
     /**
      * Create a new {@link ActionComposerBuilder}
      */
     public ActionComposerBuilder(){
-        prepareNextActionComposer();
+        prepareNext();
     }
     
-    private void prepareNextActionComposer(){
-        if (actionComposer==null){
-            actionComposer = new ActionComposer();
+    private void prepareNext(){
+        if (actionList==null){
+            actionList = new LinkedList<>();
         }
     }
     
-    private void clearActionComposer(){
-        this.actionComposer = null;
+    private void reset(){
+        actionList = null;
+        failFunc = null;
+        successFunc = null;
+        doneFunc = null;
     }
 
     /**
@@ -95,8 +101,8 @@ public class ActionComposerBuilder{
      * @return self reference
      */    
     private ActionComposerBuilder add(Composable action){
-        prepareNextActionComposer();
-        actionComposer.addToTail(action);
+        prepareNext();
+        actionList.addLast(action);
         return this;
     }
     
@@ -108,7 +114,7 @@ public class ActionComposerBuilder{
      * @see ActionComposer#setOnFailFunction(java.util.function.Consumer) 
      */
     public ActionComposerBuilder onFail(Consumer<ActionComposer> func){
-        actionComposer.setOnFailFunction(func);
+        failFunc = func;
         return this;
     }
     
@@ -120,7 +126,7 @@ public class ActionComposerBuilder{
      * @see ActionComposer#setOnSuccessFunction(java.util.function.Consumer) 
      */
     public ActionComposerBuilder onSuccess(Consumer<ActionComposer> func){
-        actionComposer.setOnSuccessFunction(func);
+        successFunc = func;
         return this;
     }
     
@@ -132,62 +138,69 @@ public class ActionComposerBuilder{
      * @see ActionComposer#setOnDoneFunction(java.util.function.Consumer) 
      */
     public ActionComposerBuilder onDone(Consumer<ActionComposer> func){
-        actionComposer.setOnDoneFunction(func);
+        doneFunc = func;
         return this;
+    }
+    
+    private void commonBuild(ActionComposer actionComposer, String name){
+        actionComposer.setName(name).onFail(failFunc).onSuccess(successFunc).onDone(doneFunc);
+        actionList.forEach(s->actionComposer.addToTail(s));        
+        
+        //clear and prepare for next build
+        reset();
+        prepareNext();
+    }
+    
+    /**
+     * Finish building the {@link BasicActionComposer}.
+     * 
+     * @return the built {@link BasicActionComposer}
+     */
+    public BasicActionComposer buildBasic(){
+        return buildBasic(UUID.randomUUID().toString());
+    }
+    
+    /**
+     * Finish building the {@link BasicActionComposer} with its name.
+     * 
+     * @param name name of {@link BasicActionComposer}
+     * @return the built {@link BasicActionComposer}
+     */
+    public BasicActionComposer buildBasic(String name){
+        BasicActionComposer actionComposer = new BasicActionComposer();
+        commonBuild(actionComposer, name);
+        return actionComposer;
     }
     
     /**
      * Finish building the {@link ActionComposer}.
      * 
+     * @param <T> The type of {@link ActionComposer} to build
+     * @param composerType The type of {@link ActionComposer} to build
      * @return the built {@link ActionComposer}
+     * @throws java.lang.ClassNotFoundException
+     * @throws java.lang.InstantiationException
+     * @throws java.lang.IllegalAccessException
      */
-    public ActionComposer build(){
-        return build(UUID.randomUUID().toString(), true, true);
-    }
-    
-    /**
-     * Finish building the {@link ActionComposer} with window-control parameters.
-     * 
-     * @param openWindowFlag {@code true}: open window; {@code false}: not open
-     * @param closeWindowFlag {@code true}: close window; {@code false}: not close
-     * @return the built {@link ActionComposer}
-     * @see ActionComposer#setOpenWindow(boolean) 
-     * @see ActionComposer#setCloseWindow(boolean) 
-     */
-    public ActionComposer build(boolean openWindowFlag, boolean closeWindowFlag){
-        return build(UUID.randomUUID().toString(), openWindowFlag, closeWindowFlag);
+    public <T extends ActionComposer> T build(Class<T> composerType) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+        return build(composerType, UUID.randomUUID().toString());
     }
     
     /**
      * Finish building the {@link ActionComposer} with its name.
      * 
+     * @param <T> The type of {@link ActionComposer} to build
+     * @param composerType The type of {@link ActionComposer} to build
      * @param name name of {@link ActionComposer}
      * @return the built {@link ActionComposer}
+     * @throws java.lang.ClassNotFoundException
+     * @throws java.lang.InstantiationException
+     * @throws java.lang.IllegalAccessException
      */
-    public ActionComposer build(String name){
-        return build(name, true, true);
-    }
-    
-    /**
-     * Finish building the {@link ActionComposer} with its name and window-control parameters.
-     * 
-     * @param name name of {@link ActionComposer}
-     * @param openWindowFlag {@code true}: open window; {@code false}: not open
-     * @param closeWindowFlag {@code true}: close window; {@code false}: not close
-     * @return the built {@link ActionComposer}
-     * @see ActionComposer#setOpenWindow(boolean) 
-     * @see ActionComposer#setCloseWindow(boolean) 
-     */
-    public ActionComposer build(String name, boolean openWindowFlag, boolean closeWindowFlag){
-        final ActionComposer currentActionComposer = actionComposer;
-        currentActionComposer.setName(name);
-        currentActionComposer.setOpenWindow(openWindowFlag);
-        currentActionComposer.setCloseWindow(closeWindowFlag);
-        
-        //clear and prepare for next build
-        clearActionComposer();
-        prepareNextActionComposer();
-        return currentActionComposer;
+    public <T extends ActionComposer> T build(Class<T> composerType, String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+        @SuppressWarnings("unchecked") final T actionComposer = (T)Class.forName(composerType.getName()).newInstance();
+        commonBuild(actionComposer, name);
+        return actionComposer;
     }
     
     /**

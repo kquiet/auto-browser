@@ -67,6 +67,7 @@ import org.takes.rs.RsWithType;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.BasicActionComposer;
 import org.kquiet.browser.action.Custom;
 import org.kquiet.browser.action.ReplyAlert;
 
@@ -216,7 +217,8 @@ public class ActionTest {
             .prepareActionSequence()
                 .waitUntil(driver->true, 500)
                 .returnToComposerBuilder()
-            .build("waitUntilSuccess", false, false);
+            .buildBasic("waitUntilSuccess")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -237,8 +239,8 @@ public class ActionTest {
                         result.set(true);
                     }).done()
                 .returnToComposerBuilder()
-            .build("waitUntilTimeout", false, false)
-            .keepFailInfo(false);
+            .buildBasic("waitUntilTimeout")
+            .setOpenWindow(false).setCloseWindow(false).keepFailInfo(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(600, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -256,7 +258,8 @@ public class ActionTest {
             .prepareActionSequence()
                 .justWait(300)
                 .returnToComposerBuilder()
-            .build("justWait", false, false);
+            .buildBasic("justWait")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(600, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -275,7 +278,8 @@ public class ActionTest {
             .prepareActionSequence()
                 .custom(ac-> text.set(customText))
                 .returnToComposerBuilder()
-            .build("custom", false, false);
+            .buildBasic("custom")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(1000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -331,7 +335,8 @@ public class ActionTest {
                         .endActionSequence()
                     .endIf()
                 .returnToComposerBuilder()
-            .build("ifThenElse", false, false);
+            .buildBasic("ifThenElse")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -349,7 +354,8 @@ public class ActionTest {
             .prepareActionSequence()
                 .waitUntil(ExpectedConditions.titleIs("ActionTest"), 3000)
                 .returnToComposerBuilder()  
-            .build("getUrl", true, true);
+            .buildBasic("getUrl")
+            .setOpenWindow(true).setCloseWindow(true);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(4000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -372,7 +378,8 @@ public class ActionTest {
                     , ExpectedConditions.textToBePresentInElementLocated(By.tagName("html"), "value1:value2")
                 ), 1000)
                 .returnToComposerBuilder()
-            .build("postForm", true, true);
+            .buildBasic("postForm")
+            .setOpenWindow(true).setCloseWindow(true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -398,7 +405,8 @@ public class ActionTest {
                         mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("divClickResult")))
                     , 1000)
                 .returnToComposerBuilder()
-            .build("click"+frameIdentifier(flag), true, true);
+            .buildBasic("click"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -428,7 +436,8 @@ public class ActionTest {
                 .prepareMouseOver(By.id("divMouseOver")).withInFrame(frameSequence.get()).done()
                 .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("spMouseOver"))), 1000)
                 .returnToComposerBuilder()
-            .build("mouseOver"+frameIdentifier(flag), true, true);
+            .buildBasic("mouseOver"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -478,7 +487,8 @@ public class ActionTest {
                     })
                     .done()
                 .returnToComposerBuilder()
-            .build("sendKeys"+frameIdentifier(flag), true, true);
+            .buildBasic("sendKeys"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -517,7 +527,8 @@ public class ActionTest {
                     })
                     .done()
                 .returnToComposerBuilder()
-            .build("select"+frameIdentifier(flag), true, true);
+            .buildBasic("select"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -551,7 +562,8 @@ public class ActionTest {
                     if (ac.getWebDriver().getWindowHandles().contains(ac.getRegisteredWindow("newwindow"))) ac.skipToFail();
                 })
                 .returnToComposerBuilder()
-            .build("openAndCloseWindow", false, false);
+            .buildBasic("openAndCloseWindow")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -583,7 +595,8 @@ public class ActionTest {
                     afterPosition.set(top);
                 }).withInFrame(frameSequence.get()).done()
                 .returnToComposerBuilder()
-            .build("scrollToView"+frameIdentifier(flag), true, true);
+            .buildBasic("scrollToView"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -620,7 +633,8 @@ public class ActionTest {
                     fileName.set(name);
                 }).withInFrame(frameSequence.get()).done()
                 .returnToComposerBuilder()
-            .build("upload"+frameIdentifier(flag), true, true);
+            .buildBasic("upload"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -654,7 +668,8 @@ public class ActionTest {
                     ExpectedConditions.not(ExpectedConditions.alertIsPresent())
                     , ExpectedConditions.attributeToBe(By.id("txtAlert"), "value", "AlertInput")), 1000)
                 .returnToComposerBuilder()
-            .build("replyAlert", true, true);
+            .buildBasic("replyAlert")
+            .setOpenWindow(true).setCloseWindow(true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(5000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -679,7 +694,8 @@ public class ActionTest {
                 .prepareExtract(By.id("divMouseOver")).withTextAsVariable("varMouseOver1"+frameIdentifier(flag)).withInFrame(frameSequence.get()).done()
                 .prepareExtract(By.id("txtSendKey")).withAttributeAsVariable(Stream.of(new String[][]{{"id", "varSendKey1"+frameIdentifier(flag)}, {"value", "varSendKey2"+frameIdentifier(flag)}}).collect(Collectors.toMap(s->s[0], s->s[1]))).withInFrame(frameSequence.get()).done()
                 .returnToComposerBuilder()
-            .build("extract"+frameIdentifier(flag), true, true);
+            .buildBasic("extract"+frameIdentifier(flag))
+            .setOpenWindow(true).setCloseWindow(true);
         
         BiConsumer<Boolean, ActionComposer> assertConsumer = (flag, ac)->assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(ac).get(5000, TimeUnit.MILLISECONDS), "not complete in time"+frameIdentifier(flag)),
@@ -712,8 +728,8 @@ public class ActionTest {
                 .returnToComposerBuilder()
             .onFail(ac->sb.append("fail"))
             .onSuccess(ac->sb.append("success"))
-            .build("onFail", false, false)
-            .keepFailInfo(false);
+            .buildBasic("onFail")
+            .setOpenWindow(false).setCloseWindow(false).keepFailInfo(false);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -736,7 +752,8 @@ public class ActionTest {
                 .returnToComposerBuilder()
             .onFail(ac->sb.append("fail"))
             .onSuccess(ac->sb.append("success"))
-            .build("onSuccess", false, false);
+            .buildBasic("onSuccess")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -756,7 +773,8 @@ public class ActionTest {
                 .custom(ac->sb.append("custom"))
                 .returnToComposerBuilder()
             .onDone(ac->sb.append("done"))
-            .build("onDone", false, false);
+            .buildBasic("onDone")
+            .setOpenWindow(false).setCloseWindow(false);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),

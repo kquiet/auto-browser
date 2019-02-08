@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.BasicActionComposer;
 
 /**
  *
@@ -127,7 +128,8 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("singleComposeredRunner-lowerPriority")
+            .buildBasic("singleComposeredRunner-lowerPriority")
+            .setOpenWindow(false).setCloseWindow(false)
             .setPriority(2);
         
         ActionComposer higherPriorityComposer = getEmptyActionComposerBuilder()
@@ -139,7 +141,8 @@ public class CompositeTest {
                     .withTimeoutCallback(ac->{})
                     .done()
                 .returnToComposerBuilder()
-            .build("singleComposeredRunner-higherPriority")
+            .buildBasic("singleComposeredRunner-higherPriority")
+            .setOpenWindow(false).setCloseWindow(false)
             .setPriority(1);
         
         CompletableFuture<Void> lowerPriorityFuture = browserRunnerOne.executeComposer(lowerPriorityComposer);
@@ -169,7 +172,8 @@ public class CompositeTest {
                     }
                 })
                 .returnToComposerBuilder()
-            .build("interleave-1")
+            .buildBasic("interleave-1")
+            .setOpenWindow(false).setCloseWindow(false)
             .setPriority(1);
         
         ActionComposer composer2 = getEmptyActionComposerBuilder()
@@ -182,7 +186,8 @@ public class CompositeTest {
                     }
                 })
                 .returnToComposerBuilder()
-            .build("interleave-2")
+            .buildBasic("interleave-2")
+            .setOpenWindow(false).setCloseWindow(false)
             .setPriority(1);
         
         CompletableFuture<Void> future1 = browserRunnerTwo.executeComposer(composer1);
@@ -200,17 +205,20 @@ public class CompositeTest {
     @Test
     public void continuous() throws Exception {
         StringBuilder sb = new StringBuilder();
-        ActionComposer parentComposer = getEmptyActionComposerBuilder()
+        BasicActionComposer parentComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .custom(ac->sb.append("parent"))
                 .returnToComposerBuilder()
-            .build("continuousTest-parent");
+            .buildBasic("continuousTest-parent")
+            .setOpenWindow(false).setCloseWindow(false);
+                
         
-        ActionComposer childComposer = getEmptyActionComposerBuilder()
+        BasicActionComposer childComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .custom(ac->sb.append("child"))
                 .returnToComposerBuilder()
-            .build("continuousTest-child");
+            .buildBasic("continuousTest-child")
+            .setOpenWindow(false).setCloseWindow(false);
         
         parentComposer.continueWith(childComposer);
         browserRunnerTwo.executeComposer(parentComposer);
@@ -245,7 +253,8 @@ public class CompositeTest {
                 String focusWindow = ac.getRegisteredWindow("");
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
-            .build("skipToSuccessAndClose", true, true);
+            .buildBasic("skipToSuccessAndClose")
+            .setOpenWindow(true).setCloseWindow(true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -277,7 +286,8 @@ public class CompositeTest {
                 String focusWindow = ac.getRegisteredWindow("");
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
-            .build("skipToFailAndClose", true, true);
+            .buildBasic("skipToFailAndClose")
+            .setOpenWindow(true).setCloseWindow(true);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
@@ -309,7 +319,8 @@ public class CompositeTest {
                 String focusWindow = ac.getRegisteredWindow("");
                 result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
-            .build("failAndClose", true, true);
+            .buildBasic("failAndClose")
+            .setOpenWindow(true).setCloseWindow(true);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
