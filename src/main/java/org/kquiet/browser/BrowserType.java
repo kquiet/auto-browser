@@ -36,7 +36,7 @@ public enum BrowserType {
      * 'Chromium' is considered as BrowserType.CHROME.
      * 
      * @param text text to be parsed
-     * @return {@link BrowserType} represented by text
+     * @return {@link BrowserType} represented by text; otherwise null
      */
     public static BrowserType fromString(String text) {
         for (BrowserType browserType : BrowserType.values()) {
@@ -47,6 +47,6 @@ public enum BrowserType {
                 return browserType;
             }
         }
-        throw new IllegalArgumentException("No such browser type:"+text);
+        return null;
     }
 }
