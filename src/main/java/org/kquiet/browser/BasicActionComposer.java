@@ -29,7 +29,7 @@ import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.IfThenElse;
 
 /**
- * {@link BasicActionComposer} provides basic implementation of {@ActionComposer}.
+ * {@link BasicActionComposer} provides basic implementation of {@link ActionComposer}.
  * In addition to the actions added by add*() methods, {@link BasicActionComposer} has two extra/internal actions which are executed at the beginning and the end respectively:
  * <ul>
  * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new browser window and set it as <i>focus window</i> with an empty register name.
@@ -216,7 +216,7 @@ public class BasicActionComposer extends AbstractActionComposer {
      * <p>For example, before calling this method: ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
      * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
      * 
-     * <p>This method works differently as methods of {@CompletableFuture<Void>}.
+     * <p>This method works differently as methods of {@link java.util.concurrent.CompletableFuture}.
      * It just keeps the reference of child {@link BasicActionComposer} and this {@link BasicActionComposer} will hand it to associated {@link ActionRunner} when finished,
      * and then let the {@link ActionRunner} schedule the execution.</p>
      * 

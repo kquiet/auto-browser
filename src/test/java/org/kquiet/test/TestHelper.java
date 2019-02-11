@@ -18,6 +18,7 @@ package org.kquiet.test;
 import org.openqa.selenium.PageLoadStrategy;
 
 import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.BasicActionRunner;
 import org.kquiet.browser.BrowserType;
 
 /**
@@ -36,6 +37,6 @@ public class TestHelper {
         try{
             browserType = BrowserType.fromString(System.getProperty("test.browser"));
         }catch(Exception ex){}
-        return new ActionRunner(PageLoadStrategy.NONE, browserType, "TestBrowser", maxConcurrentComposer);
+        return new BasicActionRunner(PageLoadStrategy.NONE, browserType, maxConcurrentComposer).setName("TestBrowser");
     }
 }

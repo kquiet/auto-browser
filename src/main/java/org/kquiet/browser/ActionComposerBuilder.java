@@ -111,7 +111,7 @@ public class ActionComposerBuilder{
      * 
      * @param func callback function
      * @return this {@link ActionComposerBuilder}
-     * @see ActionComposer#setOnFailFunction(java.util.function.Consumer) 
+     * @see ActionComposer#onFail(java.util.function.Consumer)
      */
     public ActionComposerBuilder onFail(Consumer<ActionComposer> func){
         failFunc = func;
@@ -123,7 +123,7 @@ public class ActionComposerBuilder{
      * 
      * @param func callback function
      * @return this {@link ActionComposerBuilder}
-     * @see ActionComposer#setOnSuccessFunction(java.util.function.Consumer) 
+     * @see ActionComposer#onSuccess(java.util.function.Consumer)
      */
     public ActionComposerBuilder onSuccess(Consumer<ActionComposer> func){
         successFunc = func;
@@ -135,7 +135,7 @@ public class ActionComposerBuilder{
      * 
      * @param func callback function
      * @return this {@link ActionComposerBuilder}
-     * @see ActionComposer#setOnDoneFunction(java.util.function.Consumer) 
+     * @see ActionComposer#onDone(java.util.function.Consumer)
      */
     public ActionComposerBuilder onDone(Consumer<ActionComposer> func){
         doneFunc = func;
@@ -178,9 +178,9 @@ public class ActionComposerBuilder{
      * @param <T> The type of {@link ActionComposer} to build
      * @param composerType The type of {@link ActionComposer} to build
      * @return the built {@link ActionComposer}
-     * @throws java.lang.ClassNotFoundException
-     * @throws java.lang.InstantiationException
-     * @throws java.lang.IllegalAccessException
+     * @throws java.lang.ClassNotFoundException if the class of composer type cannot be located
+     * @throws java.lang.InstantiationException if the class of composer type represents an abstract class, an interface, an array class, a primitive type, or void; or if the class has no nullary constructor; or if the instantiation fails for some other reason
+     * @throws java.lang.IllegalAccessException if the class of composer type or its nullary constructor is not accessible
      */
     public <T extends ActionComposer> T build(Class<T> composerType) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
         return build(composerType, UUID.randomUUID().toString());
@@ -193,9 +193,9 @@ public class ActionComposerBuilder{
      * @param composerType The type of {@link ActionComposer} to build
      * @param name name of {@link ActionComposer}
      * @return the built {@link ActionComposer}
-     * @throws java.lang.ClassNotFoundException
-     * @throws java.lang.InstantiationException
-     * @throws java.lang.IllegalAccessException
+     * @throws java.lang.ClassNotFoundException if the class of composer type cannot be located
+     * @throws java.lang.InstantiationException if the class of composer type represents an abstract class, an interface, an array class, a primitive type, or void; or if the class has no nullary constructor; or if the instantiation fails for some other reason
+     * @throws java.lang.IllegalAccessException if the class of composer type or its nullary constructor is not accessible
      */
     public <T extends ActionComposer> T build(Class<T> composerType, String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
         @SuppressWarnings("unchecked") final T actionComposer = (T)Class.forName(composerType.getName()).newInstance();

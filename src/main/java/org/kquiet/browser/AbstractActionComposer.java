@@ -39,7 +39,7 @@ import org.kquiet.browser.action.Composable;
 
 /**
  * {@link AbstractActionComposer} implements most methods of {@link ActionComposer} to lay ground works for possible subclasses.
- * {@link AbstractActionComposer} itself is a subclass of {@link CompletableFuture<Void>}, so any subclass of {@link AbstractActionComposer} should complete itself explictly in {@link #run()}.
+ * {@link AbstractActionComposer} itself is a subclass of {@link CompletableFuture}, so any subclass of {@link AbstractActionComposer} should complete itself explictly in {@link #run()}.
  *
  * @author Kimberly
  */
@@ -47,12 +47,12 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void> imp
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractActionComposer.class);
     
     /**
-     * The execution context stack of this {@AbstractActionComposer}, the {@link AddableActionSequence} must be pushed into this stack before any action in it gets executed to reflect execution context.
+     * The execution context stack of this {@link AbstractActionComposer}, the {@link AddableActionSequence} must be pushed into this stack before any action in it gets executed to reflect execution context.
      */
     protected final Stack<AddableActionSequence> executionContextStack = new Stack<>();
 
     /**
-     * The stop watch used to measure run cost of this {@AbstractActionComposer}
+     * The stop watch used to measure run cost of this {@link AbstractActionComposer}
      */
     protected final Stopwatch totalCostWatch = new Stopwatch();
     
@@ -66,7 +66,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void> imp
     private Consumer<ActionComposer> onDoneFunc = (bac)->{};
 
     private ActionRunner actionRunner = null;    
-    private String name = null;
+    private String name = "";
     private String focusWindowIdentity = null;
     
     /**

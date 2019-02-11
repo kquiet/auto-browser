@@ -245,7 +245,7 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
      * Use this with caution because the associated {@link ActionRunner} use the same {@link WebDriver} when executing browser actions,
      * however {@link WebDriver} is <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">not thread-safe</a>.
      * 
-     * <p>A safer way to use this is to encapsulate the process in a {@link Runnable}, or use built-in {@link Custom custom action},
+     * <p>A safer way to use this is to encapsulate the process in a {@link Runnable}, or use built-in {@link org.kquiet.browser.action.Custom custom action},
      * and then execute it through {@link ActionRunner#executeAction(java.lang.Runnable, int)}.</p>
      * 
      * @return the {@link WebDriver} of associated {@link ActionRunner}.

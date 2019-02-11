@@ -16,284 +16,82 @@
 package org.kquiet.browser;
 
 import java.io.Closeable;
-import java.io.File;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.ImmutableCapabilities;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.PageLoadStrategy;
-
-import org.kquiet.concurrent.PausablePriorityThreadPoolExecutor;
-import org.kquiet.concurrent.PriorityRunnable;
 
 /**
  * {@link ActionRunner} is resposible to run a browser through <a href="https://github.com/SeleniumHQ/selenium" target="_blank">Selenium</a> and execute actions against it.
  * With its methods of {@link #executeComposer(org.kquiet.browser.ActionComposer) executeComposer} and {@link #executeAction(java.lang.Runnable, int) executeAction},
- * users can run {@link ActionComposer}, {@link org.kquiet.browser.action built-in actions}, or {@link java.lang.Runnable customized actions}.
- * 
- * <p>{@link ActionRunner} maintains two prioritized thread pool internally to execute {@link ActionComposer} and browser actions separatedly.
- * The thread pool for {@link ActionComposer} allows multiple ones to be run concurrently(depends on parameter values of constructors).
- * The thread pool for browser actions is single-threaded,
- * so only one browser action is executed at a time(due to <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank"> the constraint of WebDriver</a>).</p>
+ * users can run {@link ActionComposer}, or {@link java.lang.Runnable customized actions} with priority.
  * 
  * @author Kimberly
  */
-public class ActionRunner implements Closeable,AutoCloseable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ActionRunner.class);
-    
-    private final String name;
-    private final WebDriver brsDriver;
-    private final String rootWindowIdentity;
-    
-    private volatile boolean isPaused = false;
-    
-    private final PausablePriorityThreadPoolExecutor browserActionExecutor;
-    private final PausablePriorityThreadPoolExecutor composerExecutor;
+public interface ActionRunner extends Closeable {
+
+    /**
+     * 
+     * @return name of this {@link ActionRunner}
+     */
+    String getName();
     
     /**
-     * Create an {@link ActionRunner} with org.openqa.selenium.PageLoadStrategy.NONE and {@link BrowserType#CHROME BrowserType.CHROME}
+     * Set the name of this {@link ActionRunner}.
      * 
-     * @param name name of {@link ActionRunner}
-     * @param maxConcurrentComposer the max number of {@link ActionComposer} that could be executed by this ActionRunner concurrently.
+     * @param name the name to set
+     * @return this {@link ActionRunner}
      */
-    public ActionRunner(String name, int maxConcurrentComposer){
-        this(PageLoadStrategy.NONE, BrowserType.CHROME, name, maxConcurrentComposer);
-    }
-    
-    /**
-     * Create an {@link ActionRunner} with specified page load strategy, browser type, name, and max number of concurrent composer.     *
-     * 
-     * @param pageLoadStrategy page load strategy
-     * @param browserType the type of browser
-     * @param name name
-     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed concurrently.
-     * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
-     * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
-     */
-    public ActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType, String name, int maxConcurrentComposer){
-        this.name = name;
-        
-        browserActionExecutor = new PausablePriorityThreadPoolExecutor("BrowserActionExecutorPool", 1, 1);
-        composerExecutor = new PausablePriorityThreadPoolExecutor("ActionComposerExecutorPool", maxConcurrentComposer, maxConcurrentComposer);
-
-        //create browser
-        this.brsDriver = createBrowserDriver(browserType, pageLoadStrategy);
-        
-        //this.brsDriver.manage().window().maximize();
-        this.brsDriver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
-        this.rootWindowIdentity = this.brsDriver.getWindowHandle();
-    }
-
-    private static WebDriver createBrowserDriver(BrowserType browserType, PageLoadStrategy pageLoadStrategy){
-        Capabilities extraCapabilities = new ImmutableCapabilities(CapabilityType.PAGE_LOAD_STRATEGY, pageLoadStrategy.toString().toLowerCase());
-        switch(browserType){
-            case CHROME:
-                ChromeOptions chromeOption = new ChromeOptions();
-                if ("no".equalsIgnoreCase(System.getProperty("chrome_sandbox"))){
-                    chromeOption.addArguments("--no-sandbox");
-                }
-                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))){
-                    chromeOption.setHeadless(true);
-                    LOGGER.info("headless chrome used");
-                }
-                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_use_default_user_data_dir"))){
-                    String defaultUserDataDir = getDefaultUserDataDir(browserType);
-                    if (defaultUserDataDir!=null){
-                        chromeOption.addArguments("user-data-dir="+defaultUserDataDir);
-                        LOGGER.info("default user data dir used:{}", defaultUserDataDir);
-                    }
-                }
-                return new ChromeDriver(chromeOption.merge(extraCapabilities));
-            case FIREFOX:
-            default:
-                FirefoxOptions firefoxOption = new FirefoxOptions();
-                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))){
-                    firefoxOption.setHeadless(true);
-                    LOGGER.info("headless firefox used");
-                }
-                if ("yes".equalsIgnoreCase(System.getProperty("webdriver_use_default_user_data_dir"))){
-                    String defaultProfileDir = getDefaultUserDataDir(browserType);
-                    if (defaultProfileDir!=null){
-                        firefoxOption.setProfile(new FirefoxProfile(new File(defaultProfileDir)));
-                        LOGGER.info("default user profile dir used:{}", defaultProfileDir);
-                    }
-                }
-                return new FirefoxDriver(firefoxOption.merge(extraCapabilities));
-        }
-    }
-    
-    private static String getDefaultUserDataDir(BrowserType browserType){
-        boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("").toLowerCase(Locale.ENGLISH).startsWith("windows");
-        String path;
-        switch(browserType){
-            case CHROME:
-                if (isWindows){
-                    path = System.getenv("LOCALAPPDATA")+"\\Google\\Chrome\\User Data";
-                    if (!new File(path).isDirectory()) path = System.getenv("LOCALAPPDATA")+"\\Chromium\\User Data";
-                }
-                else{
-                    path = "~/.config/google-chrome";
-                    if (!new File(path).isDirectory()) path = "~/.config/chromium";
-                }
-                if (!new File(path).isDirectory()) path = null;
-                break;
-            case FIREFOX:
-            default:
-                if (isWindows){
-                    path = System.getenv("APPDATA")+"\\Mozilla\\Firefox\\Profiles";
-                }
-                else{
-                    path = "~/.mozilla/firefox";
-                }
-                File pathFile = new File(path);
-                if (!pathFile.isDirectory()) path = null;
-                else{
-                    String[] dirs = pathFile.list((current, name) -> new File(current, name).isDirectory() && name.toLowerCase().endsWith(".default"));
-                    if (dirs!=null && dirs.length>0) path = new File(pathFile, dirs[0]).getAbsolutePath();
-                    else path = null;
-                }
-                break;
-        }
-        return path;
-    }
+    ActionRunner setName(String name);
     
     /**
      * 
      * @return the identity of root window(the initial window as the browser started)
      */
-    public String getRootWindowIdentity() {
-        return rootWindowIdentity;
-    }
+    String getRootWindowIdentity();
     
     /**
      *
      * @param browserAction browser action to execute
      * @param priority priority of action
-     * @return a {@link CompletableFuture} representing pending completion of given browser action
+     * @return a {@link CompletableFuture} representing the pending completion of given browser action
      */
-    public CompletableFuture<Void> executeAction(Runnable browserAction, int priority){
-        CompletableFuture<Void> cFuture = new CompletableFuture<>();
-        PriorityRunnable runnable = new PriorityRunnable(()->{
-            try{
-                browserAction.run();
-                cFuture.complete(null);
-            }catch(Exception ex){
-                cFuture.completeExceptionally(ex);
-            }
-        }, priority);
-        browserActionExecutor.submit(runnable);
-        return cFuture;
-    }
+    CompletableFuture<Void> executeAction(Runnable browserAction, int priority);
     
     /**
      *
      * @param actionComposer {@link ActionComposer} to execute
-     * @return a {@link CompletableFuture} representing pending completion of given {@link ActionComposer}
+     * @return a {@link CompletableFuture} representing the pending completion of given {@link ActionComposer}
      */
-    public CompletableFuture<Void> executeComposer(ActionComposer actionComposer){
-        actionComposer.setActionRunner(this);
-        CompletableFuture<Void> cFuture = new CompletableFuture<>();
-        PriorityRunnable runnable = new PriorityRunnable(()->{
-            try{
-                actionComposer.run();
-                cFuture.complete(null);
-            }catch(Exception ex){
-                cFuture.completeExceptionally(ex);
-            }
-        }, actionComposer.getPriority());
-        composerExecutor.submit(runnable);
-        return cFuture;
-    }
+    CompletableFuture<Void> executeComposer(ActionComposer actionComposer);
     
     /**
      *
-     * @return org.openqa.selenium.WebDriver in use
+     * @return the {@link WebDriver} this {@link ActionRunner} is using
      */
-    public WebDriver getWebDriver(){
-        return brsDriver;
-    }
+    WebDriver getWebDriver();
     
     /**
-     * This method checks the existence of root window and use the result as the aliveness of browser.
-     * When a false result is monitored, users can choose to {@link #close() close} {@link ActionRunner} and create a new one.
      * 
-     * @return {@code true} if the root window exists; {@code false} otherwise
+     * @return {@code true} if the browser is still running; {@code false} otherwise
      */
-    public boolean isBrowserAlive(){
-        if (brsDriver==null) return false;
-        
-        try{
-            Set<String> windowSet = brsDriver.getWindowHandles();
-            return (windowSet!=null && !windowSet.isEmpty() && windowSet.contains(getRootWindowIdentity()));
-        }catch(Exception ex){
-            LOGGER.warn("[{}] check browser alive error!", name, ex);
-            return false;
-        }
-    }
+    boolean isBrowserAlive();
     
     /**
-     * Stop executing any queued {@link ActionComposer} or browser action.
+     * Stop executing any newly incoming {@link ActionComposer} or browser action, but the running ones may or may not keep running(depends on implementation).
      */
-    public void pause() {
-        if (isPaused) return;
-        
-        isPaused = true;
-        browserActionExecutor.pause();
-        composerExecutor.pause();
-    }
+    void pause();
     
     /**
-     * Resume to execute queued {@link ActionComposer} or browser action (if any).
+     * Resume to accept {@link ActionComposer} or browser action (if any).
      */
-    public void resume() {
-        if (!isPaused) return;
-        
-        isPaused = false;
-        browserActionExecutor.resume();
-        composerExecutor.resume();
-    }
+    void resume();
     
     /**
      *
      * @return {@code true} if paused; {@code false} otherwise
      */
-    public boolean isPaused(){
-        return isPaused;
-    }
+    boolean isPaused();
     
     @Override
-    public void close(){
-        try{
-            if (browserActionExecutor!=null){
-                browserActionExecutor.shutdownNow();
-                LOGGER.info("[{}] Close BrowserActionExecutor done!", name);
-            }
-            
-            if (composerExecutor!=null){
-                composerExecutor.shutdown();
-                LOGGER.info("[{}] Close ActionComposerExecutor done!", name);
-            }
-
-            if (brsDriver!=null){
-                brsDriver.quit();
-                LOGGER.info("[{}] Close BrsDriver done!", name);
-            }
-        }catch(Exception ex){
-            LOGGER.error("[{}] Close {} fail!", name, getClass().getSimpleName(), ex);
-        }
-    }
+    void close();
 }
