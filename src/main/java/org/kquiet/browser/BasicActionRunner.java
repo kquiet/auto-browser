@@ -60,9 +60,8 @@ public class BasicActionRunner implements ActionRunner {
     private final PausablePriorityThreadPoolExecutor composerExecutor;
 
     /**
-     * Create an {@link BasicActionRunner} with {@link PageLoadStrategy#NONE} as page load strategy and {@link BrowserType#CHROME} as browser type.
-     * At most one {@link ActionComposer} is allowed to be executed at a time.
-     * 
+     * Create an {@link BasicActionRunner} with {@link PageLoadStrategy#NONE} as page load strategy, {@link BrowserType#CHROME} as browser type,
+     * and at most one {@link ActionComposer} is allowed to be executed at a time.
      */
     public BasicActionRunner(){
         this(1);
@@ -78,11 +77,24 @@ public class BasicActionRunner implements ActionRunner {
     }
     
     /**
+     * Create an {@link BasicActionRunner} with specified page load strategy, browser type, name,
+     * and at most one {@link ActionComposer} is allowed to be executed at a time.
+     * 
+     * @param pageLoadStrategy page load strategy
+     * @param browserType the type of browser
+     * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
+     * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
+     */
+    public BasicActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType){
+        this(pageLoadStrategy, browserType, 1);
+    }
+    
+    /**
      * Create an {@link BasicActionRunner} with specified page load strategy, browser type, name, and max number of concurrent composer.
      * 
      * @param pageLoadStrategy page load strategy
      * @param browserType the type of browser
-     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed concurrently.
+     * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed concurrently
      * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
      * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
      */

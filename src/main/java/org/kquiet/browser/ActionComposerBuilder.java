@@ -51,7 +51,9 @@ import org.kquiet.browser.action.Composable;
 import org.kquiet.browser.action.MultiPhased;
 
 /**
- * A builder to build {@link ActionComposer} in a fluent way.
+ * {@link ActionComposerBuilder} is resposible to build a {@link ActionComposer} in a fluent way.
+ * New {@link ActionComposerBuilder} instance is required before building a {@link ActionComposer}.
+ * 
  * <p>Below example constructs an {@link ActionComposer} that searches for the link to source code of {@link ActionComposerBuilder}, and then click it:</p>
  * <pre>
  * ActionComposer actionComposer = new ActionComposerBuilder()
@@ -62,36 +64,24 @@ import org.kquiet.browser.action.MultiPhased;
  *          .waitUntil(ExpectedConditions.elementToBeClickable(By.xpath("//mark[text()='ActionComposerBuilder']")), 3000)
  *          .click(By.xpath("//mark[text()='ActionComposerBuilder']"))
  *          .returnToComposerBuilder()
- *      .build(true, false);
+ *      .buildBasic();
  * </pre>
  * 
  * More complicated {@link ActionComposer} can be built through built-in {@link org.kquiet.browser.action actions}.
- * {@link ActionComposerBuilder} includes {@link org.kquiet.browser.ActionComposerBuilder.ActionSequenceBuilder inner builders} for these actions as well.
+ * {@link ActionComposerBuilder} includes {@link ActionComposerBuilder.ActionSequenceBuilder inner builders} for these actions as well.
  * 
  * @author Kimberly
  */
 public class ActionComposerBuilder{
-    private Deque<Composable> actionList;
+    private final Deque<Composable> actionList = new LinkedList<>();
     private Consumer<ActionComposer> failFunc, successFunc, doneFunc;
+    
+    private volatile ActionComposer actionComposer;
     
     /**
      * Create a new {@link ActionComposerBuilder}
      */
     public ActionComposerBuilder(){
-        prepareNext();
-    }
-    
-    private void prepareNext(){
-        if (actionList==null){
-            actionList = new LinkedList<>();
-        }
-    }
-    
-    private void reset(){
-        actionList = null;
-        failFunc = null;
-        successFunc = null;
-        doneFunc = null;
     }
 
     /**
@@ -101,7 +91,6 @@ public class ActionComposerBuilder{
      * @return self reference
      */    
     private ActionComposerBuilder add(Composable action){
-        prepareNext();
         actionList.addLast(action);
         return this;
     }
@@ -145,10 +134,6 @@ public class ActionComposerBuilder{
     private void commonBuild(ActionComposer actionComposer, String name){
         actionComposer.setName(name).onFail(failFunc).onSuccess(successFunc).onDone(doneFunc);
         actionList.forEach(s->actionComposer.addToTail(s));        
-        
-        //clear and prepare for next build
-        reset();
-        prepareNext();
     }
     
     /**
@@ -167,16 +152,20 @@ public class ActionComposerBuilder{
      * @return the built {@link BasicActionComposer}
      */
     public BasicActionComposer buildBasic(String name){
-        BasicActionComposer actionComposer = new BasicActionComposer();
-        commonBuild(actionComposer, name);
-        return actionComposer;
+        if (this.actionComposer==null){
+            BasicActionComposer actionComposer = new BasicActionComposer();
+            commonBuild(actionComposer, name);
+            this.actionComposer = actionComposer;
+            return actionComposer;
+        }
+        else return (BasicActionComposer) this.actionComposer;
     }
     
     /**
      * Finish building the {@link ActionComposer}.
      * 
-     * @param <T> The type of {@link ActionComposer} to build
-     * @param composerType The type of {@link ActionComposer} to build
+     * @param <T> the type of {@link ActionComposer} to build
+     * @param composerType the type of {@link ActionComposer} to build
      * @return the built {@link ActionComposer}
      * @throws java.lang.ClassNotFoundException if the class of composer type cannot be located
      * @throws java.lang.InstantiationException if the class of composer type represents an abstract class, an interface, an array class, a primitive type, or void; or if the class has no nullary constructor; or if the instantiation fails for some other reason
@@ -189,8 +178,8 @@ public class ActionComposerBuilder{
     /**
      * Finish building the {@link ActionComposer} with its name.
      * 
-     * @param <T> The type of {@link ActionComposer} to build
-     * @param composerType The type of {@link ActionComposer} to build
+     * @param <T> the type of {@link ActionComposer} to build
+     * @param composerType the type of {@link ActionComposer} to build
      * @param name name of {@link ActionComposer}
      * @return the built {@link ActionComposer}
      * @throws java.lang.ClassNotFoundException if the class of composer type cannot be located
@@ -198,9 +187,16 @@ public class ActionComposerBuilder{
      * @throws java.lang.IllegalAccessException if the class of composer type or its nullary constructor is not accessible
      */
     public <T extends ActionComposer> T build(Class<T> composerType, String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
-        @SuppressWarnings("unchecked") final T actionComposer = (T)Class.forName(composerType.getName()).newInstance();
-        commonBuild(actionComposer, name);
-        return actionComposer;
+        if (this.actionComposer==null){
+            @SuppressWarnings("unchecked") final T actionComposer = (T)Class.forName(composerType.getName()).newInstance();
+            commonBuild(actionComposer, name);
+            this.actionComposer = actionComposer;
+            return actionComposer;
+        }
+        else {
+            @SuppressWarnings("unchecked") T obj = (T) this.actionComposer;
+            return obj;
+        }
     }
     
     /**

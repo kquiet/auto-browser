@@ -28,7 +28,6 @@ import org.openqa.selenium.WebDriver;
  * @author Kimberly
  */
 public interface ActionRunner extends Closeable {
-
     /**
      * 
      * @return name of this {@link ActionRunner}
