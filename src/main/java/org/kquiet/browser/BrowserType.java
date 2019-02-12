@@ -24,12 +24,23 @@ public enum BrowserType {
     /**
      * Browser chrome / chromium
      */
-    CHROME,
+    CHROME("chrome"),
 
     /**
      * Browser firefox
      */
-    FIREFOX;
+    FIREFOX("firefox");
+    
+    private String text;
+
+    private BrowserType(String text) {
+        this.text = text;
+    }
+    
+    @Override
+    public String toString() {
+        return String.valueOf(text);
+    }
     
     /**
      * Get {@link BrowserType} represented by parsing its text(case insensitive).
@@ -39,12 +50,11 @@ public enum BrowserType {
      * @return {@link BrowserType} represented by text; otherwise null
      */
     public static BrowserType fromString(String text) {
-        for (BrowserType browserType : BrowserType.values()) {
-            if ("chromium".equalsIgnoreCase(text)){
-                return BrowserType.CHROME;
-            }
-            else if (browserType.toString().equalsIgnoreCase(text)) {
-                return browserType;
+        if (text != null) {
+            for (BrowserType browserType : BrowserType.values()) {
+                if (text.equalsIgnoreCase(browserType.text)) {
+                    return browserType;
+                }
             }
         }
         return null;
