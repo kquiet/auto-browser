@@ -142,13 +142,6 @@ public class BasicActionComposer extends AbstractActionComposer {
             }
         }
         
-        //run final action after keeping fail info
-        try{
-            perform(finalAction);
-        }catch(Exception ex){
-            LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(), finalAction.toString(), ex);
-        }
-
         try{
             getFailFunction().accept(this);
         }catch(Exception e){
@@ -157,12 +150,6 @@ public class BasicActionComposer extends AbstractActionComposer {
     }
     
     private void runSuccess(){
-        try{
-            perform(finalAction);
-        }catch(Exception ex){
-            LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(), finalAction.toString(), ex);
-        }
-                
         try{
             getSuccessFunction().accept(this);
         }catch(Exception e){
@@ -176,6 +163,14 @@ public class BasicActionComposer extends AbstractActionComposer {
         }catch(Exception e){
             LOGGER.warn("{}({}) done function error", getClass().getSimpleName(), getName(), e);
         }
+        
+        //run final action to close window
+        try{
+            perform(finalAction);
+        }catch(Exception ex){
+            LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(), finalAction.toString(), ex);
+        }
+        
         totalCostWatch.stop();
         if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}) costs {} milliseconds", getClass().getSimpleName(), getName(), getCostTime().toMillis());
         

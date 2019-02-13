@@ -249,17 +249,17 @@ public class CompositeTest {
             })
             .onDone(ac->{
                 sb.append("done");
-                String focusWindow = ac.getRegisteredWindow("");
-                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
             .buildBasic("skipToSuccessAndClose")
             .setOpenWindow(true).setCloseWindow(true);
         
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertFalse(result.get(), "window not closed"),
             ()->assertEquals("successdone", sb.toString(), "on success/done not triggered"),
             ()->assertTrue(actionComposer.isSuccessfulDone(), "composer fail"));
+        
+        result.set(actionComposer.getWebDriver().getWindowHandles().contains(actionComposer.getRegisteredWindow("")));
+        assertFalse(result.get(), "window not closed");
     }
     
     /**
@@ -282,17 +282,17 @@ public class CompositeTest {
             })
             .onDone(ac->{
                 sb.append("done");
-                String focusWindow = ac.getRegisteredWindow("");
-                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
             .buildBasic("skipToFailAndClose")
             .setOpenWindow(true).setCloseWindow(true);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertFalse(result.get(), "window not closed"),
             ()->assertEquals("faildone", sb.toString(), "on fail/done not triggered"),
             ()->assertTrue(actionComposer.isFail(), "composer not fail"));
+        
+        result.set(actionComposer.getWebDriver().getWindowHandles().contains(actionComposer.getRegisteredWindow("")));
+        assertFalse(result.get(), "window not closed");
     }
     
     /**
@@ -315,16 +315,16 @@ public class CompositeTest {
             })
             .onDone(ac->{
                 sb.append("done");
-                String focusWindow = ac.getRegisteredWindow("");
-                result.set(ac.getWebDriver().getWindowHandles().contains(focusWindow));
             })
             .buildBasic("failAndClose")
             .setOpenWindow(true).setCloseWindow(true);
 
         assertAll(
             ()->assertDoesNotThrow(()->browserRunnerOne.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS), "not complete in time"),
-            ()->assertFalse(result.get(), "window not closed"),
             ()->assertEquals("faildone", sb.toString(), "on fail/done not triggered"),
             ()->assertTrue(actionComposer.isFail(), "composer not fail"));
+        
+        result.set(actionComposer.getWebDriver().getWindowHandles().contains(actionComposer.getRegisteredWindow("")));
+        assertFalse(result.get(), "window not closed");
     }
 }
