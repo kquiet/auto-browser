@@ -102,11 +102,11 @@ public class IfThenElse extends SinglePhaseAction implements AddableActionSequen
             List<Composable> temp = new ArrayList<>(actualActionList);
             boolean anyActionFail = false;
             int index=0;
-            while(index<temp.size()){
+            while(index<temp.size() && !isFail() && !getComposer().skipped()){
                 Composable action = temp.get(index);
                 getComposer().perform(action);
                 anyActionFail = anyActionFail || action.isFail();
-                if (anyActionFail) break;
+                if (anyActionFail || getComposer().skipped()) break;
                 temp = new ArrayList<>(actualActionList);
                 index++;
             }

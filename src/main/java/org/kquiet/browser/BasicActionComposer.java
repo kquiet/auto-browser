@@ -16,7 +16,6 @@
 package org.kquiet.browser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.kquiet.browser.action.Composable;
 import org.kquiet.browser.action.OpenWindow;
 import org.kquiet.browser.action.CloseWindow;
-import org.kquiet.browser.action.IfThenElse;
 
 /**
  * {@link BasicActionComposer} provides basic implementation of {@link ActionComposer}.
@@ -43,8 +41,8 @@ import org.kquiet.browser.action.IfThenElse;
 public class BasicActionComposer extends AbstractActionComposer {
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicActionComposer.class);
 
-    private final Composable initAction = new IfThenElse(ac->this.needOpenWindow(), Arrays.asList(new OpenWindow(true, "")), null);
-    private final Composable finalAction = new IfThenElse(ac->this.needCloseWindow(), Arrays.asList(new CloseWindow(true)), null);
+    private final Composable initAction = new OpenWindow(true, "");
+    private final Composable finalAction = new CloseWindow(true);
 
     private volatile boolean runOnce = false;
     private volatile boolean isFail = false;
@@ -84,19 +82,21 @@ public class BasicActionComposer extends AbstractActionComposer {
             boolean anyActionFail = false;
             
             //run init action first
-            try{
-                perform(initAction);
-                anyActionFail = anyActionFail || initAction.isFail();
-            }catch(Exception ex){
-                LOGGER.warn("{}({}) init action error:{}", getClass().getSimpleName(), getName(), initAction.toString(), ex);
-                anyActionFail = true;
+            if (needOpenWindow()){
+                try{
+                    perform(initAction);
+                    anyActionFail = anyActionFail || initAction.isFail();
+                }catch(Exception ex){
+                    LOGGER.warn("{}({}) init action error:{}", getClass().getSimpleName(), getName(), initAction.toString(), ex);
+                    anyActionFail = true;
+                }
             }
             
             //run main actions
             if (!isFail() && !anyActionFail){
                 int index=0;
                 List<Composable> actionList = new ArrayList<>(super.getAllActionInSequence());
-                while(index<actionList.size() && !isFail() && !isSkipAction()){
+                while(index<actionList.size() && !isFail() && !skipped()){
                     Composable action = actionList.get(index);
                     try{
                         perform(action);
@@ -106,7 +106,7 @@ public class BasicActionComposer extends AbstractActionComposer {
                         anyActionFail = true;
                     }
                     //break when any action fail
-                    if (isFail() || anyActionFail) break;
+                    if (anyActionFail || skipped()) break;
                     actionList = new ArrayList<>(super.getAllActionInSequence());
                     index++;
                 }
@@ -165,10 +165,12 @@ public class BasicActionComposer extends AbstractActionComposer {
         }
         
         //run final action to close window
-        try{
-            perform(finalAction);
-        }catch(Exception ex){
-            LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(), finalAction.toString(), ex);
+        if (needCloseWindow()){
+            try{
+                perform(finalAction);
+            }catch(Exception ex){
+                LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(), finalAction.toString(), ex);
+            }
         }
         
         totalCostWatch.stop();
@@ -309,7 +311,8 @@ public class BasicActionComposer extends AbstractActionComposer {
         return this;
     }    
     
-    private boolean isSkipAction(){
+    @Override
+    public boolean skipped(){
         return skipAction;
     }
     

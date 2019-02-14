@@ -188,6 +188,12 @@ public interface ActionComposer extends Runnable, Prioritized, AddableActionSequ
     void skipToSuccess();
     
     /**
+     * Check if {@link #skipToFail()} or {@link #skipToSuccess()} of this {@link ActionComposer} has been invoked.
+     * @return {@code true} if any of both methods has been invoked; otherwise {@code false}
+     */
+    boolean skipped();
+    
+    /**
      * 
      * @return error list from executed actions
      */

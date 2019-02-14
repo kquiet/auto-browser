@@ -239,8 +239,11 @@ public class CompositeTest {
         AtomicBoolean result = new AtomicBoolean(true);
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
-                .custom(ac->ac.skipToSuccess())
-                .returnToComposerBuilder()
+                .prepareIfThenElse(ac->true)
+                    .then()
+                        .custom(ac->ac.skipToSuccess())
+                        .custom(ac->sb.append("unexpected"))
+                        .returnToComposerBuilder()
             .onSuccess(ac->{
                 sb.append("success");
             })
@@ -273,6 +276,7 @@ public class CompositeTest {
         ActionComposer actionComposer = getEmptyActionComposerBuilder()
             .prepareActionSequence()
                 .custom(ac->ac.skipToFail())
+                .custom(ac->sb.append("unexpected"))
                 .returnToComposerBuilder()
             .onSuccess(ac->{
                 sb.append("success");
