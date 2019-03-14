@@ -431,6 +431,7 @@ public class ActionTest {
                 .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.and(
                     ExpectedConditions.visibilityOfElementLocated(By.id("divMouseOver"))
                     , ExpectedConditions.invisibilityOfElementLocated(By.id("spMouseOver")))), 3000)
+                .prepareScrollToView(By.id("divMouseOver"), true).withInFrame(frameSequence.get()).done()
                 .prepareMouseOver(By.id("divMouseOver")).withInFrame(frameSequence.get()).done()
                 .waitUntil(mergeFrameExpectedCondition(frameSequence.get(), ExpectedConditions.visibilityOfElementLocated(By.id("spMouseOver"))), 1000)
                 .returnToComposerBuilder()
