@@ -1,4 +1,4 @@
-# Auto-browser
+# Auto-browser [![Travis CI build status](https://travis-ci.org/kquiet/auto-browser.svg?branch=master)](https://travis-ci.org/kquiet/auto-browser)
 Auto-browser is a java library which wraps [selenium][] to help focus on
 constructing and executing scripts of browser actions in applications.
 
