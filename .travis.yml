@@ -1,0 +1,35 @@
+## YAML Template.
+language: java
+
+branches:
+  only:
+    - master
+    - dev
+
+os: linux
+
+dist: xenial
+
+jdk: openjdk8
+
+cache:
+  directories:
+    - $HOME/.m2
+
+install: true
+
+script:
+  - mvn test -B -Dtest.browser=$TEST_BROWSER
+
+matrix:
+  include:
+    - name: "chrome"
+      env: TEST_BROWSER=chrome
+      before_install:
+        - sudo apt-get update
+        - sudo apt-get install -y chromium-browser
+    - name: "firefox"
+      env: TEST_BROWSER=firefox
+      before_install:
+        - sudo apt-get update
+        - sudo apt-get install -y firefox
