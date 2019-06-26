@@ -188,7 +188,25 @@ public class ActionComposerBuilder{
      */
     public <T extends ActionComposer> T build(Class<T> composerType, String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
         if (this.actionComposer==null){
-            @SuppressWarnings("unchecked") final T actionComposer = (T)Class.forName(composerType.getName()).newInstance();
+            @SuppressWarnings("unchecked")T obj = build((T)Class.forName(composerType.getName()).newInstance(), name);
+            return obj;
+        }
+        else {
+            @SuppressWarnings("unchecked") T obj = (T) this.actionComposer;
+            return obj;
+        }
+    }
+    
+    /**
+     * Finish building the {@link ActionComposer} with its name.
+     * 
+     * @param <T> the type of {@link ActionComposer} to build
+     * @param actionComposer the instance of {@link ActionComposer} to build
+     * @param name name of {@link ActionComposer}
+     * @return the built {@link ActionComposer}
+     */
+    public <T extends ActionComposer> T build(T actionComposer, String name){
+        if (this.actionComposer==null){
             commonBuild(actionComposer, name);
             this.actionComposer = actionComposer;
             return actionComposer;
