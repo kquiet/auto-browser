@@ -13,8 +13,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver74.0.3729.6\win32</test.webdriver.directory.chrome.windows>
-        <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver74.0.3729.6/linux64</test.webdriver.directory.chrome.linux>
+        <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver2.46\win32</test.webdriver.directory.chrome.windows>
+        <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver2.46/linux64</test.webdriver.directory.chrome.linux>
         <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver0.23.0\win64</test.webdriver.directory.firefox.windows>
         <test.webdriver.directory.firefox.linux>${project.basedir}/third_party/webdriver/geckodriver0.23.0/linux64</test.webdriver.directory.firefox.linux>
     </properties>
