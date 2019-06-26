@@ -27,7 +27,7 @@ matrix:
       env: TEST_BROWSER=chrome
       before_install:
         - sudo apt-get update
-        - sudo apt-get install -y chromium-browser
+        - sudo apt-get install -y chromium-browser=74.\*
     - name: "firefox"
       env: TEST_BROWSER=firefox
       before_install:
