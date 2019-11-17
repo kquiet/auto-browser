@@ -19,7 +19,7 @@ cache:
 install: true
 
 script:
-  - mvn test -B -Dtest.browser=$TEST_BROWSER
+  - mvn test -B -Dtest.browser=$TEST_BROWSER -Dtest.webdriver.directory.chrome.linux=${project.basedir}/third_party/webdriver/chromedriver76.0.3809.126/linux64
 
 matrix:
   include:
