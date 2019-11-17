@@ -24,11 +24,14 @@ script:
 matrix:
   include:
     - name: "chrome"
-      env: TEST_BROWSER=chrome
+      env:
+        - TEST_BROWSER=chrome
       before_install:
         - sudo apt-get update
+        - google-chrome --version
     - name: "firefox"
-      env: TEST_BROWSER=firefox
+      env:
+        - TEST_BROWSER=firefox
       before_install:
         - sudo apt-get update
         - sudo apt-get install -y firefox
