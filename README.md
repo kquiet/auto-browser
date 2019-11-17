@@ -105,7 +105,7 @@ want to know more api detail.
 ## Q&A
 1. How to use firefox as the browser instead of chrome?  
 => You can use other [constructor](https://kquiet.github.io/auto-browser/org/kquiet/browser/BasicActionRunner.html)
-of `BasicActionRuner` to specify browser type.
+of `BasicActionRunner` to specify browser type.
 
 2. How to perform conditional browser actions in a script?  
 => You can use the [prepareIfThenElse()](https://kquiet.github.io/auto-browser/org/kquiet/browser/ActionComposerBuilder.ActionSequenceBuilder.html#prepareIfThenElse-java.util.function.Function-)

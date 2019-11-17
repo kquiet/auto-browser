@@ -13,8 +13,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver2.46\win32</test.webdriver.directory.chrome.windows>
-        <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver2.46/linux64</test.webdriver.directory.chrome.linux>
+        <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver78.0.3904.70\win32</test.webdriver.directory.chrome.windows>
+        <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver78.0.3904.70/linux64</test.webdriver.directory.chrome.linux>
         <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver0.23.0\win64</test.webdriver.directory.firefox.windows>
         <test.webdriver.directory.firefox.linux>${project.basedir}/third_party/webdriver/geckodriver0.23.0/linux64</test.webdriver.directory.firefox.linux>
     </properties>
@@ -34,13 +34,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.3.2</version>
+            <version>5.5.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.3.2</version>
+            <version>5.5.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -246,7 +246,6 @@
                             <!--<groups>single</groups>
                             <excludedGroups>!single</excludedGroups>-->
                             <systemPropertyVariables>
-                                <test.browser>chrome</test.browser>
                                 <webdriver.chrome.driver>${test.webdriver.directory.chrome.windows}${file.separator}chromedriver.exe</webdriver.chrome.driver>
                                 <webdriver.gecko.driver>${test.webdriver.directory.firefox.windows}${file.separator}geckodriver.exe</webdriver.gecko.driver>
                                 <webdriver_headless>yes</webdriver_headless>

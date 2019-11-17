@@ -19,7 +19,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
@@ -35,7 +35,8 @@ import org.slf4j.Logger;
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
     private static final Logger LOGGER = LoggerFactory.getLogger(PausableThreadPoolExecutor.class);
     private volatile boolean isPaused = false;
-    private final Semaphore pauseSemaphore = new Semaphore(0);
+    private final Phaser pausePhaser = new Phaser(1);
+    private volatile int pausePhaseNumber = pausePhaser.getPhase();
     private final String poolPrefix;
     private final Consumer<Runnable> afterExecuteFunc;
 
@@ -126,10 +127,9 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
         super.beforeExecute(t, r);
         try {
             while (isPaused){
-                LOGGER.info("{} is pending...", this.poolPrefix);
-                pauseSemaphore.acquire();
-                pauseSemaphore.drainPermits();
-                LOGGER.info("{} comes back to service.", this.poolPrefix);
+                LOGGER.info("{}: thread-{} is pending...", this.poolPrefix, t.getId());
+                pausePhaser.awaitAdvanceInterruptibly(pausePhaseNumber);
+                LOGGER.info("{}: thread-{} comes back to service.", this.poolPrefix, t.getId());
             }
         } catch (InterruptedException ie) {
             t.interrupt();
@@ -153,7 +153,6 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
      */
     public synchronized void pause() {
         isPaused = true;
-        pauseSemaphore.drainPermits();
     }
 
     /**
@@ -161,7 +160,8 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor{
      */
     public synchronized void resume() {
         isPaused = false;
-        pauseSemaphore.release();
+        pausePhaser.arrive();
+        pausePhaseNumber = pausePhaser.getPhase();
     }
     
     /**
