@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.concurrent;
 
 /**
- * {@link Prioritized} is for internal use and should be implemented by the classes whose instances are intended to be executed by {@link PausablePriorityThreadPoolExecutor}.
+ * {@link Prioritized} is for internal use and should be implemented by the classes whose instances
+ * are intended to be executed by {@link PausablePriorityThreadPoolExecutor}.
  * 
  * @author Kimberly
  */
 public interface Prioritized {
 
-    /**
-     * Get priority. Smaller value means higher priority.
-     * 
-     * @return priority
-     */
-    int getPriority();
+  /**
+   * Get priority. Smaller value means higher priority.
+   * 
+   * @return priority
+   */
+  int getPriority();
 }

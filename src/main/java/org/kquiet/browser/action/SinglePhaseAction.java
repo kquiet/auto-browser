@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.browser.action;
 
 /**
@@ -20,19 +21,19 @@ package org.kquiet.browser.action;
  * 
  * @author Kimberly
  */
-public abstract class SinglePhaseAction extends MultiPhaseAction{
-    
-    @Override
-    protected void performMultiPhase() {
-        try{
-            performSinglePhase();
-        }finally{
-            noNextPhase();
-        }
+public abstract class SinglePhaseAction extends MultiPhaseAction {
+
+  @Override
+  protected void performMultiPhase() {
+    try {
+      performSinglePhase();
+    } finally {
+      noNextPhase();
     }
-    
-    /**
-     * Perform single-phased browser action.
-     */
-    protected abstract void performSinglePhase();
+  }
+
+  /**
+   * Perform single-phased browser action.
+   */
+  protected abstract void performSinglePhase();
 }

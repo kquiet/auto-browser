@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.browser.action;
 
 import org.kquiet.browser.ActionComposer;
@@ -24,29 +25,29 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 public class GetUrl extends SinglePhaseAction {
-    private final String url;
-            
-    /**
-     *
-     * @param url the url of web page
-     */
-    public GetUrl(String url){
-        this.url = url;
-    }
+  private final String url;
 
-    @Override
-    protected void performSinglePhase() {
-        ActionComposer actionComposer = this.getComposer();
-        try{
-            actionComposer.getWebDriver().get(this.url);
-        }
-        catch(Exception e){
-            throw new ActionException(e);
-        }
+  /**
+   * Create an action to get current page's url.
+   * 
+   * @param url the url of page
+   */
+  public GetUrl(String url) {
+    this.url = url;
+  }
+
+  @Override
+  protected void performSinglePhase() {
+    ActionComposer actionComposer = this.getComposer();
+    try {
+      actionComposer.getWebDriver().get(this.url);
+    } catch (Exception e) {
+      throw new ActionException(e);
     }
-    
-    @Override
-    public String toString(){
-        return String.format("%s:%s", GetUrl.class.getSimpleName(), url);
-    }
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s:%s", GetUrl.class.getSimpleName(), url);
+  }
 }

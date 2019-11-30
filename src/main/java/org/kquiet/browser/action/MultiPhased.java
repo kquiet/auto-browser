@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.browser.action;
 
 /**
- * An interface which should be implemented by any browser action whose execution spans multiple phases.
+ * An interface which should be implemented by any browser action whose execution spans multiple
+ * phases.
  * 
  * @author Kimberly
  */
 public interface MultiPhased extends Composable {
 
-    /**
-     * Signals that no more phases to execute
-     */
-    void noNextPhase();
-    
-    /**
-     * 
-     * @return {@code true} if has next phase to execute; {@code false} otherwise
-     */
-    boolean hasNextPhase();
+  /**
+   * Signals that no more phases to execute.
+   */
+  void noNextPhase();
+
+  /**
+   * Check if has next phase to execute.
+   * 
+   * @return {@code true} if has next phase to execute; {@code false} otherwise
+   */
+  boolean hasNextPhase();
 }

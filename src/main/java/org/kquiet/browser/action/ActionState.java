@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.browser.action;
 
 /**
- * The state of a browser action
+ * The state of a browser action.
+ * 
  * @author Kimberly
  */
 public enum ActionState {
 
-    /**
-     * Indicate the browser action is created.
-     */
-    CREATED
-    ,
+  /**
+   * Indicate the browser action is created.
+   */
+  CREATED,
 
-    /**
-     * Indicate the browser action is running.
-     */
-    RUNNING
-    ,
+  /**
+   * Indicate the browser action is running.
+   */
+  RUNNING,
 
-    /**
-     * Indicate the browser action has finished an execution phase with no error and is waiting for the execution of next phase.
-     */
-    WAIT_FOR_NEXT_PHASE
-    ,
+  /**
+   * Indicate the browser action has finished an execution phase with no error and is waiting for
+   * the execution of next phase.
+   */
+  WAIT_FOR_NEXT_PHASE,
 
-    /**
-     * Indicate the browser action has finished with error(s).
-     */
-    COMPLETE_WITH_ERROR
-    ,
+  /**
+   * Indicate the browser action has finished with error(s).
+   */
+  COMPLETE_WITH_ERROR,
 
-    /**
-     * Indicate the browser action has finished with no error.
-     */
-    COMPLETE
+  /**
+   * Indicate the browser action has finished with no error.
+   */
+  COMPLETE
 }

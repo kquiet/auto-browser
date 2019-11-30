@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.browser.action;
 
 import java.util.ArrayList;
@@ -20,22 +21,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.kquiet.browser.ActionComposer;
+import org.kquiet.browser.action.exception.ActionException;
+
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebElement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.action.exception.ActionException;
-
 /**
- * {@link Upload} is a subclass of {@link MultiPhaseAction} which types path of file into the file upload element.
- * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Select} tries to manipulate the element, so multi-phase is used to perform the action again.
+ * {@link Upload} is a subclass of {@link MultiPhaseAction} which types path of file into the file
+ * upload element.
+ * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Select} tries
+ * to manipulate the element, so multi-phase is used to perform the action again.
  * 
- * <p>{@link Upload} needs to make the file upload element visible first, so below javascript will be executed before typing into it:</p>
+ * <p>{@link Upload} needs to make the file upload element visible first, so below javascript will
+ * be executed before typing into it:</p>
  * <pre>
  * fileUploadElement.style.display = 'inline-block';
  * fileUploadElement.style.visibility = 'visible';
@@ -47,62 +51,80 @@ import org.kquiet.browser.action.exception.ActionException;
  * @author Kimberly
  */
 public class Upload extends MultiPhaseAction {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
-    
-    private final By by;
-    private final List<By> frameBySequence = new ArrayList<>();
-    private final List<String> pathOfFileList = new ArrayList<>();
+  private static final Logger LOGGER = LoggerFactory.getLogger(Upload.class);
 
-    /**
-     *
-     * @param by the element locating mechanism
-     * @param pathOfFiles the paths of files to upload
-     */
-    public Upload(By by, String... pathOfFiles){
-        this(by, null, pathOfFiles);
-    }
-    
-    /**
-     *
-     * @param by the element locating mechanism
-     * @param frameBySequence the sequence of the frame locating mechanism for the element resides in frame(or frame in another frame and so on)
-     * @param pathOfFiles the paths of files to upload
-     */
-    public Upload(By by, List<By> frameBySequence, String... pathOfFiles){
-        this.by = by;
-        if (frameBySequence!=null) this.frameBySequence.addAll(frameBySequence);
-        if (pathOfFiles!=null) this.pathOfFileList.addAll(Arrays.asList(pathOfFiles));
-    }
+  private final By by;
+  private final List<By> frameBySequence = new ArrayList<>();
+  private final List<String> pathOfFileList = new ArrayList<>();
 
-    @Override
-    protected void performMultiPhase() {
-        ActionComposer actionComposer = this.getComposer();
-        try{
-            switchToTopForFirefox(); //firefox doesn't switch focus to top after switch to window, so recovery step is required
-            actionComposer.switchToInnerFrame(this.frameBySequence);
-            WebElement element = actionComposer.getWebDriver().findElement(this.by);
-            ((JavascriptExecutor)actionComposer.getWebDriver()).executeScript("arguments[0].style.display = 'inline-block'; arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px'; arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
-            if (element.isDisplayed() && element.isEnabled()){
-                for (String pathOfFile: pathOfFileList){
-                    element.sendKeys(pathOfFile);
-                }
-                noNextPhase();
-            }
-            else{
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): continue to wait upload element to be clickable:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString());
-            }
-        }catch(StaleElementReferenceException ignoreE){ //with next phase when StaleElementReferenceException is encountered
-            if (LOGGER.isDebugEnabled()) LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(), actionComposer.getName(), toString(), ignoreE);
-        }catch(Exception e){
-            noNextPhase();
-            throw new ActionException(toString(), e);
+  /**
+   * Create an action to perform file uploads.
+   * 
+   * @param by the element locating mechanism
+   * @param pathOfFiles the paths of files to upload
+   */
+  public Upload(By by, String... pathOfFiles) {
+    this(by, null, pathOfFiles);
+  }
+
+  /**
+   * Create an action to perform file uploads.
+   * 
+   * @param by the element locating mechanism
+   * @param frameBySequence the sequence of the frame locating mechanism for the element resides in
+   *     frame(or frame in another frame and so on)
+   * @param pathOfFiles the paths of files to upload
+   */
+  public Upload(By by, List<By> frameBySequence, String... pathOfFiles) {
+    this.by = by;
+    if (frameBySequence != null) {
+      this.frameBySequence.addAll(frameBySequence);
+    }
+    if (pathOfFiles != null) {
+      this.pathOfFileList.addAll(Arrays.asList(pathOfFiles));
+    }
+  }
+
+  @Override
+  protected void performMultiPhase() {
+    ActionComposer actionComposer = this.getComposer();
+    try {
+      //firefox doesn't switch focus to top after switch to window, so recovery step is required
+      switchToTopForFirefox();
+      actionComposer.switchToInnerFrame(this.frameBySequence);
+      WebElement element = actionComposer.getWebDriver().findElement(this.by);
+      ((JavascriptExecutor)actionComposer.getWebDriver())
+          .executeScript("arguments[0].style.display = 'inline-block';"
+              + "arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px';"
+              + " arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+      if (element.isDisplayed() && element.isEnabled()) {
+        for (String pathOfFile: pathOfFileList) {
+          element.sendKeys(pathOfFile);
         }
+        noNextPhase();
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("{}({}): continue to wait upload element to be clickable:{}",
+              ActionComposer.class.getSimpleName(), actionComposer.getName(), toString());
+        }
+      }
+    } catch (StaleElementReferenceException ignoreE) {
+      //with next phase when StaleElementReferenceException is encountered
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(),
+            actionComposer.getName(), toString(), ignoreE);
+      }
+    } catch (Exception e) {
+      noNextPhase();
+      throw new ActionException(toString(), e);
     }
-    
-    @Override
-    public String toString(){
-        return String.format("%s:%s/%s/%s", Upload.class.getSimpleName(), by.toString()
-                , String.join(",",frameBySequence.stream().map(s->s.toString()).collect(Collectors.toList()))
-                , String.join(",", pathOfFileList));
-    }
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s:%s/%s/%s", Upload.class.getSimpleName(), by.toString(),
+        String.join(",",frameBySequence.stream().map(
+            s -> s.toString()).collect(Collectors.toList())),
+        String.join(",", pathOfFileList));
+  }
 }

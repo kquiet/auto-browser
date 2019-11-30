@@ -3,20 +3,20 @@ Auto-browser is a java library which wraps [selenium][] to help focus on
 constructing and executing scripts of browser actions in applications.
 
 Using [selenium][], you can manipulate the browser to perform almost any action
-as you usually do with a mouse and a keyboard, e.g., log in to an ecommerce site
+as you usually do with a mouse and a keyboard, e.g., log in to an e-commerce site
 and place orders.
 
 However, webdriver
 [is not thread-safe](https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#user-content-q-is-webdriver-thread-safe)
 , so there is still a lot of cumbersome work to do when you want to:
 
-- execute multiple scripts of browser actions synchronizedly on a webdriver
+- execute multiple scripts of browser actions concurrently against a webdriver
 instance without breaking each other
-- avoid blocking the other script of browser actions while performing wait-like
+- avoid blocking the other script of browser actions while performing wait alike
 actions on a webdriver instance
 
 Auto-browser handles these internally and provides a fluent way to construct a
-script of browser actions as an object, enabling custom scheduling of scripts.
+script of browser actions as an object, enabling cooperation of scripts.
 
 ## Supported browser
 Currently only Chrome/Chromium/Firefox are supported because it should be enough
@@ -24,20 +24,13 @@ to automate most of web pages. The other browsers(except IE) may be supported in
 the future.
 
 ## Getting Started
-If you are using [maven][], add below to `pom.xml`:
+Add below to [maven][]'s `pom.xml`:
 ```xml
 <dependency>
   <groupId>org.kquiet</groupId>
   <artifactId>auto-browser</artifactId>
   <version>X.X.X</version>
 </dependency>
-```
-
-If you are using [gradle][], add below to `build.gradle`:
-```groovy
-dependencies {
-    implementation 'org.kquiet:auto-browser:X.X.X'
-}
 ```
 
 Java version 1.8+ is required.
@@ -99,8 +92,8 @@ public class Sample {
 }
 ```
 
-Please refer to the [api doc](https://kquiet.github.io/auto-browser/) if you
-want to know more api detail.
+Please refer to the [api doc](https://kquiet.github.io/auto-browser/) for
+details.
 
 ## Q&A
 1. How to use firefox as the browser instead of chrome?  
@@ -112,22 +105,6 @@ of `BasicActionRunner` to specify browser type.
 method in `ActionComposerBuilder.ActionSequenceBuilder` to perform conditional browser
 actions.
 
-## License (Apache License Version 2.0)
-Copyright 2018-2019 kquiet.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-<http://www.apache.org/licenses/LICENSE-2.0>
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-[gradle]: https://gradle.org/ "gradle official website"
 [maven]: https://maven.apache.org/ "maven official website"
 [selenium]: https://github.com/SeleniumHQ/selenium "selenium in github"
 [chromedriver]: http://chromedriver.chromium.org/downloads "download chrome/chromium driver executable"

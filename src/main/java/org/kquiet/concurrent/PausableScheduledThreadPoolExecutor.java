@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 kquiet.
+ * Copyright 2019 P. Kimberly Chang
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.kquiet.concurrent;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -27,89 +28,93 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Kimberly
  */
-public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor{
-    private static final Logger LOGGER = LoggerFactory.getLogger(PausableThreadPoolExecutor.class);
-    private volatile boolean isPaused = false;
-    private final Phaser pausePhaser = new Phaser(1);
-    private volatile int pausePhaseNumber = pausePhaser.getPhase();
-    private final String poolPrefix;
-    private final Consumer<Runnable> afterExecuteFunc;
+public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PausableThreadPoolExecutor.class);
+  private volatile boolean isPaused = false;
+  private final Phaser pausePhaser = new Phaser(1);
+  private volatile int pausePhaseNumber = pausePhaser.getPhase();
+  private final String poolPrefix;
+  private final Consumer<Runnable> afterExecuteFunc;
 
-    /**
-     * Create a {@link PausableScheduledThreadPoolExecutor} with core/maximum pool size set to one
-     */
-    public PausableScheduledThreadPoolExecutor(){
-        this("", 1);
-    }
-    
-    /**
-     *
-     * @param poolPrefix prefix name of thread pool
-     * @param corePoolSize core pool size
-     */
-    public PausableScheduledThreadPoolExecutor(String poolPrefix, int corePoolSize){
-        this(poolPrefix, corePoolSize, null);
-    }
-    
-    /**
-     *
-     * @param poolPrefix prefix name of thread pool
-     * @param corePoolSize core pool size
-     * @param afterExecuteFunc the function to execute after any task is executed
-     */
-    public PausableScheduledThreadPoolExecutor(String poolPrefix, int corePoolSize, Consumer<Runnable> afterExecuteFunc){
-        super(corePoolSize, new CommonThreadFactory(poolPrefix));
-        this.poolPrefix = poolPrefix;
-        this.afterExecuteFunc = afterExecuteFunc;
-    }
+  /**
+   * Create a {@link PausableScheduledThreadPoolExecutor} with core/maximum pool size set to one.
+   */
+  public PausableScheduledThreadPoolExecutor() {
+    this("", 1);
+  }
 
-    @Override
-    protected void beforeExecute(Thread t, Runnable r) {
-        super.beforeExecute(t, r);
-        try {
-            while (isPaused){
-                LOGGER.info("{}: thread-{} is pending...", this.poolPrefix, t.getId());
-                pausePhaser.awaitAdvanceInterruptibly(pausePhaseNumber);
-                LOGGER.info("{}: thread-{} comes back to service.", this.poolPrefix, t.getId());
-            }
-        } catch (InterruptedException ie) {
-            t.interrupt();
-        }
-    }
-    
-    @Override
-    protected void afterExecute(Runnable r, Throwable t) {
-        try{
-            super.afterExecute(r, t);
-        }
-        finally{
-            if (this.afterExecuteFunc!=null){
-                this.afterExecuteFunc.accept(r);
-            }
-        }
-    }
+  /**
+   * Create a {@link PausableScheduledThreadPoolExecutor} with specified parameters.
+   * 
+   * @param poolPrefix prefix name of thread pool
+   * @param corePoolSize core pool size
+   */
+  public PausableScheduledThreadPoolExecutor(String poolPrefix, int corePoolSize) {
+    this(poolPrefix, corePoolSize, null);
+  }
 
-    /**
-     * Pause the execution of invoking {@link PausableScheduledThreadPoolExecutor}. Any executing task is not affected.
-     */
-    public synchronized void pause() {
-        isPaused = true;
-    }
+  /**
+   * Create a {@link PausableScheduledThreadPoolExecutor} with specified parameters.
+   * 
+   * @param poolPrefix prefix name of thread pool
+   * @param corePoolSize core pool size
+   * @param afterExecuteFunc the function to execute after any task is executed
+   */
+  public PausableScheduledThreadPoolExecutor(String poolPrefix, int corePoolSize,
+      Consumer<Runnable> afterExecuteFunc) {
+    super(corePoolSize, new CommonThreadFactory(poolPrefix));
+    this.poolPrefix = poolPrefix;
+    this.afterExecuteFunc = afterExecuteFunc;
+  }
 
-    /**
-     * Resume the execution of invoking {@link PausableScheduledThreadPoolExecutor}.
-     */
-    public synchronized void resume() {
-        isPaused = false;
-        pausePhaser.arrive();
-        pausePhaseNumber = pausePhaser.getPhase();
+  @Override
+  protected void beforeExecute(Thread t, Runnable r) {
+    super.beforeExecute(t, r);
+    try {
+      while (isPaused) {
+        LOGGER.info("{}: thread-{} is pending...", this.poolPrefix, t.getId());
+        pausePhaser.awaitAdvanceInterruptibly(pausePhaseNumber);
+        LOGGER.info("{}: thread-{} comes back to service.", this.poolPrefix, t.getId());
+      }
+    } catch (InterruptedException ie) {
+      t.interrupt();
     }
-    
-    /**
-     *
-     * @return whether invoking {@link PausableScheduledThreadPoolExecutor} is paused.
-     */
-    public synchronized boolean isPaused(){
-        return isPaused;
+  }
+
+  @Override
+  protected void afterExecute(Runnable r, Throwable t) {
+    try {
+      super.afterExecute(r, t);
+    } finally {
+      if (this.afterExecuteFunc != null) {
+        this.afterExecuteFunc.accept(r);
+      }
     }
+  }
+
+  /**
+   * Pause the execution of this {@link PausableScheduledThreadPoolExecutor}. Any executing task
+   * is not affected.
+   */
+  public synchronized void pause() {
+    isPaused = true;
+  }
+
+  /**
+   * Resume the execution of this {@link PausableScheduledThreadPoolExecutor}.
+   */
+  public synchronized void resume() {
+    isPaused = false;
+    pausePhaser.arrive();
+    pausePhaseNumber = pausePhaser.getPhase();
+  }
+
+  /**
+   * Check if the execution of this {@link PausableScheduledThreadPoolExecutor} is paused.
+   * 
+   * @return whether this {@link PausableScheduledThreadPoolExecutor} is paused.
+   */
+  public synchronized boolean isPaused() {
+    return isPaused;
+  }
 }
