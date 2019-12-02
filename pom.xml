@@ -353,7 +353,7 @@
                                     <goal>sign</goal>
                                 </goals>
 								<configuration>
-									<keyname>${gpg-kquiet.keyname}</keyname>
+									<keyname>${gpg.keyname}</keyname>
 									<passphraseServerId>gpg-kquiet</passphraseServerId>
 								</configuration>
                             </execution>
