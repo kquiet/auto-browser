@@ -27,6 +27,7 @@ import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.kquiet.browser.action.Composable;
 import org.kquiet.utility.Stopwatch;
@@ -68,11 +69,13 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   private final Map<String, String> registeredWindows = new LinkedHashMap<>();
 
   private int priority = Integer.MIN_VALUE;
-  private Consumer<ActionComposer> onFailFunc = (bac) -> {};
-  private Consumer<ActionComposer> onSuccessFunc = (bac) -> {};
-  private Consumer<ActionComposer> onDoneFunc = (bac) -> {};
+  private Consumer<ActionComposer> onFailFunc = ac -> {};
+  private Consumer<ActionComposer> onSuccessFunc = ac -> {};
+  private Consumer<ActionComposer> onDoneFunc = ac -> {};
+  private Function<ActionComposer, Consumer<Composable>> actionPerformedFunc = ac -> at -> {};
+  private Function<ActionComposer, Consumer<Composable>> actionPerformingFunc = ac -> at -> {};
 
-  private ActionRunner actionRunner = null;    
+  private ActionRunner actionRunner = null;
   private String name = "";
   private String focusWindowIdentity = null;
 
@@ -148,6 +151,14 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
     if (action == null) {
       return;
     }
+    
+    try {
+      getActionPerformingFunction().apply(this).accept(action);
+    } catch (Exception e) {
+      LOGGER.warn("{}({}) action performing function error",
+          getClass().getSimpleName(), getName(), e);
+      throw e;
+    }
 
     boolean isSequenceContainer = action instanceof DynamicActionSequence;
     try {
@@ -160,6 +171,14 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
       if (isSequenceContainer) {
         executionContextStack.pop();
       }
+    }
+    
+    try {
+      getActionPerformedFunction().apply(this).accept(action);
+    } catch (Exception e) {
+      LOGGER.warn("{}({}) action performed function error",
+          getClass().getSimpleName(), getName(), e);
+      throw e;
     }
   }
 
@@ -209,6 +228,8 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   public ActionComposer onFail(Consumer<ActionComposer> onFailFunc) {
     if (onFailFunc != null) {
       this.onFailFunc = onFailFunc;
+    } else {
+      this.onFailFunc = ac -> {};
     }
     return this;
   }
@@ -226,6 +247,8 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   public ActionComposer onSuccess(Consumer<ActionComposer> onSuccessFunc) {
     if (onSuccessFunc != null) {
       this.onSuccessFunc = onSuccessFunc;
+    } else {
+      this.onSuccessFunc = ac -> {};
     }
     return this;
   }
@@ -243,6 +266,46 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   public ActionComposer onDone(Consumer<ActionComposer> onDoneFunc) {
     if (onDoneFunc != null) {
       this.onDoneFunc = onDoneFunc;
+    } else {
+      this.onDoneFunc = ac -> {};
+    }
+    return this;
+  }
+
+  /**
+   * Get the function to be executed after any managed action is performed.
+   * 
+   * @return the function consuming {@link ActionComposer}
+   */
+  protected Function<ActionComposer, Consumer<Composable>> getActionPerformedFunction() {
+    return actionPerformedFunc;
+  }
+  
+  @Override
+  public ActionComposer actionPerformed(Function<ActionComposer, Consumer<Composable>> func) {
+    if (func != null) {
+      this.actionPerformedFunc = func;
+    } else {
+      this.actionPerformedFunc = ac -> at -> {};
+    }
+    return this;
+  }
+  
+  /**
+   * Get the function to be executed when any managed action is performed.
+   * 
+   * @return the function consuming {@link ActionComposer}
+   */
+  protected Function<ActionComposer, Consumer<Composable>> getActionPerformingFunction() {
+    return actionPerformingFunc;
+  }
+  
+  @Override
+  public ActionComposer actionPerforming(Function<ActionComposer, Consumer<Composable>> func) {
+    if (func != null) {
+      this.actionPerformingFunc = func;
+    } else {
+      this.actionPerformingFunc = ac -> at -> {};
     }
     return this;
   }

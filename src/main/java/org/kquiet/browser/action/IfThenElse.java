@@ -21,7 +21,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.kquiet.browser.ActionComposer;
@@ -77,7 +76,6 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
 
   private boolean evaluate() throws Exception {
     AtomicBoolean evalResult = new AtomicBoolean(true);
-    AtomicReference<MultiPhaseAction> customRef = new AtomicReference<>(null);
     MultiPhaseAction customAction = new Custom(ps -> ac -> {
       Object obj = null;
       try {
@@ -101,7 +99,6 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
       }
       evalResult.set(obj != null && (Boolean.class != obj.getClass() || Boolean.TRUE.equals(obj)));
     }, null);
-    customRef.set(customAction);
     getComposer().perform(customAction);
 
     List<Exception> errors = customAction.getErrors();

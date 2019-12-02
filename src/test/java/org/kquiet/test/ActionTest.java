@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import org.kquiet.browser.ActionComposer;
@@ -811,5 +813,38 @@ public class ActionTest {
             "not complete in time"),
         () -> assertEquals("customdone", sb.toString(), "on done not triggered"),
         () -> assertTrue(actionComposer.isDone(), "composer not done"));
+  }
+  
+  @Test
+  @Tag("new")
+  public void actionPerform() {
+    StringBuilder sb = new StringBuilder();
+    AtomicInteger ai = new AtomicInteger(0);
+    AtomicInteger ai2 = new AtomicInteger(10);
+    ActionComposer actionComposer = getEmptyActionComposerBuilder()
+        .prepareActionSequence()
+          .justWait(300)
+          .prepareIfThenElse(ac -> true)
+          .then()
+            .custom(ac -> {
+              sb.append("custom");
+            })
+            .endActionSequence()
+        .returnToComposerBuilder()
+        .actionPerforming(ac -> at -> {
+          sb.append(ai.addAndGet(1));
+        })
+        .actionPerformed(ac -> at -> {
+          sb.append(ai2.addAndGet(-1));
+        })
+        .buildBasic("actionPerforming")
+        .setOpenWindow(false).setCloseWindow(false);
+
+    assertAll(
+        () -> assertDoesNotThrow(
+            () -> browserRunner.executeComposer(actionComposer).get(3000, TimeUnit.MILLISECONDS),
+            "not complete in time"),
+        () -> assertEquals("192384custom76", sb.toString(),
+            "action perform function not triggered corrrectly"));
   }
 }

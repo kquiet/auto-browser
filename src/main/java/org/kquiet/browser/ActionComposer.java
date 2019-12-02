@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.kquiet.browser.action.Composable;
 import org.kquiet.concurrent.Prioritized;
@@ -247,30 +248,46 @@ public interface ActionComposer extends Runnable, Prioritized, DynamicActionSequ
   ActionComposer keepFailInfo(boolean flag);
 
   /**
-   * Set the callback function to be executed when this {@link ActionComposer} is marked as failed.
+   * Set the function to be executed when this {@link ActionComposer} is marked as failed.
    * 
-   * @param onFailFunc the callback function to be executed
+   * @param onFailFunc the function to be executed
    * @return self reference
    */
   ActionComposer onFail(Consumer<ActionComposer> onFailFunc);
 
   /**
-   * Set the callback function to be executed when this {@link ActionComposer} is finished without
+   * Set the function to be executed when this {@link ActionComposer} is finished without
    * being marked as failed.
    * 
-   * @param onSuccessFunc the callback function to be executed
+   * @param onSuccessFunc the function to be executed
    * @return self reference
    */
   ActionComposer onSuccess(Consumer<ActionComposer> onSuccessFunc);
 
   /**
-   * Set the callback function to be executed when this {@link ActionComposer} is done.
-   * This callback function is executed after <i>fail function</i> and <i>success function</i>.
+   * Set the function to be executed when this {@link ActionComposer} is done.
+   * This function is executed after <i>fail function</i> and <i>success function</i>.
    * 
-   * @param onDoneFunc the callback function to be executed
+   * @param onDoneFunc the function to be executed
    * @return self reference
    */
   ActionComposer onDone(Consumer<ActionComposer> onDoneFunc);
+  
+  /**
+   * Set the function to be executed after any managed action is performed.
+   * 
+   * @param func the function to be executed
+   * @return self reference
+   */
+  ActionComposer actionPerformed(Function<ActionComposer, Consumer<Composable>> func);
+  
+  /**
+   * Set the function to be executed when any managed action is performed.
+   * 
+   * @param func the function to be executed
+   * @return self reference
+   */
+  ActionComposer actionPerforming(Function<ActionComposer, Consumer<Composable>> func);
 
   /**
    * Get {@link WebDriver} from associated {@link ActionRunner}.

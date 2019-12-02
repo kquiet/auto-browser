@@ -248,8 +248,8 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M3</version>
                         <configuration>
-                            <!--<groups>single</groups>
-                            <excludedGroups>!single</excludedGroups>-->
+                            <!-- <groups>new</groups>
+                            <excludedGroups>!new</excludedGroups> -->
                             <systemPropertyVariables>
                             	<test.browser>firefox</test.browser>
                                 <webdriver.chrome.driver>${test.webdriver.directory.chrome.windows}${file.separator}chromedriver.exe</webdriver.chrome.driver>

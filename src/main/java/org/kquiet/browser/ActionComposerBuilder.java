@@ -81,6 +81,8 @@ public class ActionComposerBuilder {
   private Consumer<ActionComposer> failFunc;
   private Consumer<ActionComposer> successFunc;
   private Consumer<ActionComposer> doneFunc;
+  private Function<ActionComposer, Consumer<Composable>> actionPerformedFunc;
+  private Function<ActionComposer, Consumer<Composable>> actionPerformingFunc;
 
   private volatile ActionComposer actionComposer;
 
@@ -102,9 +104,9 @@ public class ActionComposerBuilder {
   }
 
   /**
-   * Set the fail callback function of {@link ActionComposer}.
+   * Set the function to be executed when the execution of building {@link ActionComposer} fails.
    * 
-   * @param func callback function
+   * @param func the function to be executed
    * @return this {@link ActionComposerBuilder}
    * @see ActionComposer#onFail(java.util.function.Consumer)
    */
@@ -114,9 +116,9 @@ public class ActionComposerBuilder {
   }
 
   /**
-   * Set the success callback function of {@link ActionComposer}.
+   * Set the function to be executed when the execution of building {@link ActionComposer} succeeds.
    * 
-   * @param func callback function
+   * @param func the function to be executed
    * @return this {@link ActionComposerBuilder}
    * @see ActionComposer#onSuccess(java.util.function.Consumer)
    */
@@ -126,9 +128,9 @@ public class ActionComposerBuilder {
   }
 
   /**
-   * Set the done callback function of {@link ActionComposer}.
+   * Set the function to be executed when the execution of building {@link ActionComposer} finishes.
    * 
-   * @param func callback function
+   * @param func the function to be executed
    * @return this {@link ActionComposerBuilder}
    * @see ActionComposer#onDone(java.util.function.Consumer)
    */
@@ -136,9 +138,39 @@ public class ActionComposerBuilder {
     doneFunc = func;
     return this;
   }
+  
+  /**
+   * Set the function to be executed when any managed action of building {@link ActionComposer} is
+   * performed.
+   * 
+   * @param func the function to be executed
+   * @return this {@link ActionComposerBuilder}
+   * @see ActionComposer#actionPerforming(java.util.function.Function)
+   */
+  public ActionComposerBuilder actionPerforming(
+      Function<ActionComposer, Consumer<Composable>> func) {
+    actionPerformingFunc = func;
+    return this;
+  }
+  
+  /**
+   * Set the function to be executed after any managed action of building {@link ActionComposer} is
+   * performed.
+   * 
+   * @param func the function to be executed
+   * @return this {@link ActionComposerBuilder}
+   * @see ActionComposer#actionPerformed(java.util.function.Function)
+   */
+  public ActionComposerBuilder actionPerformed(
+      Function<ActionComposer, Consumer<Composable>> func) {
+    actionPerformedFunc = func;
+    return this;
+  }
 
   private void commonBuild(ActionComposer actionComposer, String name) {
-    actionComposer.setName(name).onFail(failFunc).onSuccess(successFunc).onDone(doneFunc);
+    actionComposer.setName(name)
+      .actionPerforming(actionPerformingFunc).actionPerformed(actionPerformedFunc)
+      .onFail(failFunc).onSuccess(successFunc).onDone(doneFunc);
     actionList.forEach(s -> actionComposer.addToTail(s));        
   }
 
