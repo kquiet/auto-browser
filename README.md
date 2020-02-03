@@ -48,8 +48,8 @@ ActionComposer actionComposer = new ActionComposerBuilder()
     .click(By.xpath("//mark[text()='ActionComposerBuilder']"))
     .returnToComposerBuilder()
   .buildBasic().setCloseWindow(false)
-  .onFail(ac->System.out.println("called when an exception is thrown or the script is marked as failed"))
-  .onDone(ac->System.out.println("always called after all browser actions and callbacks"));
+  .onFail(ac -> System.out.println("called when an exception is thrown or the script is marked as failed"))
+  .onDone(ac -> System.out.println("always called after all browser actions and callbacks"));
 ```
 2. Start a browser:
 ```java
@@ -61,7 +61,7 @@ ActionRunner actionRunner = new BasicActionRunner();
 actionRunner.executeComposer(actionComposer);
 ```
 Remember to download the driver executable and set its path by system property
-in java command to run, e.g.,
+'webdriver.chrome.driver' or 'webdriver.gecko.driver' in java command to run, e.g.,
 `java -Dwebdriver.chrome.driver=<path to chromedriver>`.
 - [driver executable for chrome/chromium][chromedriver]
 - [driver executable for firefox][geckodriver]
@@ -74,7 +74,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class Sample {    
   public static void main(String args[]) throws Exception{
-    try(ActionRunner actionRunner = new BasicActionRunner()){
+    try (ActionRunner actionRunner = new BasicActionRunner()) {
       ActionComposer actionComposer = new ActionComposerBuilder()
         .prepareActionSequence()
           .getUrl("https://github.com/kquiet/auto-browser/find/master")
@@ -84,8 +84,8 @@ public class Sample {
           .click(By.xpath("//mark[text()='ActionComposerBuilder']"))
           .returnToComposerBuilder()
         .buildBasic().setCloseWindow(false)
-        .onFail(ac->System.out.println("called when an exception is thrown or is marked as failed"))
-        .onDone(ac->System.out.println("always called after all browser actions and callbacks"));
+        .onFail(ac -> System.out.println("called when an exception is thrown or is marked as failed"))
+        .onDone(ac -> System.out.println("always called after all browser actions and callbacks"));
       actionRunner.executeComposer(actionComposer).get();
     }
   }
@@ -97,13 +97,14 @@ details.
 
 ## Q&A
 1. How to use firefox as the browser instead of chrome?  
-=> You can use other [constructor](https://kquiet.github.io/auto-browser/org/kquiet/browser/BasicActionRunner.html)
-of `BasicActionRunner` to specify browser type.
+=> You can use other [constructors](https://kquiet.github.io/auto-browser/org/kquiet/browser/BasicActionRunner.html)
+of `BasicActionRunner` to specify the browser type.
 
 2. How to perform conditional browser actions in a script?  
-=> You can use the [prepareIfThenElse()](https://kquiet.github.io/auto-browser/org/kquiet/browser/ActionComposerBuilder.ActionSequenceBuilder.html#prepareIfThenElse-java.util.function.Function-)
-method in `ActionComposerBuilder.ActionSequenceBuilder` to perform conditional browser
-actions.
+=> Method [prepareIfThenElse()](https://kquiet.github.io/auto-browser/org/kquiet/browser/ActionComposerBuilder.ActionSequenceBuilder.html#prepareIfThenElse-java.util.function.Function-)
+in `ActionComposerBuilder.ActionSequenceBuilder` is designed to perform such actions, please use it accordingly.
+Or use another method [custom()](https://kquiet.github.io/auto-browser/org/kquiet/browser/ActionComposerBuilder.ActionSequenceBuilder.html#custom-java.util.function.Consumer-)
+which takes a *Consumer* as its parameter allowing you to script all the customized logic inside.
 
 [maven]: https://maven.apache.org/ "maven official website"
 [selenium]: https://github.com/SeleniumHQ/selenium "selenium in github"
