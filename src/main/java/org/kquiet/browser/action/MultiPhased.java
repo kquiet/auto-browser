@@ -19,19 +19,17 @@ package org.kquiet.browser.action;
 /**
  * An interface which should be implemented by any browser action whose execution spans multiple
  * phases.
- * 
+ *
  * @author Kimberly
  */
 public interface MultiPhased extends Composable {
 
-  /**
-   * Signals that no more phases to execute.
-   */
+  /** Signals that no more phases to execute. */
   void noNextPhase();
 
   /**
    * Check if has next phase to execute.
-   * 
+   *
    * @return {@code true} if has next phase to execute; {@code false} otherwise
    */
   boolean hasNextPhase();

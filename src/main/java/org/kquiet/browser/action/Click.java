@@ -19,22 +19,19 @@ package org.kquiet.browser.action;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link Click} is a subclass of {@link MultiPhaseAction} which clicks an element.
- * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Click} tries
- * to manipulate the element, so multi-phase is used to perform the action again.
- * 
+ * {@link Click} is a subclass of {@link MultiPhaseAction} which clicks an element. {@link
+ * org.openqa.selenium.StaleElementReferenceException} may happen while {@link Click} tries to
+ * manipulate the element, so multi-phase is used to perform the action again.
+ *
  * @author Kimberly
  */
 public class Click extends MultiPhaseAction {
@@ -45,7 +42,7 @@ public class Click extends MultiPhaseAction {
 
   /**
    * Create a new action representing a click.
-   * 
+   *
    * @param by the element locating mechanism
    */
   public Click(By by) {
@@ -54,7 +51,7 @@ public class Click extends MultiPhaseAction {
 
   /**
    * Create a new action representing a click.
-   * 
+   *
    * @param by the element locating mechanism
    * @param frameBySequence the sequence of the frame locating mechanism for the element resides in
    *     frame(or frame in another frame and so on)
@@ -70,18 +67,22 @@ public class Click extends MultiPhaseAction {
   protected void performMultiPhase() {
     ActionComposer actionComposer = this.getComposer();
     try {
-      //firefox doesn't switch focus to top after switch to window,
-      //so recovery step is required                
+      // firefox doesn't switch focus to top after switch to window,
+      // so recovery step is required
       switchToTopForFirefox();
       actionComposer.switchToInnerFrame(this.frameBySequence);
       WebElement element = actionComposer.getWebDriver().findElement(this.by);
       element.click();
       noNextPhase();
     } catch (StaleElementReferenceException ignoreE) {
-      //with next phase when StaleElementReferenceException is encountered
+      // with next phase when StaleElementReferenceException is encountered
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(),
-            actionComposer.getName(), toString(), ignoreE);
+        LOGGER.debug(
+            "{}({}): encounter stale element:{}",
+            ActionComposer.class.getSimpleName(),
+            actionComposer.getName(),
+            toString(),
+            ignoreE);
       }
     } catch (Exception e) {
       noNextPhase();
@@ -91,8 +92,11 @@ public class Click extends MultiPhaseAction {
 
   @Override
   public String toString() {
-    return String.format("%s:%s/%s", Click.class.getSimpleName(), by.toString(),
-        String.join(",",frameBySequence.stream().map(
-            s -> s.toString()).collect(Collectors.toList())));
+    return String.format(
+        "%s:%s/%s",
+        Click.class.getSimpleName(),
+        by.toString(),
+        String.join(
+            ",", frameBySequence.stream().map(s -> s.toString()).collect(Collectors.toList())));
   }
 }

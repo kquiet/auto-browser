@@ -18,7 +18,7 @@ package org.kquiet.concurrent;
 
 /**
  * Prioritized {@link Runnable}. This class is for internal use.
- * 
+ *
  * @author Kimberly
  */
 public class PriorityRunnable implements Prioritized, Runnable {
@@ -27,7 +27,7 @@ public class PriorityRunnable implements Prioritized, Runnable {
 
   /**
    * Create a prioritized {@link Runnable}.
-   * 
+   *
    * @param runnable wrapped {@link Runnable}
    * @param priority priority
    */

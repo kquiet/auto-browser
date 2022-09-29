@@ -1,0 +1,84 @@
+name: continuous-delivery-staging
+on:
+  create
+jobs:
+  call-maven-test:
+    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'release-')
+    uses: ./.github/workflows/maven-test.yml
+    with:
+      ref: ${{ github.sha }}
+    secrets: inherit
+  maven-deploy-staging:
+    needs: call-maven-test
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: deploy-staging-${{ github.sha }}
+    environment: 
+      name: maven-repository-staging
+      url: https://oss.sonatype.org/
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        java-package: jdk
+        architecture: x64
+        distribution: 'temurin'
+        cache: 'maven'
+        server-id: 'ossrh-kquiet'
+        server-username: MAVEN_SERVER_USERNAME
+        server-password: MAVEN_SERVER_PASSWORD
+        gpg-private-key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+    - name: Deploy artifacts to staging repository
+      env:
+        MAVEN_SERVER_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_SERVER_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.BOT_GPG_PASSPHRASE }}
+      run: |
+        MAVEN_PROJECT_VERSION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+        echo "maven project version: $MAVEN_PROJECT_VERSION"
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        if [[ "release-$MAVEN_PROJECT_VERSION" =~ ^${{ github.ref_name }}-SNAPSHOT$ ]]
+        then
+          mvn release:clean release:prepare release:perform -B -DskipTests -Darguments=-DskipTests -Dusername=kquiet -D"password=${{ github.token }}" -Prelease
+        fi
+  renew-javadoc:
+    needs: maven-deploy-staging
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: renew-javadoc-${{ github.sha }}
+    steps:
+    - name: Extract target tag for generating javadoc later
+      id: extract-target-tag
+      run: |
+        echo "::set-output name=target-tag::auto-browser-${{ github.ref_name }}" | sed "s/release-//"
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ steps.extract-target-tag.outputs.target-tag }}
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        java-package: jdk
+        architecture: x64
+        distribution: 'temurin'
+        cache: 'maven'
+    - name: Generate javadoc and copy to temporary folders
+      run: |
+        mvn javadoc:javadoc
+        cp -rf target/site/apidocs/. ${{ runner.temp }}/apidocs
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Commit documentation changes
+      run: |
+        rm -rf docs
+        cp -rf ${{ runner.temp }}/apidocs/. docs
+        if [[ `git status --porcelain` ]]; then
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m "[github-actions] Automated javadoc updates."
+          git push
+        fi

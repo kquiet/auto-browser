@@ -17,19 +17,16 @@
 package org.kquiet.browser.action;
 
 import java.util.LinkedHashSet;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
-
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * {@link OpenWindow} is a subclass of {@link SinglePhaseAction} which openes a window.
- * 
+ *
  * @author Kimberly
  */
 public class OpenWindow extends SinglePhaseAction {
@@ -40,9 +37,9 @@ public class OpenWindow extends SinglePhaseAction {
 
   /**
    * Open window with an option to set it as focus window.
-   * 
-   * @param asComposerFocusWindow {@code true}: set opened window as focus window;
-   *     {@code false}: don't set opened window as focus window
+   *
+   * @param asComposerFocusWindow {@code true}: set opened window as focus window; {@code false}:
+   *     don't set opened window as focus window
    */
   public OpenWindow(boolean asComposerFocusWindow) {
     this(asComposerFocusWindow, null);
@@ -50,7 +47,7 @@ public class OpenWindow extends SinglePhaseAction {
 
   /**
    * Open window and register it.
-   * 
+   *
    * @param registerName name to register
    */
   public OpenWindow(String registerName) {
@@ -59,7 +56,7 @@ public class OpenWindow extends SinglePhaseAction {
 
   /**
    * Create an action representing opening a window.
-   * 
+   *
    * @param asComposerFocusWindow {@code true}: set opened window as focus window; {@code false}:
    *     don't set opened window as focus window
    * @param registerName name to register
@@ -73,29 +70,32 @@ public class OpenWindow extends SinglePhaseAction {
   protected void performSinglePhase() {
     ActionComposer actionComposer = this.getComposer();
     WebDriver brsDriver = actionComposer.getWebDriver();
-    //find existing windows before open new one
+    // find existing windows before open new one
     LinkedHashSet<String> beforeWindowSet = new LinkedHashSet<>();
-    for (String winHandle: brsDriver.getWindowHandles()) {
+    for (String winHandle : brsDriver.getWindowHandles()) {
       beforeWindowSet.add(winHandle);
     }
     final String rootWindow = actionComposer.getRootWindow();
     try {
-      ((JavascriptExecutor)actionComposer.getWebDriver().switchTo().window(rootWindow))
+      ((JavascriptExecutor) actionComposer.getWebDriver().switchTo().window(rootWindow))
           .executeScript("window.open('about:blank','_blank');");
     } catch (Exception ex) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("{}({}): open new window script error!", ActionComposer.class.getSimpleName(),
-            actionComposer.getName(), ex);
+        LOGGER.debug(
+            "{}({}): open new window script error!",
+            ActionComposer.class.getSimpleName(),
+            actionComposer.getName(),
+            ex);
       }
     }
 
     String actualHandle = null;
     LinkedHashSet<String> afterWindowSet = new LinkedHashSet<>();
-    for (String winHandle: brsDriver.getWindowHandles()) {
+    for (String winHandle : brsDriver.getWindowHandles()) {
       afterWindowSet.add(winHandle);
     }
-    for (String winHandle: afterWindowSet) {
-      //got new window
+    for (String winHandle : afterWindowSet) {
+      // got new window
       if (!winHandle.equals(rootWindow) && !beforeWindowSet.contains(winHandle)) {
         actualHandle = winHandle;
         if (asComposerFocusWindow) {
@@ -115,7 +115,8 @@ public class OpenWindow extends SinglePhaseAction {
 
   @Override
   public String toString() {
-    return String.format("%s:%s/%s", OpenWindow.class.getSimpleName(),
-        String.valueOf(asComposerFocusWindow), registerName);
+    return String.format(
+        "%s:%s/%s",
+        OpenWindow.class.getSimpleName(), String.valueOf(asComposerFocusWindow), registerName);
   }
 }

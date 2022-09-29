@@ -24,12 +24,10 @@ import java.lang.annotation.Target;
 
 /**
  * A marker annotation that indicates the annotated class is non-browserable.
- * 
+ *
  * @author Kimberly
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface NonBrowserable {
-
-}
+public @interface NonBrowserable {}

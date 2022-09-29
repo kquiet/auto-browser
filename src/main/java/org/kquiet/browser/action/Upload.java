@@ -20,26 +20,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * {@link Upload} is a subclass of {@link MultiPhaseAction} which types path of file into the file
- * upload element.
- * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link Select} tries
- * to manipulate the element, so multi-phase is used to perform the action again.
- * 
+ * upload element. {@link org.openqa.selenium.StaleElementReferenceException} may happen while
+ * {@link Select} tries to manipulate the element, so multi-phase is used to perform the action
+ * again.
+ *
  * <p>{@link Upload} needs to make the file upload element visible first, so below javascript will
- * be executed before typing into it:</p>
+ * be executed before typing into it:
+ *
  * <pre>
  * fileUploadElement.style.display = 'inline-block';
  * fileUploadElement.style.visibility = 'visible';
@@ -47,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * fileUploadElement.style.width = '1px';
  * fileUploadElement.style.opacity = 1;
  * </pre>
- * 
+ *
  * @author Kimberly
  */
 public class Upload extends MultiPhaseAction {
@@ -59,7 +57,7 @@ public class Upload extends MultiPhaseAction {
 
   /**
    * Create an action to perform file uploads.
-   * 
+   *
    * @param by the element locating mechanism
    * @param pathOfFiles the paths of files to upload
    */
@@ -69,7 +67,7 @@ public class Upload extends MultiPhaseAction {
 
   /**
    * Create an action to perform file uploads.
-   * 
+   *
    * @param by the element locating mechanism
    * @param frameBySequence the sequence of the frame locating mechanism for the element resides in
    *     frame(or frame in another frame and so on)
@@ -89,30 +87,39 @@ public class Upload extends MultiPhaseAction {
   protected void performMultiPhase() {
     ActionComposer actionComposer = this.getComposer();
     try {
-      //firefox doesn't switch focus to top after switch to window, so recovery step is required
+      // firefox doesn't switch focus to top after switch to window, so recovery step is required
       switchToTopForFirefox();
       actionComposer.switchToInnerFrame(this.frameBySequence);
       WebElement element = actionComposer.getWebDriver().findElement(this.by);
-      ((JavascriptExecutor)actionComposer.getWebDriver())
-          .executeScript("arguments[0].style.display = 'inline-block';"
-              + "arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px';"
-              + " arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;", element);
+      ((JavascriptExecutor) actionComposer.getWebDriver())
+          .executeScript(
+              "arguments[0].style.display = 'inline-block';"
+                  + "arguments[0].style.visibility = 'visible'; arguments[0].style.height = '1px';"
+                  + " arguments[0].style.width = '1px'; arguments[0].style.opacity = 1;",
+              element);
       if (element.isDisplayed() && element.isEnabled()) {
-        for (String pathOfFile: pathOfFileList) {
+        for (String pathOfFile : pathOfFileList) {
           element.sendKeys(pathOfFile);
         }
         noNextPhase();
       } else {
         if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("{}({}): continue to wait upload element to be clickable:{}",
-              ActionComposer.class.getSimpleName(), actionComposer.getName(), toString());
+          LOGGER.debug(
+              "{}({}): continue to wait upload element to be clickable:{}",
+              ActionComposer.class.getSimpleName(),
+              actionComposer.getName(),
+              toString());
         }
       }
     } catch (StaleElementReferenceException ignoreE) {
-      //with next phase when StaleElementReferenceException is encountered
+      // with next phase when StaleElementReferenceException is encountered
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(),
-            actionComposer.getName(), toString(), ignoreE);
+        LOGGER.debug(
+            "{}({}): encounter stale element:{}",
+            ActionComposer.class.getSimpleName(),
+            actionComposer.getName(),
+            toString(),
+            ignoreE);
       }
     } catch (Exception e) {
       noNextPhase();
@@ -122,9 +129,12 @@ public class Upload extends MultiPhaseAction {
 
   @Override
   public String toString() {
-    return String.format("%s:%s/%s/%s", Upload.class.getSimpleName(), by.toString(),
-        String.join(",",frameBySequence.stream().map(
-            s -> s.toString()).collect(Collectors.toList())),
+    return String.format(
+        "%s:%s/%s/%s",
+        Upload.class.getSimpleName(),
+        by.toString(),
+        String.join(
+            ",", frameBySequence.stream().map(s -> s.toString()).collect(Collectors.toList())),
         String.join(",", pathOfFileList));
   }
 }

@@ -22,6 +22,7 @@ import org.kquiet.utility.Stopwatch;
 /**
  * {@link JustWait} is a subclass of {@link MultiPhaseAction} which just waits by phases to avoid
  * blocking the execution of other browser actions.
+ *
  * @author Kimberly
  */
 public class JustWait extends MultiPhaseAction {
@@ -32,7 +33,7 @@ public class JustWait extends MultiPhaseAction {
 
   /**
    * With phase timeout defaulted to 10.
-   * 
+   *
    * @param totalTimeout the maximum amount of time to wait totally
    */
   public JustWait(int totalTimeout) {
@@ -41,7 +42,7 @@ public class JustWait extends MultiPhaseAction {
 
   /**
    * Create an action representing just waiting.
-   * 
+   *
    * @param totalTimeout the maximum amount of time to wait totally
    * @param phaseTimeout the maximum amount of time to wait for each execution phase
    */
@@ -69,7 +70,7 @@ public class JustWait extends MultiPhaseAction {
       throw new ActionException(e);
     }
 
-    //add sub-action to wait until element is found or timeout
+    // add sub-action to wait until element is found or timeout
     if (isTimeout()) {
       noNextPhase();
     }
@@ -77,7 +78,8 @@ public class JustWait extends MultiPhaseAction {
 
   @Override
   public String toString() {
-    return String.format("%s:%s/%s", JustWait.class.getSimpleName(), String.valueOf(totalTimeout),
-        String.valueOf(phaseTimeout));
+    return String.format(
+        "%s:%s/%s",
+        JustWait.class.getSimpleName(), String.valueOf(totalTimeout), String.valueOf(phaseTimeout));
   }
 }

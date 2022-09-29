@@ -1,4 +1,5 @@
-# Auto-browser [![Travis CI build status](https://travis-ci.org/kquiet/auto-browser.svg?branch=dev)](https://travis-ci.org/kquiet/auto-browser)
+# Auto-browser [![Continuous Integration](https://github.com/kquiet/auto-browser/actions/workflows/continuous-integration.yml/badge.svg?branch=master)](https://github.com/kquiet/auto-browser/actions/workflows/continuous-integration.yml) [![Continuous Delievery - staging](https://github.com/kquiet/auto-browser/actions/workflows/continuous-delivery-staging.yml/badge.svg)](https://github.com/kquiet/auto-browser/actions/workflows/continuous-delivery-staging.yml)
+
 Auto-browser is a java library which wraps [selenium][] to help focus on
 constructing and executing scripts of browser actions in applications.
 
@@ -33,7 +34,7 @@ Add below to [maven][]'s `pom.xml`:
 </dependency>
 ```
 
-Java version 1.8+ is required.
+Java 17+ is required.
 
 ## Sample Usage
 1. Construct a script of browser actions:

@@ -1,0 +1,28 @@
+name: maven-test
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+jobs:
+  maven-test:
+    strategy:
+      max-parallel: 4
+      matrix:
+        os: ['ubuntu-20.04', 'windows-2022']
+        browser: ['chrome', 'firefox']
+    name: maven-test-${{ matrix.os }}-${{ matrix.browser }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.ref }}
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        java-package: jdk
+        architecture: x64
+        distribution: 'temurin'
+        cache: 'maven'
+    - run: mvn -B -D"test.browser=${{ matrix.browser }}" -D"webdriver_headless=yes" clean test

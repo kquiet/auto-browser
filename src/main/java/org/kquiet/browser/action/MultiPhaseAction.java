@@ -21,30 +21,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
 import org.kquiet.utility.Stopwatch;
-
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * {@link MultiPhaseAction} models a browser action with multiple phases which is executed through
  * {@link ActionComposer} or {@link org.kquiet.browser.ActionRunner}. It will be executed for
- * multiple times and works just like a loop.
- * {@link #noNextPhase()} needs to be invoked to signal that there is no more phase to execute.
- * 
- * <p>Why multi-phase is required is because
- * <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">WebDriver is not thread-safe</a>.
- * Therefore, {@link org.kquiet.browser.ActionRunner} uses a single thread to control the
- * concurrency between different brwoser actions, and the browser thread shouldn't be occupied for
- * a long time by any single browser action.</p>
- * 
+ * multiple times and works just like a loop. {@link #noNextPhase()} needs to be invoked to signal
+ * that there is no more phase to execute.
+ *
+ * <p>Why multi-phase is required is because <a
+ * href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe"
+ * target="_blank">WebDriver is not thread-safe</a>. Therefore, {@link
+ * org.kquiet.browser.ActionRunner} uses a single thread to control the concurrency between
+ * different brwoser actions, and the browser thread shouldn't be occupied for a long time by any
+ * single browser action.
+ *
  * @author Kimberly
  */
 public abstract class MultiPhaseAction implements Composable, MultiPhased {
@@ -54,7 +52,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
   private volatile ActionState actionState = ActionState.CREATED;
   private final List<Exception> errorList = new ArrayList<>();
   private final Stopwatch stopWatch = new Stopwatch();
-  private volatile boolean hasNextPhase = true; //flags whether has next phase or not
+  private volatile boolean hasNextPhase = true; // flags whether has next phase or not
 
   @Override
   public void noNextPhase() {
@@ -73,18 +71,21 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
         stopWatch.start();
         setActionState(ActionState.RUNNING);
 
-        //only browserable action is gonna run at browser to avoid blocking browser unnecessarily
+        // only browserable action is gonna run at browser to avoid blocking browser unnecessarily
         if (this.getClass().isAnnotationPresent(NonBrowserable.class)) {
           performMultiPhase();
         } else {
-          CompletableFuture<Void> future = getComposer().callBrowser(() -> {
-            //switch to focus window before execute internal action
-            if (!getComposer().switchToFocusWindow()) {
-              throw new ActionException("can't switch to focus window");
-            }
+          CompletableFuture<Void> future =
+              getComposer()
+                  .callBrowser(
+                      () -> {
+                        // switch to focus window before execute internal action
+                        if (!getComposer().switchToFocusWindow()) {
+                          throw new ActionException("can't switch to focus window");
+                        }
 
-            performMultiPhase();
-          });
+                        performMultiPhase();
+                      });
           future.get();
         }
 
@@ -97,8 +98,13 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
         noNextPhase();
         setActionState(ActionState.COMPLETE_WITH_ERROR);
         errorList.add(e);
-        LOGGER.warn("{}({}) {} error:{}", ActionComposer.class.getSimpleName(),
-            getComposer().getName(), getClass().getSimpleName(), toString(), e);
+        LOGGER.warn(
+            "{}({}) {} error:{}",
+            ActionComposer.class.getSimpleName(),
+            getComposer().getName(),
+            getClass().getSimpleName(),
+            toString(),
+            e);
       } finally {
         stopWatch.stop();
       }
@@ -111,26 +117,26 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
    */
   protected abstract void performMultiPhase();
 
-
   /**
    * When the state of action is one of the following, then it's called <i>done</i>.
+   *
    * <ul>
-   * <li>{@link ActionState#COMPLETE}</li>
-   * <li>{@link ActionState#COMPLETE_WITH_ERROR}</li>
+   *   <li>{@link ActionState#COMPLETE}
+   *   <li>{@link ActionState#COMPLETE_WITH_ERROR}
    * </ul>
-   * 
+   *
    * @return {@code true} if the action is done; {@code false} otherwise
    */
   @Override
   public boolean isDone() {
-    return Arrays.asList(
-        ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE).contains(getActionState());
+    return Arrays.asList(ActionState.COMPLETE_WITH_ERROR, ActionState.COMPLETE)
+        .contains(getActionState());
   }
 
   /**
    * When the action is marked as failed({@link ActionState#COMPLETE_WITH_ERROR}), then it's called
    * <i>fail</i>.
-   * 
+   *
    * @return {@code true} if the action is failed; {@code false} otherwise
    */
   @Override
@@ -150,7 +156,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
 
   /**
    * Get the total cost time of execution.
-   * 
+   *
    * @return the total cost time represented by {@link Duration}
    */
   public Duration getCostTime() {
@@ -170,7 +176,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
 
   /**
    * Get the state of this {@link MultiPhaseAction}.
-   * 
+   *
    * @return state represented by {@link ActionState}
    */
   public ActionState getActionState() {
@@ -179,7 +185,7 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
 
   /**
    * Set the state of this {@link MultiPhaseAction}.
-   * 
+   *
    * @param actionState the action state to set
    */
   protected void setActionState(ActionState actionState) {
@@ -187,14 +193,14 @@ public abstract class MultiPhaseAction implements Composable, MultiPhased {
   }
 
   /**
-   * Switch to top for firefox. Firefox doesn't switch focus to top after switching to a window,
-   * so this method is required for firefox.
+   * Switch to top for firefox. Firefox doesn't switch focus to top after switching to a window, so
+   * this method is required for firefox.
    */
   protected void switchToTopForFirefox() {
     WebDriver driver = getComposer().getWebDriver();
     if (driver instanceof FirefoxDriver) {
-      //if alert box exists, don't switch to top because this will dismiss the alert
-      //box(firefox only) which is not expected.
+      // if alert box exists, don't switch to top because this will dismiss the alert
+      // box(firefox only) which is not expected.
       try {
         driver.switchTo().alert();
       } catch (NoAlertPresentException e) {
