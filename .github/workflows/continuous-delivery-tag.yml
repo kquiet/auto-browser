@@ -1,0 +1,20 @@
+name: continuous-delivery-tag
+on:
+  pull_request:
+    types:
+      - '*'
+    branches:
+      - master
+jobs:
+  tag-base-branch:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.base_ref }}
+    - name: Create tag
+      run: |
+        TAG_VERSION=`mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout`-`echo "${{ github.head_ref }}"|sed "s/release\///"|sed "s/hotfix\///"`
+        git tag $TAG_VERSION ${{ github.event.pull_request.base.sha }}
+        git push origin $TAG_VERSION
