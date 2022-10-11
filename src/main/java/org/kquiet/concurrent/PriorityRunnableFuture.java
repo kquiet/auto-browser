@@ -23,10 +23,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Prioritized {@link RunnableFuture}. This class is for internal use.
- * Each {@link PriorityRunnableFuture} has distinct sequence number and can be used to determine
- * he order between different {@link PriorityRunnableFuture} with equal priority.
- * 
+ * Prioritized {@link RunnableFuture}. This class is for internal use. Each {@link
+ * PriorityRunnableFuture} has distinct sequence number and can be used to determine he order
+ * between different {@link PriorityRunnableFuture} with equal priority.
+ *
  * @author Kimberly
  * @param <T> The result type returned by this Future's {@code get} method
  */
@@ -39,7 +39,7 @@ class PriorityRunnableFuture<T> implements RunnableFuture<T>, Prioritized {
 
   /**
    * Create a prioritized {@link RunnableFuture}.
-   * 
+   *
    * @param runnableFuture wrapped {@link RunnableFuture}
    * @param priority priority
    */
@@ -56,7 +56,7 @@ class PriorityRunnableFuture<T> implements RunnableFuture<T>, Prioritized {
 
   /**
    * Get the creation sequence of this {@link PriorityRunnableFuture}.
-   * 
+   *
    * @return creation sequence.
    */
   long getCreateSequence() {

@@ -28,40 +28,35 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import org.kquiet.browser.action.Composable;
 import org.kquiet.utility.Stopwatch;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * {@link AbstractActionComposer} implements most methods of {@link ActionComposer} to lay ground
- * works for possible subclasses.
- * {@link AbstractActionComposer} itself is a subclass of {@link CompletableFuture}, so any
- * subclass of {@link AbstractActionComposer} should complete itself explictly in {@link #run()}.
+ * works for possible subclasses. {@link AbstractActionComposer} itself is a subclass of {@link
+ * CompletableFuture}, so any subclass of {@link AbstractActionComposer} should complete itself
+ * explictly in {@link #run()}.
  *
  * @author Kimberly
  */
 public abstract class AbstractActionComposer extends CompletableFuture<Void>
     implements ActionComposer {
-  
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractActionComposer.class);
 
   /**
-   * The execution context stack of this {@link AbstractActionComposer}, the
-   * {@link DynamicActionSequence} must be pushed into this stack before any action in it gets
-   * executed to reflect execution context.
+   * The execution context stack of this {@link AbstractActionComposer}, the {@link
+   * DynamicActionSequence} must be pushed into this stack before any action in it gets executed to
+   * reflect execution context.
    */
   protected final Stack<DynamicActionSequence> executionContextStack = new Stack<>();
 
-  /**
-   * The stop watch used to measure run cost of this {@link AbstractActionComposer}.
-   */
+  /** The stop watch used to measure run cost of this {@link AbstractActionComposer}. */
   protected final Stopwatch totalCostWatch = new Stopwatch();
 
   private final Deque<Composable> mainActionList = new LinkedList<>();
@@ -79,11 +74,8 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   private String name = "";
   private String focusWindowIdentity = null;
 
-  /**
-   * Create an {@link AbstractActionComposer}.
-   */
-  public AbstractActionComposer() {
-  }
+  /** Create an {@link AbstractActionComposer}. */
+  public AbstractActionComposer() {}
 
   @Override
   public AbstractActionComposer setActionRunner(ActionRunner actionRunner) {
@@ -93,13 +85,12 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get associated {@link ActionRunner}.
-   * 
+   *
    * @return {@link ActionRunner}
    */
   protected ActionRunner getActionRunner() {
     return actionRunner;
   }
-
 
   @Override
   public String getRootWindow() {
@@ -151,19 +142,19 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
     if (action == null) {
       return;
     }
-    
+
     try {
       getActionPerformingFunction().apply(this).accept(action);
     } catch (Exception e) {
-      LOGGER.warn("{}({}) action performing function error",
-          getClass().getSimpleName(), getName(), e);
+      LOGGER.warn(
+          "{}({}) action performing function error", getClass().getSimpleName(), getName(), e);
       throw e;
     }
 
     boolean isSequenceContainer = action instanceof DynamicActionSequence;
     try {
       if (isSequenceContainer) {
-        executionContextStack.push((DynamicActionSequence)action);
+        executionContextStack.push((DynamicActionSequence) action);
       }
       action.setComposer(this);
       action.perform();
@@ -172,12 +163,12 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
         executionContextStack.pop();
       }
     }
-    
+
     try {
       getActionPerformedFunction().apply(this).accept(action);
     } catch (Exception e) {
-      LOGGER.warn("{}({}) action performed function error",
-          getClass().getSimpleName(), getName(), e);
+      LOGGER.warn(
+          "{}({}) action performed function error", getClass().getSimpleName(), getName(), e);
       throw e;
     }
   }
@@ -204,7 +195,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
   public void switchToInnerFrame(List<By> frameBySequence) {
     if (frameBySequence != null) {
       WebDriver driver = getWebDriver();
-      for (By frameBy: frameBySequence) {
+      for (By frameBy : frameBySequence) {
         driver.switchTo().frame(driver.findElement(frameBy));
       }
     }
@@ -216,7 +207,8 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
       getWebDriver().switchTo().defaultContent();
       return true;
     } catch (UnhandledAlertException ex) {
-      //firefox raises an UnhandledAlertException when an alert box is presented, but chrome doesn't
+      // firefox raises an UnhandledAlertException when an alert box is presented, but chrome
+      // doesn't
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("{} switchToTop error", getName(), ex);
       }
@@ -236,7 +228,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get the function executed when failed.
-   * 
+   *
    * @return the function consuming {@link ActionComposer}
    */
   protected Consumer<ActionComposer> getFailFunction() {
@@ -255,7 +247,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get the function executed when finished without fail.
-   * 
+   *
    * @return the function consuming {@link ActionComposer}
    */
   protected Consumer<ActionComposer> getSuccessFunction() {
@@ -274,13 +266,13 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get the function to be executed after any managed action is performed.
-   * 
+   *
    * @return the function consuming {@link ActionComposer}
    */
   protected Function<ActionComposer, Consumer<Composable>> getActionPerformedFunction() {
     return actionPerformedFunc;
   }
-  
+
   @Override
   public ActionComposer actionPerformed(Function<ActionComposer, Consumer<Composable>> func) {
     if (func != null) {
@@ -290,16 +282,16 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
     }
     return this;
   }
-  
+
   /**
    * Get the function to be executed when any managed action is performed.
-   * 
+   *
    * @return the function consuming {@link ActionComposer}
    */
   protected Function<ActionComposer, Consumer<Composable>> getActionPerformingFunction() {
     return actionPerformingFunc;
   }
-  
+
   @Override
   public ActionComposer actionPerforming(Function<ActionComposer, Consumer<Composable>> func) {
     if (func != null) {
@@ -312,7 +304,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get the function to be executed when finished.
-   * 
+   *
    * @return the function consuming {@link ActionComposer}
    */
   protected Consumer<ActionComposer> getDoneFunction() {
@@ -337,18 +329,18 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Set the priority of this {@link AbstractActionComposer}.
-   * 
+   *
    * @param priority priority
    * @return self reference
    */
   public AbstractActionComposer setPriority(int priority) {
     this.priority = priority;
     return this;
-  }    
+  }
 
   /**
    * Get total execution time of this {@link AbstractActionComposer}.
-   * 
+   *
    * @return the total execution time represented by {@link Duration}
    */
   public Duration getCostTime() {
@@ -362,7 +354,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   @Override
   public String getFocusWindow() {
-    //set focus window to root window if not set
+    // set focus window to root window if not set
     if (focusWindowIdentity == null) {
       focusWindowIdentity = getRootWindow();
     }
@@ -431,7 +423,7 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get all actions in the action sequence.
-   * 
+   *
    * @return list of actions
    */
   protected List<Composable> getAllActionInSequence() {
@@ -444,14 +436,14 @@ public abstract class AbstractActionComposer extends CompletableFuture<Void>
 
   /**
    * Get the error list from executed actions.
-   * 
+   *
    * @return a list of {@link Exception}
    */
   @Override
   public List<Exception> getErrors() {
     List<Composable> actionList = getAllActionInSequence();
     List<Exception> result = new ArrayList<>();
-    for (Composable action:actionList) {
+    for (Composable action : actionList) {
       if (action.isFail() && action.getErrors() != null) {
         result.addAll(action.getErrors());
       }

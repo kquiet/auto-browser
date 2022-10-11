@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Prioritized {@link Callable}. This class is for internal use.
- * 
+ *
  * @author Kimberly
  * @param <T> the expected return type of {@link Callable}
  */
@@ -30,7 +30,7 @@ public class PriorityCallable<T> implements Prioritized, Callable<T> {
 
   /**
    * Crate a prioritized {@link Callable}.
-   * 
+   *
    * @param callable wrapped {@link Callable}
    * @param priority priority
    */

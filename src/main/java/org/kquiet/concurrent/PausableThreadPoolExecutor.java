@@ -24,13 +24,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Pausable {@link ThreadPoolExecutor}. This class is for internal use.
- * 
+ *
  * @author Kimberly
  */
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
@@ -41,16 +40,14 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
   private final String poolPrefix;
   private final Consumer<Runnable> afterExecuteFunc;
 
-  /**
-   * Create a {@link PausableThreadPoolExecutor} with core/maximum pool size set to one.
-   */
+  /** Create a {@link PausableThreadPoolExecutor} with core/maximum pool size set to one. */
   public PausableThreadPoolExecutor() {
     this("", 1, 1);
   }
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
@@ -61,48 +58,61 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
    * @param queueSize the maximum queue size used for holding tasks before they are executed
    */
-  public PausableThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize,
-      int queueSize) {
+  public PausableThreadPoolExecutor(
+      String poolPrefix, int corePoolSize, int maximumPoolSize, int queueSize) {
     this(poolPrefix, corePoolSize, maximumPoolSize, queueSize, null);
   }
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
    * @param afterExecuteFunc the function to execute after any task is executed
    */
-  public PausableThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize,
+  public PausableThreadPoolExecutor(
+      String poolPrefix,
+      int corePoolSize,
+      int maximumPoolSize,
       Consumer<Runnable> afterExecuteFunc) {
     this(poolPrefix, corePoolSize, maximumPoolSize, Integer.MAX_VALUE, afterExecuteFunc);
   }
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
    * @param queueSize the maximum queue size used for holding tasks before they are executed
    * @param afterExecuteFunc the function to execute after any task is executed
    */
-  public PausableThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize,
-      int queueSize, Consumer<Runnable> afterExecuteFunc) {
-    this(poolPrefix, corePoolSize, maximumPoolSize, queueSize, 10L, TimeUnit.MINUTES,
+  public PausableThreadPoolExecutor(
+      String poolPrefix,
+      int corePoolSize,
+      int maximumPoolSize,
+      int queueSize,
+      Consumer<Runnable> afterExecuteFunc) {
+    this(
+        poolPrefix,
+        corePoolSize,
+        maximumPoolSize,
+        queueSize,
+        10L,
+        TimeUnit.MINUTES,
         afterExecuteFunc);
   }
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
@@ -112,16 +122,28 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
    * @param unit the time unit for the {@code keepAliveTime} argument
    * @param afterExecuteFunc the function to execute after any task is executed
    */
-  public PausableThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize,
-      int queueSize, long keepAliveTime, TimeUnit unit, Consumer<Runnable> afterExecuteFunc) {
-    this(poolPrefix, corePoolSize, maximumPoolSize, keepAliveTime, unit, (queueSize <= 0
-        ? new SynchronousQueue<>() : new LinkedBlockingQueue<>(queueSize)),
-        new CommonThreadFactory(poolPrefix), afterExecuteFunc);
+  public PausableThreadPoolExecutor(
+      String poolPrefix,
+      int corePoolSize,
+      int maximumPoolSize,
+      int queueSize,
+      long keepAliveTime,
+      TimeUnit unit,
+      Consumer<Runnable> afterExecuteFunc) {
+    this(
+        poolPrefix,
+        corePoolSize,
+        maximumPoolSize,
+        keepAliveTime,
+        unit,
+        (queueSize <= 0 ? new SynchronousQueue<>() : new LinkedBlockingQueue<>(queueSize)),
+        new CommonThreadFactory(poolPrefix),
+        afterExecuteFunc);
   }
 
   /**
    * Create a {@link PausableThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param maximumPoolSize maximum pool size
@@ -132,9 +154,15 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
    * @param threadFactory the factory to use when the executor creates a new thread
    * @param afterExecuteFunc the function to execute after any task is executed
    */
-  public PausableThreadPoolExecutor(String poolPrefix, int corePoolSize, int maximumPoolSize,
-      long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue,
-      ThreadFactory threadFactory, Consumer<Runnable> afterExecuteFunc) {
+  public PausableThreadPoolExecutor(
+      String poolPrefix,
+      int corePoolSize,
+      int maximumPoolSize,
+      long keepAliveTime,
+      TimeUnit unit,
+      BlockingQueue<Runnable> workQueue,
+      ThreadFactory threadFactory,
+      Consumer<Runnable> afterExecuteFunc) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
     this.poolPrefix = poolPrefix;
     this.afterExecuteFunc = afterExecuteFunc;
@@ -173,9 +201,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
     isPaused = true;
   }
 
-  /**
-   * Resume the execution of this {@link PausableThreadPoolExecutor}.
-   */
+  /** Resume the execution of this {@link PausableThreadPoolExecutor}. */
   public synchronized void resume() {
     isPaused = false;
     pausePhaser.arrive();
@@ -184,7 +210,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
 
   /**
    * Check if this {@link PausableThreadPoolExecutor} is paused.
-   * 
+   *
    * @return whether this {@link PausableThreadPoolExecutor} is paused.
    */
   public synchronized boolean isPaused() {
