@@ -157,12 +157,12 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh-kquiet</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
             <plugin>
@@ -233,19 +233,12 @@
     <profiles>
         <profile>
             <id>windows-profile</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M4</version>
                         <configuration>
-                            <!-- <groups>new</groups>
-                            <excludedGroups>!new</excludedGroups> -->
                             <systemPropertyVariables>
                             	<test.browser>firefox</test.browser>
                                 <webdriver.chrome.driver>${test.webdriver.directory.chrome.windows}${file.separator}chromedriver.exe</webdriver.chrome.driver>
@@ -259,38 +252,8 @@
         </profile>
         <profile>
             <id>linux-profile</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                </os>
-            </activation>
             <build>
                 <plugins>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.8</version>
-                        <executions>
-                            <execution>
-                                <id>chmod-webdriver</id>
-                                <phase>generate-test-resources</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <copy todir="${project.build.testOutputDirectory}">
-                                            <fileset dir="${test.webdriver.directory.chrome.linux}" includes="chromedriver" />
-                                            <fileset dir="${test.webdriver.directory.firefox.linux}" includes="geckodriver" />
-                                        </copy>
-                                        <exec executable="sh">
-                                            <arg value="-c" />
-                                            <arg value="chmod +x ${project.build.testOutputDirectory}/*driver" />
-                                        </exec>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M4</version>
@@ -347,10 +310,12 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
-								<configuration>
-									<keyname>${gpg.keyname}</keyname>
-									<passphraseServerId>gpg-kquiet</passphraseServerId>
-								</configuration>
+                								<configuration>
+                                  <gpgArguments>
+                                    <arg>--pinentry-mode</arg>
+                                    <arg>loopback</arg>
+                                  </gpgArguments>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
