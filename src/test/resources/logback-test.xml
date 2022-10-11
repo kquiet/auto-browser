@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration packagingData="true" debug="false">
+    <!-- variables -->
+    <property name="logbackAppName" value="${project.artifactId}" />
+    <property name="logbackLogDirectory" value="log" scope="local" />
+    <property name="logbackMaxHistory" value="7" scope="local" />
+    <property name="logbackTotalSizeCap" value="1GB" scope="local" />
+    
+    <contextName>${logbackAppName}</contextName>
+
+    <!-- appenders -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <encoding>UTF-8</encoding>
+            <customFields>{"appName":"${logbackAppName}"}</customFields>
+            <fieldNames class="net.logstash.logback.fieldnames.ShortenedFieldNames">
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logbackLogDirectory}/%d{yyyy-MM-dd}/error.log.gz</fileNamePattern>
+            <maxHistory>${logbackMaxHistory}</maxHistory>
+            <totalSizeCap>${logbackTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logbackLogDirectory}/%d{yyyy-MM-dd}/warn.log.gz</fileNamePattern>
+            <maxHistory>${logbackMaxHistory}</maxHistory>
+            <totalSizeCap>${logbackTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logbackLogDirectory}/%d{yyyy-MM-dd}/info.log.gz</fileNamePattern>
+            <maxHistory>${logbackMaxHistory}</maxHistory>
+            <totalSizeCap>${logbackTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logbackLogDirectory}/%d{yyyy-MM-dd}/debug.log.gz</fileNamePattern>
+            <maxHistory>${logbackMaxHistory}</maxHistory>
+            <totalSizeCap>${logbackTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="trace" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>NEUTRAL</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logbackLogDirectory}/%d{yyyy-MM-dd}/trace.log.gz</fileNamePattern>
+            <maxHistory>${logbackMaxHistory}</maxHistory>
+            <totalSizeCap>${logbackTotalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- root logger -->
+    <root level="info">
+        <appender-ref ref="console" />
+        <appender-ref ref="error" />
+        <appender-ref ref="warn" />
+        <appender-ref ref="info" />
+        <appender-ref ref="debug" />
+        <appender-ref ref="trace" />
+    </root>
+    
+    <!-- in the absence of the class attribute, assume ch.qos.logback.core.hook.DefaultShutdownHook -->
+    <shutdownHook/>
+</configuration>

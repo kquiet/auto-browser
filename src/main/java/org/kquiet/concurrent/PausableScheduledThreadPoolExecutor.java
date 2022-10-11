@@ -19,13 +19,12 @@ package org.kquiet.concurrent;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Pausable {@link ScheduledThreadPoolExecutor}. This class is for internal use.
- * 
+ *
  * @author Kimberly
  */
 public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor {
@@ -45,7 +44,7 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
 
   /**
    * Create a {@link PausableScheduledThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    */
@@ -55,13 +54,13 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
 
   /**
    * Create a {@link PausableScheduledThreadPoolExecutor} with specified parameters.
-   * 
+   *
    * @param poolPrefix prefix name of thread pool
    * @param corePoolSize core pool size
    * @param afterExecuteFunc the function to execute after any task is executed
    */
-  public PausableScheduledThreadPoolExecutor(String poolPrefix, int corePoolSize,
-      Consumer<Runnable> afterExecuteFunc) {
+  public PausableScheduledThreadPoolExecutor(
+      String poolPrefix, int corePoolSize, Consumer<Runnable> afterExecuteFunc) {
     super(corePoolSize, new CommonThreadFactory(poolPrefix));
     this.poolPrefix = poolPrefix;
     this.afterExecuteFunc = afterExecuteFunc;
@@ -93,16 +92,14 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
   }
 
   /**
-   * Pause the execution of this {@link PausableScheduledThreadPoolExecutor}. Any executing task
-   * is not affected.
+   * Pause the execution of this {@link PausableScheduledThreadPoolExecutor}. Any executing task is
+   * not affected.
    */
   public synchronized void pause() {
     isPaused = true;
   }
 
-  /**
-   * Resume the execution of this {@link PausableScheduledThreadPoolExecutor}.
-   */
+  /** Resume the execution of this {@link PausableScheduledThreadPoolExecutor}. */
   public synchronized void resume() {
     isPaused = false;
     pausePhaser.arrive();
@@ -111,7 +108,7 @@ public class PausableScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
 
   /**
    * Check if the execution of this {@link PausableScheduledThreadPoolExecutor} is paused.
-   * 
+   *
    * @return whether this {@link PausableScheduledThreadPoolExecutor} is paused.
    */
   public synchronized boolean isPaused() {

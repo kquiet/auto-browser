@@ -21,7 +21,7 @@ import java.util.Comparator;
 
 /**
  * Comparator for {@link PriorityRunnableFuture}. This is for internal use.
- * 
+ *
  * @author Kimberly
  */
 class PriorityRunnableFutureComparator implements Comparator<Runnable>, Serializable {

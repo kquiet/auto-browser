@@ -19,27 +19,25 @@ package org.kquiet.browser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.kquiet.browser.action.CloseWindow;
 import org.kquiet.browser.action.Composable;
 import org.kquiet.browser.action.OpenWindow;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link BasicActionComposer} provides basic implementation of {@link ActionComposer}.
- * In addition to the actions added by add*() methods, {@link BasicActionComposer} has two
- * extra/internal actions which are executed at the beginning and the end respectively:
+ * {@link BasicActionComposer} provides basic implementation of {@link ActionComposer}. In addition
+ * to the actions added by add*() methods, {@link BasicActionComposer} has two extra/internal
+ * actions which are executed at the beginning and the end respectively:
+ *
  * <ul>
- * <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new
- * browser window and set it as <i>focus window</i> with an empty register name.
- * All actions should be executed against this focus window to be isolated from other
- * {@link ActionComposer}, however it could be changed by actions if necessary.
- * If no focus window is specified, it will use the root window of {@link ActionRunner} as its focus
- * window.</li>
- * <li>The action executed at the end is called as <i>Final Action</i>, which closes all registered
- * windows. </li>
+ *   <li>The action executed at the beginning is called as <i>Initial Action</i>, which opens a new
+ *       browser window and set it as <i>focus window</i> with an empty register name. All actions
+ *       should be executed against this focus window to be isolated from other {@link
+ *       ActionComposer}, however it could be changed by actions if necessary. If no focus window is
+ *       specified, it will use the root window of {@link ActionRunner} as its focus window.
+ *   <li>The action executed at the end is called as <i>Final Action</i>, which closes all
+ *       registered windows.
  * </ul>
  *
  * @author Kimberly
@@ -62,21 +60,18 @@ public class BasicActionComposer extends AbstractActionComposer {
   private BasicActionComposer parent = null;
   private BasicActionComposer child = null;
 
-  /**
-   * Create an {@link BasicActionComposer}.
-   */
-  public BasicActionComposer(){
-  }
+  /** Create an {@link BasicActionComposer}. */
+  public BasicActionComposer() {}
 
   @Override
   public void run() {
-    //ensure run at most once
+    // ensure run at most once
     if (!runOnce) {
       synchronized (this) {
         if (runOnce) {
           return;
         } else {
-          //set this {@link BasicActionComposer} as root context
+          // set this {@link BasicActionComposer} as root context
           executionContextStack.push(this);
           runOnce = true;
         }
@@ -88,19 +83,23 @@ public class BasicActionComposer extends AbstractActionComposer {
       totalCostWatch.start();
       boolean anyActionFail = false;
 
-      //run init action first
+      // run init action first
       if (needOpenWindow()) {
         try {
           perform(initAction);
           anyActionFail = anyActionFail || initAction.isFail();
         } catch (Exception ex) {
-          LOGGER.warn("{}({}) init action error:{}", getClass().getSimpleName(), getName(),
-              initAction.toString(), ex);
+          LOGGER.warn(
+              "{}({}) init action error:{}",
+              getClass().getSimpleName(),
+              getName(),
+              initAction.toString(),
+              ex);
           anyActionFail = true;
         }
       }
 
-      //run main actions
+      // run main actions
       if (!isFail() && !anyActionFail) {
         int index = 0;
         List<Composable> actionList = new ArrayList<>(super.getAllActionInSequence());
@@ -110,11 +109,15 @@ public class BasicActionComposer extends AbstractActionComposer {
             perform(action);
             anyActionFail = anyActionFail || action.isFail();
           } catch (Exception ex) {
-            LOGGER.warn("{}({}) action error:{}", getClass().getSimpleName(), getName(),
-                action.toString(), ex);
+            LOGGER.warn(
+                "{}({}) action error:{}",
+                getClass().getSimpleName(),
+                getName(),
+                action.toString(),
+                ex);
             anyActionFail = true;
           }
-          //break when any action fail
+          // break when any action fail
           if (anyActionFail || skipped()) {
             break;
           }
@@ -131,7 +134,7 @@ public class BasicActionComposer extends AbstractActionComposer {
       LOGGER.warn("{}({}) run error", getClass().getSimpleName(), getName(), ex);
     }
 
-    //run final action & result functions
+    // run final action & result functions
     try {
       if (successful) {
         runSuccess();
@@ -149,7 +152,7 @@ public class BasicActionComposer extends AbstractActionComposer {
   private void runFail() {
     skipToFail();
 
-    //keep fail info=>this may take about one second to do;uses a flag to avoid when necessary
+    // keep fail info=>this may take about one second to do;uses a flag to avoid when necessary
     if (keepFailInfo) {
       try {
         setFailInfo(getWebDriver().getCurrentUrl(), getWebDriver().getPageSource());
@@ -180,35 +183,42 @@ public class BasicActionComposer extends AbstractActionComposer {
       LOGGER.warn("{}({}) done function error", getClass().getSimpleName(), getName(), e);
     }
 
-    //run final action to close window
+    // run final action to close window
     if (needCloseWindow()) {
       try {
         perform(finalAction);
       } catch (Exception ex) {
-        LOGGER.warn("{}({}) final action error:{}", getClass().getSimpleName(), getName(),
-            finalAction.toString(), ex);
+        LOGGER.warn(
+            "{}({}) final action error:{}",
+            getClass().getSimpleName(),
+            getName(),
+            finalAction.toString(),
+            ex);
       }
     }
 
     totalCostWatch.stop();
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("{}({}) costs {} milliseconds", getClass().getSimpleName(), getName(),
+      LOGGER.debug(
+          "{}({}) costs {} milliseconds",
+          getClass().getSimpleName(),
+          getName(),
           getCostTime().toMillis());
     }
 
-    //continue with child composer
+    // continue with child composer
     if (hasChild()) {
       try {
         BasicActionComposer tempChild = getChild();
-        //use parent's focus window as child's when parent doesn't close window but child needs one
+        // use parent's focus window as child's when parent doesn't close window but child needs one
         if (!this.needCloseWindow() && !tempChild.needOpenWindow()) {
           tempChild.setFocusWindow(this.getFocusWindow());
           tempChild.registerWindow("", tempChild.getFocusWindow());
         }
         getActionRunner().executeComposer(tempChild);
       } catch (Exception ex) {
-        LOGGER.warn("{}({}) execute child composer error", getClass().getSimpleName(),
-            getName(), ex);
+        LOGGER.warn(
+            "{}({}) execute child composer error", getClass().getSimpleName(), getName(), ex);
       }
     }
   }
@@ -219,7 +229,6 @@ public class BasicActionComposer extends AbstractActionComposer {
     return this;
   }
 
-
   @Override
   public BasicActionComposer setVariable(String variableName, Object value) {
     super.setVariable(variableName, value);
@@ -227,21 +236,21 @@ public class BasicActionComposer extends AbstractActionComposer {
   }
 
   /**
-   * Delegate the execution of given child {@link BasicActionComposer} to associated
-   * {@link ActionRunner} after this {@link BasicActionComposer} is done.
-   * Every {@link BasicActionComposer} has at most one parent/child {@link BasicActionComposer}.
-   * If this {@link BasicActionComposer} already has a child {@link BasicActionComposer}, the
-   * <i>original</i> child {@link BasicActionComposer} will be postponed.
-   * 
+   * Delegate the execution of given child {@link BasicActionComposer} to associated {@link
+   * ActionRunner} after this {@link BasicActionComposer} is done. Every {@link BasicActionComposer}
+   * has at most one parent/child {@link BasicActionComposer}. If this {@link BasicActionComposer}
+   * already has a child {@link BasicActionComposer}, the <i>original</i> child {@link
+   * BasicActionComposer} will be postponed.
+   *
    * <p>For example, before calling this method:
-   * ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA;
-   * after: ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.</p>
-   * 
+   * ComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA; after:
+   * ComposerA-&gt;NewChildOfComposerA-&gt;ChildOfComposerA-&gt;GrandChildOfComposerA.
+   *
    * <p>This method works differently as methods of {@link java.util.concurrent.CompletableFuture}.
-   * It just keeps the reference of child {@link BasicActionComposer} and this
-   * {@link BasicActionComposer} will hand it to associated {@link ActionRunner} when finished, and
-   * then let the {@link ActionRunner} schedule the execution.</p>
-   * 
+   * It just keeps the reference of child {@link BasicActionComposer} and this {@link
+   * BasicActionComposer} will hand it to associated {@link ActionRunner} when finished, and then
+   * let the {@link ActionRunner} schedule the execution.
+   *
    * @param childActionComposer the {@link BasicActionComposer} to be executed
    * @return child {@link BasicActionComposer}
    */
@@ -250,14 +259,14 @@ public class BasicActionComposer extends AbstractActionComposer {
       return this;
     }
 
-    //inspect if already has child
+    // inspect if already has child
     BasicActionComposer oldChild = this.getChild();
 
-    //continue with child
+    // continue with child
     this.setChild(childActionComposer);
     childActionComposer.setParent(this);
 
-    //insert oldChild to the end of the action chain
+    // insert oldChild to the end of the action chain
     if (oldChild != null) {
       BasicActionComposer temp = this.getChild();
       while (temp.hasChild()) {
@@ -270,9 +279,9 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Check whether this {@link BasicActionComposer} has child {@link BasicActionComposer}.
-   * 
-   * @return {@code true} whether this {@link BasicActionComposer} has child
-   *     {@link BasicActionComposer}; {@code false} otherwise
+   *
+   * @return {@code true} whether this {@link BasicActionComposer} has child {@link
+   *     BasicActionComposer}; {@code false} otherwise
    */
   public boolean hasChild() {
     return child != null;
@@ -280,7 +289,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Get child {@link BasicActionComposer}.
-   * 
+   *
    * @return child {@link BasicActionComposer} if exists; {@code null} otherwise
    */
   public BasicActionComposer getChild() {
@@ -293,9 +302,9 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Check whether this {@link BasicActionComposer} has parent {@link BasicActionComposer}.
-   * 
-   * @return {@code true} whether this {@link BasicActionComposer} has parent
-   *     {@link BasicActionComposer}; {@code false} otherwise
+   *
+   * @return {@code true} whether this {@link BasicActionComposer} has parent {@link
+   *     BasicActionComposer}; {@code false} otherwise
    */
   public boolean hasParent() {
     return parent != null;
@@ -303,7 +312,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Get parent {@link BasicActionComposer}.
-   * 
+   *
    * @return parent {@link BasicActionComposer} if exists; {@code null} otherwise
    */
   public BasicActionComposer getParent() {
@@ -342,7 +351,7 @@ public class BasicActionComposer extends AbstractActionComposer {
   public BasicActionComposer setPriority(int priority) {
     super.setPriority(priority);
     return this;
-  }    
+  }
 
   @Override
   public boolean skipped() {
@@ -351,9 +360,9 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Check if this {@link BasicActionComposer} has been marked as failed.
-   * 
-   * @return {@code true} if this {@link BasicActionComposer} has been marked as failed;
-   *     {@code false} otherwise
+   *
+   * @return {@code true} if this {@link BasicActionComposer} has been marked as failed; {@code
+   *     false} otherwise
    */
   @Override
   public boolean isFail() {
@@ -362,7 +371,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Check if this {@link BasicActionComposer} is done without being marked as failed.
-   * 
+   *
    * @return {@code true} if this {@link BasicActionComposer} is done without being marked as
    *     failed; {@code false} otherwise
    */
@@ -438,9 +447,7 @@ public class BasicActionComposer extends AbstractActionComposer {
     skipAction = true;
   }
 
-  /**
-   * Skip the execution of remaining actions.
-   */
+  /** Skip the execution of remaining actions. */
   @Override
   public void skipToSuccess() {
     isFail = false;
@@ -453,7 +460,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Determine whether open a window as focus window at the begining.
-   * 
+   *
    * @param openWindowFlag {@code true}: open; {@code false}: not open
    * @return self reference
    */
@@ -468,7 +475,7 @@ public class BasicActionComposer extends AbstractActionComposer {
 
   /**
    * Determine whether close all registered windows at the end.
-   * 
+   *
    * @param closeWindowFlag {@code true}: close; {@code false}: not close
    * @return self reference
    */

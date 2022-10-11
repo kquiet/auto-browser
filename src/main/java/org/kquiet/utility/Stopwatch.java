@@ -20,7 +20,7 @@ import java.time.Duration;
 
 /**
  * Stopwatch.
- * 
+ *
  * @author Kimberly
  */
 public class Stopwatch {
@@ -28,16 +28,14 @@ public class Stopwatch {
   private volatile long stopTime = 0;
   private volatile boolean running = false;
 
-  /**
-   * Start this {@link Stopwatch} without reset.
-   */
+  /** Start this {@link Stopwatch} without reset. */
   public void start() {
     this.start(false);
   }
 
   /**
    * Start this {@link Stopwatch} with the option to reset.
-   * 
+   *
    * @param resetFlag {@code true}: reset; {@code false}: not reset
    */
   public void start(boolean resetFlag) {
@@ -51,9 +49,7 @@ public class Stopwatch {
     this.running = true;
   }
 
-  /**
-   * Stop this {@link Stopwatch}.
-   */
+  /** Stop this {@link Stopwatch}. */
   public void stop() {
     if (this.running) {
       this.stopTime = System.nanoTime();
@@ -63,7 +59,7 @@ public class Stopwatch {
 
   /**
    * Get elapsed time in milliseconds.
-   * 
+   *
    * @return elapsed time in milliseconds
    */
   public long getElapsedMilliSecond() {
@@ -78,7 +74,7 @@ public class Stopwatch {
 
   /**
    * Get elapsed time in nanoseconds.
-   * 
+   *
    * @return elapsed time in nanoseconds
    */
   public long getElapsedNanoSecond() {
@@ -93,7 +89,7 @@ public class Stopwatch {
 
   /**
    * Get elapsed time.
-   * 
+   *
    * @return elapsed time represented by {@link Duration}
    */
   public Duration getDuration() {

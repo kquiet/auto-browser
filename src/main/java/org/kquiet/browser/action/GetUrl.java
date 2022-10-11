@@ -21,7 +21,7 @@ import org.kquiet.browser.action.exception.ActionException;
 
 /**
  * {@link GetUrl} is a subclass of {@link SinglePhaseAction} which loads a web page.
- * 
+ *
  * @author Kimberly
  */
 public class GetUrl extends SinglePhaseAction {
@@ -29,7 +29,7 @@ public class GetUrl extends SinglePhaseAction {
 
   /**
    * Create an action to get current page's url.
-   * 
+   *
    * @param url the url of page
    */
   public GetUrl(String url) {
