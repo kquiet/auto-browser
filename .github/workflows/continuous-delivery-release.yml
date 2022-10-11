@@ -1,0 +1,45 @@
+name: continuous-delivery-release
+on:
+  pull_request:
+    types:
+      - '*'
+    branches:
+      - master
+jobs:
+  release-:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    concurrency:
+      group: delivery-release-${{ needs.precheck.outputs.target-branch }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: master
+    - name: Create a tag
+      id: create-tag
+      run: |
+        REPO_TAG=`mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout`-`echo -n "${{ github.head_ref }}"|sed "s/release\///"|sed "s/hotfix\///"`
+        echo "repo-tag=$REPO_TAG" >> $GITHUB_OUTPUT
+        echo "repo tag: $REPO_TAG"
+
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        git tag $REPO_TAG ${{ github.event.pull_request.base.sha }}
+        git push origin $REPO_TAG
+    - name: Create a release
+      env:
+        GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
+      run: |
+        gh release create ${{ steps.create-tag.outputs.repo-tag }} --generate-notes || true
+    - name: Create or comment a pull request based on dev
+      env:
+        GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
+      run: |
+        COMMENT="[release] \"${{ steps.create-tag.outputs.repo-tag }}\" has been released"
+        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base master --head ${{ needs.precheck.outputs.target-branch }} --json number --jq .[0].number`
+        if [[ $OPEN_PR_NUMBER != "" ]]
+        then
+          gh pr comment $OPEN_PR_NUMBER --body "$COMMENT"
+        else
+          gh pr create --base dev --head "${{ github.head_ref }}" --assignee "@me" --title "${{ github.head_ref }} into dev" --body "$COMMENT"
+        fi
