@@ -1,0 +1,60 @@
+name: continuous-integration
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches:
+    - master
+    - dev
+    paths:
+    - 'pom.xml'
+    - 'checkstyle.xml'
+    - 'src/**'
+    - '.github/workflows/continuous-integration.yml'
+    - '.github/workflows/maven-test.yml'
+  push:
+    paths:
+    - 'pom.xml'
+    - 'checkstyle.xml'
+    - 'src/**'
+    - '.github/workflows/continuous-integration.yml'
+    - '.github/workflows/maven-test.yml'
+jobs:
+  call-maven-test:
+    if: github.ref_type == 'branch' && (github.ref_name == 'master' || github.ref_name == 'dev' || startsWith(github.ref_name, 'feature/') || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/'))
+    uses: ./.github/workflows/maven-test.yml
+    with:
+      ref: ${{ github.sha }}
+    secrets: inherit
+  maven-deploy-snapshot:
+    if: github.ref_type == 'branch' && github.ref_name == 'dev'
+    needs:
+    - call-maven-test
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-snapshot-${{ github.sha }}
+    environment: 
+      name: maven-repository-snapshot
+      url: https://oss.sonatype.org/
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        java-package: jdk
+        architecture: x64
+        distribution: 'temurin'
+        cache: 'maven'
+        server-id: 'ossrh-kquiet'
+        server-username: MAVEN_SERVER_USERNAME
+        server-password: MAVEN_SERVER_PASSWORD
+    - name: Deploy snapshot artifacts to maven repository
+      env:
+        MAVEN_SERVER_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_SERVER_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      run: |
+        MAVEN_PROJECT_VERSION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+        echo "maven project version: $MAVEN_PROJECT_VERSION"
+        if [[ "$MAVEN_PROJECT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]
+        then
+          mvn clean deploy -B -DskipTests -Darguments=-DskipTests
+        fi
