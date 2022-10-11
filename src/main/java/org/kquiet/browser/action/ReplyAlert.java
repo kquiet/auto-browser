@@ -17,13 +17,10 @@
 package org.kquiet.browser.action;
 
 import java.util.Optional;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.action.exception.ActionException;
-
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.StaleElementReferenceException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,30 +28,22 @@ import org.slf4j.LoggerFactory;
  * {@link ReplyAlert} is a subclass of {@link MultiPhaseAction} which interacts with the alert box.
  * {@link org.openqa.selenium.StaleElementReferenceException} may happen while {@link ReplyAlert}
  * tries to manipulate the element, so multi-phase is used to perform the action again.
- * 
+ *
  * @author Kimberly
  */
 public class ReplyAlert extends MultiPhaseAction {
   private static final Logger LOGGER = LoggerFactory.getLogger(ReplyAlert.class);
 
-  /**
-   * The way to deal with alert box.
-   */
+  /** The way to deal with alert box. */
   public static enum Decision {
 
-    /**
-     * Accept the alert box.
-     */
+    /** Accept the alert box. */
     Accept,
 
-    /**
-     * Dismiss the alert box.
-     */
+    /** Dismiss the alert box. */
     Dismiss,
 
-    /**
-     * Neither accept nor dismiss the alert box.
-     */
+    /** Neither accept nor dismiss the alert box. */
     None
   }
 
@@ -64,7 +53,7 @@ public class ReplyAlert extends MultiPhaseAction {
 
   /**
    * Create an action to deal with alert box.
-   * 
+   *
    * @param decision the way to deal with alert box
    * @param textVariableName text variable name; non-empty name means to set the text of alert box
    *     as a variable of {@link ActionComposer}
@@ -82,17 +71,17 @@ public class ReplyAlert extends MultiPhaseAction {
     try {
       Alert alertBox = actionComposer.getWebDriver().switchTo().alert();
 
-      //get text when necessary
+      // get text when necessary
       if (!this.textVariableName.isEmpty()) {
         actionComposer.setVariable(this.textVariableName, alertBox.getText());
       }
 
-      //send keys when necessary
+      // send keys when necessary
       if (!this.keysToSend.isEmpty()) {
         alertBox.sendKeys(this.keysToSend);
       }
 
-      //deal with alert box
+      // deal with alert box
       switch (this.decision) {
         case Accept:
           alertBox.accept();
@@ -105,10 +94,14 @@ public class ReplyAlert extends MultiPhaseAction {
       }
       noNextPhase();
     } catch (StaleElementReferenceException ignoreE) {
-      //with next phase when StaleElementReferenceException is encountered
+      // with next phase when StaleElementReferenceException is encountered
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(),
-            actionComposer.getName(), toString(), ignoreE);
+        LOGGER.debug(
+            "{}({}): encounter stale element:{}",
+            ActionComposer.class.getSimpleName(),
+            actionComposer.getName(),
+            toString(),
+            ignoreE);
       }
     } catch (Exception e) {
       noNextPhase();
@@ -118,7 +111,8 @@ public class ReplyAlert extends MultiPhaseAction {
 
   @Override
   public String toString() {
-    return String.format("%s:%s/%s/%s", ReplyAlert.class.getSimpleName(), decision.toString(),
-        textVariableName, keysToSend);
+    return String.format(
+        "%s:%s/%s/%s",
+        ReplyAlert.class.getSimpleName(), decision.toString(), textVariableName, keysToSend);
   }
 }

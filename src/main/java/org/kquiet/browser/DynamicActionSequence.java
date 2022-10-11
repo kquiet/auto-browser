@@ -20,13 +20,13 @@ import org.kquiet.browser.action.Composable;
 
 /**
  * An {@link DynamicActionSequence} is a sequence of actions which supports add operations.
- * 
+ *
  * @author Kimberly
  */
 public interface DynamicActionSequence {
   /**
    * Add action to the head of the action sequence.
-   * 
+   *
    * @param action action to add
    * @return self reference
    */
@@ -34,7 +34,7 @@ public interface DynamicActionSequence {
 
   /**
    * Add action to the tail of the action sequence.
-   * 
+   *
    * @param action action to add
    * @return self reference
    */
@@ -42,7 +42,7 @@ public interface DynamicActionSequence {
 
   /**
    * Add action to the specified position of the action sequence.
-   * 
+   *
    * @param action action to add
    * @param position the position(zero-based) to add given action
    * @return self reference
@@ -50,9 +50,9 @@ public interface DynamicActionSequence {
   DynamicActionSequence addToPosition(Composable action, int position);
 
   /**
-   * Add action to the tail of the action sequence. This method is a short cut of
-   * {@link #addToTail(org.kquiet.browser.action.Composable) }.
-   * 
+   * Add action to the tail of the action sequence. This method is a short cut of {@link
+   * #addToTail(org.kquiet.browser.action.Composable) }.
+   *
    * @param action action to add
    * @return self reference
    */

@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@link CommonThreadFactory} is for internal use to prefix thread pools.
- * 
+ *
  * @author Kimberly
  */
 class CommonThreadFactory implements ThreadFactory {
@@ -31,7 +31,7 @@ class CommonThreadFactory implements ThreadFactory {
 
   /**
    * Create a {@link ThreadFactory} with specified pool name.
-   * 
+   *
    * @param poolName pool name used in prefix
    */
   public CommonThreadFactory(String poolName) {

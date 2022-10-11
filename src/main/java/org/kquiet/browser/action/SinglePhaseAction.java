@@ -18,7 +18,7 @@ package org.kquiet.browser.action;
 
 /**
  * {@link SinglePhaseAction} is a subclass of {@link MultiPhaseAction} which has only one phase.
- * 
+ *
  * @author Kimberly
  */
 public abstract class SinglePhaseAction extends MultiPhaseAction {
@@ -32,8 +32,6 @@ public abstract class SinglePhaseAction extends MultiPhaseAction {
     }
   }
 
-  /**
-   * Perform single-phased browser action.
-   */
+  /** Perform single-phased browser action. */
   protected abstract void performSinglePhase();
 }

@@ -22,29 +22,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.DynamicActionSequence;
 import org.kquiet.browser.action.exception.ActionException;
-
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according
- * to the evaluation result of specified function.
- * If this function returns something different from null or false then the result is positive;
- * otherwise negative.
- * 
- * {@link IfThenElse} maintains two lists of actions internally:
+ * {@link IfThenElse} is a subclass of {@link SinglePhaseAction} which performs actions according to
+ * the evaluation result of specified function. If this function returns something different from
+ * null or false then the result is positive; otherwise negative.
+ *
+ * <p>{@link IfThenElse} maintains two lists of actions internally:
+ *
  * <ul>
- * <li>positive action list - list of actions to perform for positive result</li>
- * <li>negative action list - list of actions to perform for negative result</li>
+ *   <li>positive action list - list of actions to perform for positive result
+ *   <li>negative action list - list of actions to perform for negative result
  * </ul>
- * 
+ *
  * @author Kimberly
  */
 @NonBrowserable
@@ -58,12 +55,14 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
 
   /**
    * Create an action representing if-then-else condition.
-   * 
+   *
    * @param evalFunction the function to evaluate
    * @param positiveActionList the actions to perform if the result is true
    * @param negativeActionList the actions to perform if the result is false
    */
-  public IfThenElse(Function<ActionComposer, ?> evalFunction, List<Composable> positiveActionList,
+  public IfThenElse(
+      Function<ActionComposer, ?> evalFunction,
+      List<Composable> positiveActionList,
       List<Composable> negativeActionList) {
     this.evalFunction = evalFunction;
     if (positiveActionList != null) {
@@ -76,29 +75,42 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
 
   private boolean evaluate() throws Exception {
     AtomicBoolean evalResult = new AtomicBoolean(true);
-    MultiPhaseAction customAction = new Custom(ps -> ac -> {
-      Object obj = null;
-      try {
-        obj = evalFunction.apply(ac);
-        ps.noNextPhase();
-      } catch (StaleElementReferenceException ignoreE) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("{}({}): encounter stale element:{}", ActionComposer.class.getSimpleName(),
-              ac.getName(), ps, ignoreE);
-        }
-      } catch (NoSuchElementException skipE) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("{}({}): no such element:{}", ActionComposer.class.getSimpleName(),
-              ac.getName(), ps, skipE);
-        }
-        obj = null;
-        ps.noNextPhase();
-      } catch (Exception e) {
-        ps.noNextPhase();
-        throw new ActionException(e);
-      }
-      evalResult.set(obj != null && (Boolean.class != obj.getClass() || Boolean.TRUE.equals(obj)));
-    }, null);
+    MultiPhaseAction customAction =
+        new Custom(
+            ps ->
+                ac -> {
+                  Object obj = null;
+                  try {
+                    obj = evalFunction.apply(ac);
+                    ps.noNextPhase();
+                  } catch (StaleElementReferenceException ignoreE) {
+                    if (LOGGER.isDebugEnabled()) {
+                      LOGGER.debug(
+                          "{}({}): encounter stale element:{}",
+                          ActionComposer.class.getSimpleName(),
+                          ac.getName(),
+                          ps,
+                          ignoreE);
+                    }
+                  } catch (NoSuchElementException skipE) {
+                    if (LOGGER.isDebugEnabled()) {
+                      LOGGER.debug(
+                          "{}({}): no such element:{}",
+                          ActionComposer.class.getSimpleName(),
+                          ac.getName(),
+                          ps,
+                          skipE);
+                    }
+                    obj = null;
+                    ps.noNextPhase();
+                  } catch (Exception e) {
+                    ps.noNextPhase();
+                    throw new ActionException(e);
+                  }
+                  evalResult.set(
+                      obj != null && (Boolean.class != obj.getClass() || Boolean.TRUE.equals(obj)));
+                },
+            null);
     getComposer().perform(customAction);
 
     List<Exception> errors = customAction.getErrors();
@@ -112,8 +124,8 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
   protected void performSinglePhase() {
     try {
       evaluationResult = evaluate();
-      Deque<Composable> actualActionList = evaluationResult
-          ? positiveActionList : negativeActionList;
+      Deque<Composable> actualActionList =
+          evaluationResult ? positiveActionList : negativeActionList;
       List<Composable> temp = new ArrayList<>(actualActionList);
       boolean anyActionFail = false;
       int index = 0;
@@ -139,19 +151,22 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
 
   @Override
   public boolean isFail() {
-    return super.isFail() || positiveActionList.stream().anyMatch(s -> s.isFail())
+    return super.isFail()
+        || positiveActionList.stream().anyMatch(s -> s.isFail())
         || negativeActionList.stream().anyMatch(s -> s.isFail());
   }
 
   @Override
   public List<Exception> getErrors() {
     List<Exception> errList = new ArrayList<>(super.getErrors());
-    positiveActionList.forEach(action -> {
-      errList.addAll(action.getErrors());
-    });
-    negativeActionList.forEach(action -> {
-      errList.addAll(action.getErrors());
-    });
+    positiveActionList.forEach(
+        action -> {
+          errList.addAll(action.getErrors());
+        });
+    negativeActionList.forEach(
+        action -> {
+          errList.addAll(action.getErrors());
+        });
     return errList;
   }
 
@@ -162,8 +177,8 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
   @Override
   public DynamicActionSequence addToHead(Composable action) {
     if (action != null && evaluationResult != null) {
-      Deque<Composable> actualActionList = evaluationResult
-          ? positiveActionList : negativeActionList;
+      Deque<Composable> actualActionList =
+          evaluationResult ? positiveActionList : negativeActionList;
       synchronized (actualActionList) {
         actualActionList.addFirst(action);
       }
@@ -178,8 +193,8 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
   @Override
   public DynamicActionSequence addToTail(Composable action) {
     if (action != null && evaluationResult != null) {
-      Deque<Composable> actualActionList = evaluationResult
-          ? positiveActionList : negativeActionList;
+      Deque<Composable> actualActionList =
+          evaluationResult ? positiveActionList : negativeActionList;
       synchronized (actualActionList) {
         actualActionList.addLast(action);
       }
@@ -194,8 +209,8 @@ public class IfThenElse extends SinglePhaseAction implements DynamicActionSequen
   @Override
   public DynamicActionSequence addToPosition(Composable action, int position) {
     if (action != null && evaluationResult != null) {
-      Deque<Composable> actualActionList = evaluationResult
-          ? positiveActionList : negativeActionList;
+      Deque<Composable> actualActionList =
+          evaluationResult ? positiveActionList : negativeActionList;
       synchronized (actualActionList) {
         List<Composable> temp = new ArrayList<>(actualActionList);
         temp.add(position, action);

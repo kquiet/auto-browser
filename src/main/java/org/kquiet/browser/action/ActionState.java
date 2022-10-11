@@ -18,19 +18,15 @@ package org.kquiet.browser.action;
 
 /**
  * The state of a browser action.
- * 
+ *
  * @author Kimberly
  */
 public enum ActionState {
 
-  /**
-   * Indicate the browser action is created.
-   */
+  /** Indicate the browser action is created. */
   CREATED,
 
-  /**
-   * Indicate the browser action is running.
-   */
+  /** Indicate the browser action is running. */
   RUNNING,
 
   /**
@@ -39,13 +35,9 @@ public enum ActionState {
    */
   WAIT_FOR_NEXT_PHASE,
 
-  /**
-   * Indicate the browser action has finished with error(s).
-   */
+  /** Indicate the browser action has finished with error(s). */
   COMPLETE_WITH_ERROR,
 
-  /**
-   * Indicate the browser action has finished with no error.
-   */
+  /** Indicate the browser action has finished with no error. */
   COMPLETE
 }

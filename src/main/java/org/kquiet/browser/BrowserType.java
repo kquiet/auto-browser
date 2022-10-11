@@ -18,19 +18,15 @@ package org.kquiet.browser;
 
 /**
  * Supported browser type.
- * 
+ *
  * @author Kimberly
  */
 public enum BrowserType {
 
-  /**
-   * Browser chrome / chromium.
-   */
+  /** Browser chrome / chromium. */
   CHROME("chrome"),
 
-  /**
-   * Browser firefox.
-   */
+  /** Browser firefox. */
   FIREFOX("firefox");
 
   private String text;
@@ -45,9 +41,9 @@ public enum BrowserType {
   }
 
   /**
-   * Get {@link BrowserType} represented by parsing its text(case insensitive).
-   * 'Chromium' is considered as BrowserType.CHROME.
-   * 
+   * Get {@link BrowserType} represented by parsing its text(case insensitive). 'Chromium' is
+   * considered as BrowserType.CHROME.
+   *
    * @param text text to be parsed
    * @return {@link BrowserType} represented by text; otherwise null
    */

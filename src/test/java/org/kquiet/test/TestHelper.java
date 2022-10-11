@@ -19,24 +19,23 @@ package org.kquiet.test;
 import org.kquiet.browser.ActionRunner;
 import org.kquiet.browser.BasicActionRunner;
 import org.kquiet.browser.BrowserType;
-
 import org.openqa.selenium.PageLoadStrategy;
 
 /**
  * Helper class for testing.
- * 
+ *
  * @author Kimberly
  */
 public class TestHelper {
 
   /**
    * Create a browser.
-   * 
+   *
    * @param maxConcurrentComposer concurrency of browser
    * @return created browser
    */
   public static ActionRunner createRunner(int maxConcurrentComposer) {
-    BrowserType browserType = BrowserType.CHROME; //use chrome as default test browser
+    BrowserType browserType = BrowserType.CHROME; // use chrome as default test browser
     BrowserType temp = BrowserType.fromString(System.getProperty("test.browser"));
     if (temp != null) {
       browserType = temp;

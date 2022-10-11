@@ -17,15 +17,13 @@
 package org.kquiet.browser;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import org.kquiet.concurrent.PausablePriorityThreadPoolExecutor;
 import org.kquiet.concurrent.PriorityRunnable;
-
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.ImmutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
@@ -36,20 +34,18 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.CapabilityType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link BasicActionRunner} maintains two prioritized thread pool internally to execute
- * {@link ActionComposer} and browser actions separatedly.
- * The thread pool for {@link ActionComposer} allows multiple ones to be run concurrently(depends on
- * parameter values in constructors).
- * The thread pool for browser actions is single-threaded,
- * so only one browser action is executed at a time(due to
- * <a href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe" target="_blank">
- * the constraint of WebDriver</a>).
- * 
+ * {@link BasicActionRunner} maintains two prioritized thread pool internally to execute {@link
+ * ActionComposer} and browser actions separatedly. The thread pool for {@link ActionComposer}
+ * allows multiple ones to be run concurrently(depends on parameter values in constructors). The
+ * thread pool for browser actions is single-threaded, so only one browser action is executed at a
+ * time(due to <a
+ * href="https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe"
+ * target="_blank"> the constraint of WebDriver</a>).
+ *
  * @author Kimberly
  */
 public class BasicActionRunner implements ActionRunner {
@@ -76,22 +72,25 @@ public class BasicActionRunner implements ActionRunner {
   /**
    * Create an {@link BasicActionRunner} with {@link PageLoadStrategy#NONE} as page load strategy
    * and {@link BrowserType#CHROME} as browser type.
-   * 
-   * @param maxConcurrentComposer the max number of {@link ActionComposer} that could be executed
-   *     by this {@link BasicActionRunner} concurrently.
+   *
+   * @param maxConcurrentComposer the max number of {@link ActionComposer} that could be executed by
+   *     this {@link BasicActionRunner} concurrently.
    */
   public BasicActionRunner(int maxConcurrentComposer) {
     this(PageLoadStrategy.NONE, BrowserType.CHROME, maxConcurrentComposer);
   }
 
   /**
-   * Create an {@link BasicActionRunner} with specified page load strategy, browser type, name,
-   * and at most one {@link ActionComposer} is allowed to be executed at a time.
-   * 
+   * Create an {@link BasicActionRunner} with specified page load strategy, browser type, name, and
+   * at most one {@link ActionComposer} is allowed to be executed at a time.
+   *
    * @param pageLoadStrategy page load strategy
    * @param browserType the type of browser
-   * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank"> possible page load strategies </a>
-   * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
+   * @see <a
+   *     href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java"
+   *     target="_blank"> possible page load strategies </a> and <a
+   *     href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies"
+   *     target="_blank">corresponding document readiness</a>
    */
   public BasicActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType) {
     this(pageLoadStrategy, browserType, 1);
@@ -100,32 +99,36 @@ public class BasicActionRunner implements ActionRunner {
   /**
    * Create an {@link BasicActionRunner} with specified page load strategy, browser type, name, and
    * max number of concurrent composer.
-   * 
+   *
    * @param pageLoadStrategy page load strategy
    * @param browserType the type of browser
    * @param maxConcurrentComposer max number of {@link ActionComposer} that could be executed
    *     concurrently
-   * @see <a href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java" target="_blank">
-   *     possible page load strategies </a>
-   * and <a href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies" target="_blank">corresponding document readiness</a>
+   * @see <a
+   *     href="https://github.com/SeleniumHQ/selenium/blob/master/java/client/src/org/openqa/selenium/PageLoadStrategy.java"
+   *     target="_blank"> possible page load strategies </a> and <a
+   *     href="https://w3c.github.io/webdriver/#dfn-table-of-page-load-strategies"
+   *     target="_blank">corresponding document readiness</a>
    */
-  public BasicActionRunner(PageLoadStrategy pageLoadStrategy, BrowserType browserType,
-      int maxConcurrentComposer) {
-    this.browserActionExecutor = new PausablePriorityThreadPoolExecutor(
-        "BrowserActionExecutorPool", 1, 1);
-    this.composerExecutor = new PausablePriorityThreadPoolExecutor(
-        "ActionComposerExecutorPool", maxConcurrentComposer, maxConcurrentComposer);
+  public BasicActionRunner(
+      PageLoadStrategy pageLoadStrategy, BrowserType browserType, int maxConcurrentComposer) {
+    this.browserActionExecutor =
+        new PausablePriorityThreadPoolExecutor("BrowserActionExecutorPool", 1, 1);
+    this.composerExecutor =
+        new PausablePriorityThreadPoolExecutor(
+            "ActionComposerExecutorPool", maxConcurrentComposer, maxConcurrentComposer);
 
     this.brsDriver = createBrowserDriver(browserType, pageLoadStrategy);
 
-    this.brsDriver.manage().timeouts().implicitlyWait(1, TimeUnit.MILLISECONDS);
+    this.brsDriver.manage().timeouts().implicitlyWait(Duration.ofMillis(1));
     this.rootWindowIdentity = this.brsDriver.getWindowHandle();
   }
 
-  private static WebDriver createBrowserDriver(BrowserType browserType,
-      PageLoadStrategy pageLoadStrategy) {
-    Capabilities extraCapabilities = new ImmutableCapabilities(CapabilityType.PAGE_LOAD_STRATEGY,
-        pageLoadStrategy.toString().toLowerCase());
+  private static WebDriver createBrowserDriver(
+      BrowserType browserType, PageLoadStrategy pageLoadStrategy) {
+    Capabilities extraCapabilities =
+        new ImmutableCapabilities(
+            CapabilityType.PAGE_LOAD_STRATEGY, pageLoadStrategy.toString().toLowerCase());
     switch (browserType) {
       case CHROME:
         ChromeOptions chromeOption = new ChromeOptions();
@@ -163,8 +166,11 @@ public class BasicActionRunner implements ActionRunner {
   }
 
   private static String getDefaultUserDataDir(BrowserType browserType) {
-    boolean isWindows = Optional.ofNullable(System.getProperty("os.name")).orElse("")
-        .toLowerCase(Locale.ENGLISH).startsWith("windows");
+    boolean isWindows =
+        Optional.ofNullable(System.getProperty("os.name"))
+            .orElse("")
+            .toLowerCase(Locale.ENGLISH)
+            .startsWith("windows");
     String path;
     switch (browserType) {
       case CHROME:
@@ -193,8 +199,11 @@ public class BasicActionRunner implements ActionRunner {
         if (!pathFile.isDirectory()) {
           path = null;
         } else {
-          String[] dirs = pathFile.list((current, name) ->
-              new File(current, name).isDirectory() && name.toLowerCase().endsWith(".default"));
+          String[] dirs =
+              pathFile.list(
+                  (current, name) ->
+                      new File(current, name).isDirectory()
+                          && name.toLowerCase().endsWith(".default"));
           if (dirs != null && dirs.length > 0) {
             path = new File(pathFile, dirs[0]).getAbsolutePath();
           } else {
@@ -203,8 +212,8 @@ public class BasicActionRunner implements ActionRunner {
         }
         break;
       default:
-        throw new UnsupportedOperationException("Unsupported browser type:"
-            + browserType.toString());
+        throw new UnsupportedOperationException(
+            "Unsupported browser type:" + browserType.toString());
     }
     return path;
   }
@@ -228,14 +237,17 @@ public class BasicActionRunner implements ActionRunner {
   @Override
   public CompletableFuture<Void> executeAction(Runnable browserAction, int priority) {
     CompletableFuture<Void> future = new CompletableFuture<>();
-    PriorityRunnable runnable = new PriorityRunnable(() -> {
-      try {
-        browserAction.run();
-        future.complete(null);
-      } catch (Exception ex) {
-        future.completeExceptionally(ex);
-      }
-    }, priority);
+    PriorityRunnable runnable =
+        new PriorityRunnable(
+            () -> {
+              try {
+                browserAction.run();
+                future.complete(null);
+              } catch (Exception ex) {
+                future.completeExceptionally(ex);
+              }
+            },
+            priority);
     browserActionExecutor.submit(runnable);
     return future;
   }
@@ -244,14 +256,17 @@ public class BasicActionRunner implements ActionRunner {
   public CompletableFuture<Void> executeComposer(ActionComposer actionComposer) {
     actionComposer.setActionRunner(this);
     CompletableFuture<Void> future = new CompletableFuture<>();
-    PriorityRunnable runnable = new PriorityRunnable(() -> {
-      try {
-        actionComposer.run();
-        future.complete(null);
-      } catch (Exception ex) {
-        future.completeExceptionally(ex);
-      }
-    }, actionComposer.getPriority());
+    PriorityRunnable runnable =
+        new PriorityRunnable(
+            () -> {
+              try {
+                actionComposer.run();
+                future.complete(null);
+              } catch (Exception ex) {
+                future.completeExceptionally(ex);
+              }
+            },
+            actionComposer.getPriority());
     composerExecutor.submit(runnable);
     return future;
   }
@@ -265,7 +280,7 @@ public class BasicActionRunner implements ActionRunner {
    * This method checks the existence of root window and use the result as the result of browser's
    * aliveness. When a negative result is acquired, users can choose to {@link #close() close}
    * {@link ActionRunner} and create a new one.
-   * 
+   *
    * @return {@code true} if the root window exists; {@code false} otherwise
    */
   @Override
@@ -276,7 +291,8 @@ public class BasicActionRunner implements ActionRunner {
 
     try {
       Set<String> windowSet = brsDriver.getWindowHandles();
-      return (windowSet != null && !windowSet.isEmpty()
+      return (windowSet != null
+          && !windowSet.isEmpty()
           && windowSet.contains(getRootWindowIdentity()));
     } catch (Exception ex) {
       LOGGER.warn("[{}] check browser alive error!", name, ex);
@@ -299,9 +315,7 @@ public class BasicActionRunner implements ActionRunner {
     composerExecutor.pause();
   }
 
-  /**
-   * Resume to executing queued {@link ActionComposer} or browser action (if any).
-   */
+  /** Resume to executing queued {@link ActionComposer} or browser action (if any). */
   @Override
   public void resume() {
     if (!isPaused) {
