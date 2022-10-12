@@ -79,14 +79,8 @@ jobs:
       id: output-target-branch
       run: |
         echo "::set-output name=target-branch::`cat ${{ runner.temp }}/TARGET_BRANCH`"
-  call-maven-test:
-    needs: precheck
-    uses: ./.github/workflows/maven-test.yml
-    with:
-      ref: ${{ needs.precheck.outputs.target-branch }}
-    secrets: inherit
   maven-deploy-staging:
-    needs: [precheck, call-maven-test]
+    needs: [precheck]
     runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
@@ -117,7 +111,7 @@ jobs:
       run: |
         mvn clean deploy -B -DskipTests -Darguments=-DskipTests -Prelease
   renew-javadoc:
-    needs: [precheck, call-maven-test, maven-deploy-staging]
+    needs: [precheck, maven-deploy-staging]
     runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
@@ -146,7 +140,7 @@ jobs:
           git push
         fi
   create-pull-request:
-    needs: [precheck, call-maven-test, maven-deploy-staging, renew-javadoc]
+    needs: [precheck, maven-deploy-staging, renew-javadoc]
     runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
