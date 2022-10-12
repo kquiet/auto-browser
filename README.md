@@ -1,4 +1,4 @@
-# Auto-browser [![Travis CI build status](https://travis-ci.org/kquiet/auto-browser.svg?branch=master)](https://travis-ci.org/kquiet/auto-browser)
+# Auto-browser [![Continuous Integration](https://github.com/kquiet/auto-browser/actions/workflows/continuous-integration.yml/badge.svg?branch=dev)](https://github.com/kquiet/auto-browser/actions/workflows/continuous-integration.yml) [![Continuous Delievery - staging](https://github.com/kquiet/auto-browser/actions/workflows/continuous-delivery-staging.yml/badge.svg)](https://github.com/kquiet/auto-browser/actions/workflows/continuous-delivery-staging.yml)
 Auto-browser is a java library which wraps [selenium][] to help focus on
 constructing and executing scripts of browser actions in applications.
 
@@ -7,11 +7,11 @@ as you usually do with a mouse and a keyboard, e.g., log in to an e-commerce sit
 and place orders.
 
 However, webdriver
-[is not thread-safe](https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#user-content-q-is-webdriver-thread-safe)
+[is not thread-safe](https://www.selenium.dev/documentation/legacy/selenium_2/faq/#q-is-webdriver-thread-safe)
 , so there is still a lot of cumbersome work to do when you want to:
 
 - execute multiple scripts of browser actions concurrently against a webdriver
-instance without breaking each other
+instance without breaking each other(serializing access)
 - avoid blocking the other script of browser actions while performing wait alike
 actions on a webdriver instance
 

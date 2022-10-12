@@ -152,6 +152,11 @@
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
+            <manifestEntries>
+              <Build-Time>${maven.build.timestamp}</Build-Time>
+              <Implementation-SCM-Revision>${buildNumber}</Implementation-SCM-Revision>
+              <Implementation-SCM-Branch>${scmBranch}</Implementation-SCM-Branch>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -198,6 +203,20 @@
           <testSourceDirectories>${project.build.testSourceDirectory}</testSourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <violationSeverity>warning</violationSeverity>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals><goal>create</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
         </configuration>
       </plugin>
     </plugins>

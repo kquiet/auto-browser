@@ -1,0 +1,40 @@
+name: continuous-delivery-release
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+jobs:
+  release-basic:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    concurrency:
+      group: delivery-release-${{ github.head_ref }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: master
+    - name: Set tag name to use later
+      id: set-tag-name
+      run: |
+        TAG_NAME=`mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout`-`echo -n "${{ github.head_ref }}"|sed "s/release\///"|sed "s/hotfix\///"`
+        echo "tag-name=$TAG_NAME" >> $GITHUB_OUTPUT
+        echo "tag name: $TAG_NAME"
+    - name: Create a tag and a release associated with the tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
+      run: |
+        gh release create ${{ steps.set-tag-name.outputs.tag-name }} --target ${{ github.event.pull_request.merge_commit_sha }} --generate-notes
+    - name: Create or comment a pull request based on dev
+      env:
+        GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
+      run: |
+        COMMENT="[release] ${{ steps.set-tag-name.outputs.tag-name }} has been released"
+        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base dev --head ${{ github.head_ref }} --json number --jq .[0].number`
+        if [[ $OPEN_PR_NUMBER != "" ]]
+        then
+          gh pr comment $OPEN_PR_NUMBER --body "$COMMENT"
+        else
+          gh pr create --base dev --head "${{ github.head_ref }}" --assignee "@me" --title "${{ github.head_ref }} into dev" --body "$COMMENT"
+        fi
