@@ -33,7 +33,7 @@ Add below to [maven][]'s `pom.xml`:
 </dependency>
 ```
 
-Java version 1.8+ is required.
+Java 17+ is required.
 
 ## Sample Usage
 1. Construct a script of browser actions:
