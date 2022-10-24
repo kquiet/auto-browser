@@ -11,9 +11,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>17</java.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
+    <selenium.version>4.5.0</selenium.version>
     <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver\106.0.5249.61\win32</test.webdriver.directory.chrome.windows>
     <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver/106.0.5249.61/linux64</test.webdriver.directory.chrome.linux>
     <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver\0.31.0\win64</test.webdriver.directory.firefox.windows>
@@ -29,9 +28,34 @@
 
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-java</artifactId>
-      <version>4.5.0</version>
+      <artifactId>selenium-api</artifactId>
+      <version>${selenium.version}</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-remote-driver</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-support</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-firefox-driver</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-chrome-driver</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -53,7 +77,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.1</version>
+      <version>1.4.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -153,6 +177,7 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
             <manifestEntries>
+              <Automatic-Module-Name>${project.groupId}.autobrowser</Automatic-Module-Name>
               <Build-Time>${maven.build.timestamp}</Build-Time>
               <Implementation-SCM-Revision>${buildNumber}</Implementation-SCM-Revision>
               <Implementation-SCM-Branch>${scmBranch}</Implementation-SCM-Branch>
@@ -313,6 +338,7 @@
                   <goal>jar</goal>
                 </goals>
                 <configuration>
+                  <release>8</release>
                   <doclint>none</doclint>
                 </configuration>
               </execution>

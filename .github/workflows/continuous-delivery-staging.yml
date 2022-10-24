@@ -9,6 +9,8 @@ jobs:
       target-branch: ${{ steps.output-target-branch.outputs.target-branch }}
     steps:
     - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.BOT_ACTION_TOKEN }}
     - name: Check pom version
       id: check-pom-version
       run: |
