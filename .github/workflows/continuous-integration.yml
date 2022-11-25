@@ -1,17 +1,11 @@
 name: continuous-integration
 on:
   pull_request:
-    types: [opened, reopened]
+    types:
+    - '*'
     branches:
     - master
     - dev
-  push:
-    paths:
-    - 'pom.xml'
-    - 'checkstyle.xml'
-    - 'src/**'
-    - '.github/workflows/continuous-integration.yml'
-    - '.github/workflows/maven-test.yml'
 jobs:
   call-maven-test:
     if: github.ref_type == 'branch' && (github.ref_name == 'master' || github.ref_name == 'dev' || startsWith(github.ref_name, 'feature/') || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/') || endsWith(github.ref_name, '/merge'))
