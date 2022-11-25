@@ -8,7 +8,7 @@ on:
 jobs:
   release-basic:
     if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     concurrency:
       group: delivery-release-${{ github.head_ref }}
     steps:
