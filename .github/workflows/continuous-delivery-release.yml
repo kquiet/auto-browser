@@ -2,13 +2,13 @@ name: continuous-delivery-release
 on:
   pull_request:
     types:
-      - closed
+    - closed
     branches:
-      - master
+    - master
 jobs:
   release-basic:
     if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     concurrency:
       group: delivery-release-${{ github.head_ref }}
     steps:
@@ -31,10 +31,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
       run: |
         COMMENT="[release] ${{ steps.set-tag-name.outputs.tag-name }} has been released"
-        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base dev --head ${{ github.head_ref }} --json number --jq .[0].number`
+        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base dev --head master --json number --jq .[0].number`
         if [[ $OPEN_PR_NUMBER != "" ]]
         then
           gh pr comment $OPEN_PR_NUMBER --body "$COMMENT"
         else
-          gh pr create --base dev --head "${{ github.head_ref }}" --assignee "@me" --title "${{ github.head_ref }} into dev" --body "$COMMENT"
+          gh pr create --base dev --head master --assignee "@me" --title "master into dev" --body "$COMMENT"
         fi

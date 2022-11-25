@@ -34,6 +34,8 @@ nb-configuration.xml
 .project
 .settings/
 .vscode/
+.checkstyle
+.factorypath
 
 # temp file of markdown
 *.md.html
