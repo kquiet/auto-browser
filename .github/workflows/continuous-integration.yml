@@ -4,8 +4,7 @@ on:
     type:
     - '*'
     branches:
-    - master
-    - dev
+    - '*'
 jobs:
   test:
     runs-on: ubuntu-20.04
