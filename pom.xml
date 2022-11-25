@@ -12,7 +12,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
-    <selenium.version>4.5.0</selenium.version>
+    <selenium.version>4.6.0</selenium.version>
     <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver\106.0.5249.61\win32</test.webdriver.directory.chrome.windows>
     <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver/106.0.5249.61/linux64</test.webdriver.directory.chrome.linux>
     <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver\0.31.0\win64</test.webdriver.directory.firefox.windows>
@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.3</version>
+      <version>2.0.4</version>
     </dependency>
 
     <dependency>
@@ -77,7 +77,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.4</version>
+      <version>1.4.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
