@@ -41,7 +41,7 @@ Java 17+ is required.
 // Search for the link to the source code of ActionComposerBuilder.java, and then click it
 ActionComposer actionComposer = new ActionComposerBuilder()
   .prepareActionSequence()
-    .getUrl("https://github.com/kquiet/auto-browser/find/master")
+    .getUrl("https://github.com/kquiet/auto-browser/find/main")
     .waitUntil(elementToBeClickable(By.id("tree-finder-field")), 3000)
     .sendKey(By.id("tree-finder-field"), "ActionComposerBuilder")
     .waitUntil(elementToBeClickable(By.xpath("//mark[text()='ActionComposerBuilder']")), 3000)
@@ -77,7 +77,7 @@ public class Sample {
     try (ActionRunner actionRunner = new BasicActionRunner()) {
       ActionComposer actionComposer = new ActionComposerBuilder()
         .prepareActionSequence()
-          .getUrl("https://github.com/kquiet/auto-browser/find/master")
+          .getUrl("https://github.com/kquiet/auto-browser/find/main")
           .waitUntil(elementToBeClickable(By.id("tree-finder-field")), 3000)
           .sendKey(By.id("tree-finder-field"), "ActionComposerBuilder")
           .waitUntil(elementToBeClickable(By.xpath("//mark[text()='ActionComposerBuilder']")), 3000)

@@ -60,7 +60,7 @@ import org.openqa.selenium.WebDriver;
  * <pre>
  * ActionComposer actionComposer = new ActionComposerBuilder()
  *    .prepareActionSequence()
- *        .getUrl("https://github.com/kquiet/auto-browser/find/master")
+ *        .getUrl("https://github.com/kquiet/auto-browser/find/main")
  *        .waitUntil(ExpectedConditions.elementToBeClickable(By.id("tree-finder-field")), 3000)
  *        .sendKey(By.id("tree-finder-field"), "ActionComposerBuilder")
  *        .waitUntil(ExpectedConditions.elementToBeClickable(

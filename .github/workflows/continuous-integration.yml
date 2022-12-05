@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, reopened]
     branches:
-    - master
+    - main
     - dev
   push:
     paths:
@@ -14,7 +14,7 @@ on:
     - '.github/workflows/maven-test.yml'
 jobs:
   call-maven-test:
-    if: github.ref_type == 'branch' && (github.ref_name == 'master' || github.ref_name == 'dev' || startsWith(github.ref_name, 'feature/') || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/') || endsWith(github.ref_name, '/merge'))
+    if: github.ref_type == 'branch' && (github.ref_name == 'main' || github.ref_name == 'dev' || startsWith(github.ref_name, 'feature/') || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/') || endsWith(github.ref_name, '/merge'))
     uses: ./.github/workflows/maven-test.yml
     with:
       ref: ${{ github.sha }}
@@ -23,7 +23,7 @@ jobs:
     if: github.ref_type == 'branch' && github.ref_name == 'dev'
     needs:
     - call-maven-test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: deploy-snapshot-${{ github.sha }}
     environment: 

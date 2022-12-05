@@ -4,17 +4,17 @@ on:
     types:
     - closed
     branches:
-    - master
+    - main
 jobs:
   release-basic:
     if: github.event.pull_request.merged == true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: delivery-release-${{ github.head_ref }}
     steps:
     - uses: actions/checkout@v3
       with:
-        ref: master
+        ref: main
     - name: Set tag name to use later
       id: set-tag-name
       run: |

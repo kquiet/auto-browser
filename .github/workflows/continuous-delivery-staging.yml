@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
 jobs:
   precheck:
-    if: github.ref_type == 'branch' && (github.ref_name == 'dev' || github.ref_name == 'master' || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/'))
-    runs-on: ubuntu-20.04
+    if: github.ref_type == 'branch' && (github.ref_name == 'dev' || github.ref_name == 'main' || startsWith(github.ref_name, 'release/') || startsWith(github.ref_name, 'hotfix/'))
+    runs-on: ubuntu-latest
     outputs:
       target-branch: ${{ steps.output-target-branch.outputs.target-branch }}
     steps:
@@ -28,7 +28,7 @@ jobs:
           exit 1
         fi
 
-        if [[ (! "${{ github.ref_name }}" == "dev") && (! "${{ github.ref_name }}" == "master") && (! "${{ github.ref_name }}" =~ $MAVEN_PROJECT_VERSION$)]]
+        if [[ (! "${{ github.ref_name }}" == "dev") && (! "${{ github.ref_name }}" == "main") && (! "${{ github.ref_name }}" =~ $MAVEN_PROJECT_VERSION$)]]
         then
           echo "branch naming:${{ github.ref_name }} doesn't match with maven pom version!!!"
           exit 1
@@ -55,8 +55,8 @@ jobs:
 
         git push --atomic origin dev $RELEASE_BRANCH
         echo "TARGET_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
-    - name: If master => create hotfix branch, and set target branch
-      if: github.ref_name == 'master'
+    - name: If main => create hotfix branch, and set target branch
+      if: github.ref_name == 'main'
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -88,7 +88,7 @@ jobs:
     secrets: inherit
   maven-deploy-staging:
     needs: [precheck, call-maven-test]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
     environment:
@@ -119,7 +119,7 @@ jobs:
         mvn clean deploy -B -DskipTests -Darguments=-DskipTests -Prelease
   renew-javadoc:
     needs: [precheck, call-maven-test, maven-deploy-staging]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
     steps:
@@ -148,24 +148,24 @@ jobs:
         fi
   create-pull-request:
     needs: [precheck, call-maven-test, maven-deploy-staging, renew-javadoc]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
     steps:
     - uses: actions/checkout@v3
       with:
         ref: ${{ needs.precheck.outputs.target-branch }}
-    - name: Create or comment a pull request based on master
+    - name: Create or comment a pull request based on main
       env:
         GITHUB_TOKEN: ${{ secrets.BOT_ACTION_TOKEN }}
       run: |
         TARGET_VERSION=`echo -n "${{ needs.precheck.outputs.target-branch }}"|sed "s/release\///"|sed "s/hotfix\///"`
         ARTIFACT="`mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout`:`mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout`:$TARGET_VERSION"
         COMMENT="[staging] artifacts deployed to repository; you can use maven to get: mvn dependency:get -Dartifact=\"$ARTIFACT\" -DremoteRepositories=\"https://oss.sonatype.org/content/groups/staging\""
-        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base master --head ${{ needs.precheck.outputs.target-branch }} --json number --jq .[0].number`
+        OPEN_PR_NUMBER=`gh pr list --limit 1 --state open --base main --head ${{ needs.precheck.outputs.target-branch }} --json number --jq .[0].number`
         if [[ $OPEN_PR_NUMBER != "" ]]
         then
           gh pr comment $OPEN_PR_NUMBER --body "$COMMENT"
         else
-          gh pr create --base master --head "${{ needs.precheck.outputs.target-branch }}" --assignee "@me" --title "${{ needs.precheck.outputs.target-branch }} into master" --body "$COMMENT"
+          gh pr create --base main --head "${{ needs.precheck.outputs.target-branch }}" --assignee "@me" --title "${{ needs.precheck.outputs.target-branch }} into main" --body "$COMMENT"
         fi
