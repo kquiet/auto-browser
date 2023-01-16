@@ -16,7 +16,7 @@
     <selenium.version>4.7.2</selenium.version>
     <slf4j.version>2.0.6</slf4j.version>
     
-    <junit-jupiter.version>5.9.1</junit-jupiter.version>
+    <junit.version>5.9.1</junit.version>
     <takes.version>1.24.4</takes.version>
     <logback.version>1.4.5</logback.version>
     <logstash-logback-encoder.version>7.2</logstash-logback-encoder.version>
@@ -26,6 +26,18 @@
     <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver\0.32.0\win64</test.webdriver.directory.firefox.windows>
     <test.webdriver.directory.firefox.linux>${project.basedir}/third_party/webdriver/geckodriver/0.32.0/linux64</test.webdriver.directory.firefox.linux>
   </properties>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -66,14 +78,7 @@
     
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit-jupiter.version}</version>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

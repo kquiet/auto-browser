@@ -117,7 +117,7 @@ jobs:
         MAVEN_GPG_PASSPHRASE: ${{ secrets.BOT_GPG_PASSPHRASE }}
       run: |
         mvn clean deploy -B -DskipTests -Darguments=-DskipTests -Prelease
-  renew-javadoc:
+  generate-javadoc:
     needs: [precheck, call-maven-test, maven-deploy-staging]
     runs-on: ubuntu-latest
     concurrency:
@@ -133,21 +133,28 @@ jobs:
         architecture: x64
         distribution: 'temurin'
         cache: 'maven'
-    - name: Update javadoc
+    - name: Generate javadoc
       run: |
         mvn javadoc:javadoc
-        rm -rf docs
-        cp -rf target/site/apidocs/. docs
-        if [[ `git status --porcelain` ]]
-        then
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m "[staging] update javadoc"
-          git push
-        fi
+    - name: Upload javadoc as github pages
+      uses: actions/upload-pages-artifact@v1
+      with:
+        path: target/site/apidocs
+  deploy-github-page:
+    needs: [precheck, call-maven-test, maven-deploy-staging, generate-javadoc]
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
   create-pull-request:
-    needs: [precheck, call-maven-test, maven-deploy-staging, renew-javadoc]
+    needs: [precheck, call-maven-test, maven-deploy-staging, generate-javadoc, deploy-github-page]
     runs-on: ubuntu-latest
     concurrency:
       group: delivery-staging-${{ needs.precheck.outputs.target-branch }}
