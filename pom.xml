@@ -13,18 +13,18 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     
-    <selenium.version>4.7.2</selenium.version>
+    <selenium.version>4.8.0</selenium.version>
     <slf4j.version>2.0.6</slf4j.version>
     
-    <junit.version>5.9.1</junit.version>
+    <junit.version>5.9.2</junit.version>
     <takes.version>1.24.4</takes.version>
     <logback.version>1.4.5</logback.version>
     <logstash-logback-encoder.version>7.2</logstash-logback-encoder.version>
     
-    <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver\108.0.5359.71\win32</test.webdriver.directory.chrome.windows>
-    <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver/108.0.5359.71/linux64</test.webdriver.directory.chrome.linux>
-    <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver\0.32.0\win64</test.webdriver.directory.firefox.windows>
-    <test.webdriver.directory.firefox.linux>${project.basedir}/third_party/webdriver/geckodriver/0.32.0/linux64</test.webdriver.directory.firefox.linux>
+    <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver\110.0.5481.77\win32</test.webdriver.directory.chrome.windows>
+    <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver/110.0.5481.77/linux64</test.webdriver.directory.chrome.linux>
+    <test.webdriver.directory.firefox.windows>${project.basedir}\third_party\webdriver\geckodriver\0.32.2\win64</test.webdriver.directory.firefox.windows>
+    <test.webdriver.directory.firefox.linux>${project.basedir}/third_party/webdriver/geckodriver/0.32.2/linux64</test.webdriver.directory.firefox.linux>
   </properties>
   
   <dependencyManagement>
@@ -315,7 +315,7 @@
             <version>3.0.0-M7</version>
             <configuration>
               <systemPropertyVariables>
-                <test.browser>chrome</test.browser>
+                <test.browser>firefox</test.browser>
                 <webdriver.chrome.driver>${test.webdriver.directory.chrome.linux}${file.separator}chromedriver</webdriver.chrome.driver>
                 <webdriver.gecko.driver>${test.webdriver.directory.firefox.linux}${file.separator}geckodriver</webdriver.gecko.driver>
                 <webdriver_headless>yes</webdriver_headless>

@@ -11,8 +11,11 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        os: ['ubuntu-latest', 'windows-latest']
+        os: ['ubuntu-latest']
         browser: ['chrome', 'firefox']
+        include:
+          - os: windows-latest
+            browser: firefox
     name: maven-test-${{ matrix.os }}-${{ matrix.browser }}
     runs-on: ${{ matrix.os }}
     steps:
