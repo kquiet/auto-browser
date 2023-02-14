@@ -7,7 +7,7 @@ on:
     - main
 jobs:
   release-basic:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && (startsWith(github.head_ref, 'release/') || startsWith(github.head_ref, 'hotfix/'))
     runs-on: ubuntu-latest
     concurrency:
       group: delivery-release-${{ github.head_ref }}
