@@ -16,6 +16,7 @@ package org.kquiet.browser;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -128,9 +129,12 @@ public class BasicActionRunner implements ActionRunner {
     switch (browserType) {
       case CHROME:
         ChromeOptions chromeOption = new ChromeOptions();
-        if ("no".equalsIgnoreCase(System.getProperty("chrome_sandbox"))) {
-          chromeOption.addArguments("--no-sandbox");
+        List<String> arguments = List.of(
+            Optional.ofNullable(System.getProperty("chrome_option_args")).orElse(",").split(","));
+        if (arguments.size() > 0) {
+          chromeOption.addArguments(arguments);
         }
+
         if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))) {
           chromeOption.addArguments("--headless=new");
           LOGGER.info("headless chrome used");
