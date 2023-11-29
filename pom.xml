@@ -18,7 +18,7 @@
     
     <junit.version>5.9.2</junit.version>
     <takes.version>1.24.4</takes.version>
-    <logback.version>1.4.6</logback.version>
+    <logback.version>1.4.12</logback.version>
     
     <test.webdriver.directory.chrome.windows>${project.basedir}\third_party\webdriver\chromedriver\110.0.5481.77\win32</test.webdriver.directory.chrome.windows>
     <test.webdriver.directory.chrome.linux>${project.basedir}/third_party/webdriver/chromedriver/110.0.5481.77/linux64</test.webdriver.directory.chrome.linux>
