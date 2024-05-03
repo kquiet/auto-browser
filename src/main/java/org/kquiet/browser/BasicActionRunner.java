@@ -129,10 +129,10 @@ public class BasicActionRunner implements ActionRunner {
     switch (browserType) {
       case CHROME:
         ChromeOptions chromeOption = new ChromeOptions();
-        List<String> arguments = List.of(
-            Optional.ofNullable(System.getProperty("chrome_option_args")).orElse(",").split(","));
-        if (arguments.size() > 0) {
-          chromeOption.addArguments(arguments);
+        List<String> chromeOptionArguments = List.of(
+            Optional.ofNullable(System.getProperty("chrome_option_args")).orElse(";").split(";"));
+        if (chromeOptionArguments.size() > 0) {
+          chromeOption.addArguments(chromeOptionArguments);
         }
 
         if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))) {
@@ -150,6 +150,12 @@ public class BasicActionRunner implements ActionRunner {
       case FIREFOX:
       default:
         FirefoxOptions firefoxOption = new FirefoxOptions();
+        List<String> firefoxOptionArguments = List.of(
+            Optional.ofNullable(System.getProperty("firefox_option_args")).orElse(";").split(";"));
+        if (firefoxOptionArguments.size() > 0) {
+          firefoxOption.addArguments(firefoxOptionArguments);
+        }
+
         if ("yes".equalsIgnoreCase(System.getProperty("webdriver_headless"))) {
           firefoxOption.addArguments("-headless");
           LOGGER.info("headless firefox used");
